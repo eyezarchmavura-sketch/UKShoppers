@@ -1,0 +1,135 @@
+/* GlobalCart Orders — filter chips + order cards with status chips per wireframe 2.5. */
+import { useMemo, useState } from "react";
+import { Link } from "wouter";
+import { Package, Boxes, ArrowRight, Truck } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { demoOrders, statusMeta, type OrderStatus } from "@/lib/demoData";
+
+const filters: { id: "all" | OrderStatus | "pending_purchase"; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "pending_purchase", label: "Pending purchase" },
+  { id: "in_warehouse", label: "In warehouse" },
+  { id: "purchased", label: "Purchased" },
+  { id: "shipped", label: "Shipped" },
+  { id: "delivered", label: "Delivered" },
+];
+
+export default function Orders() {
+  const [filter, setFilter] = useState<(typeof filters)[number]["id"]>("all");
+
+  const orders = useMemo(
+    () => (filter === "all" ? demoOrders : demoOrders.filter((o) => o.status === filter)),
+    [filter],
+  );
+
+  return (
+    <div className="p-4 lg:p-8 max-w-[1000px] mx-auto space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-primary">My Orders</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{orders.length} order{orders.length === 1 ? "" : "s"}</p>
+        </div>
+        <Button asChild className="rounded-full active:scale-[0.97]">
+          <Link href="/add">
+            <Package className="w-4 h-4" /> Add Items
+          </Link>
+        </Button>
+      </div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap gap-2">
+        {filters.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors active:scale-[0.97] ${
+              filter === f.id
+                ? "bg-primary text-primary-foreground"
+                : "bg-white border border-border text-foreground/70 hover:bg-muted"
+            }`}>
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Order cards */}
+      <div className="space-y-3">
+        {orders.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground bg-white rounded-xl border border-dashed py-10">
+            No orders match this filter.
+          </p>
+        )}
+        {orders.map((o) => {
+          const meta = statusMeta[o.status];
+          return (
+            <div key={o.id} className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <Package className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold">{o.store}</p>
+                      <span className="text-xs text-muted-foreground font-mono">{o.id}</span>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${meta.tint} ${meta.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                        {meta.label}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/80 mt-1">
+                      {o.items[0].name}
+                      {o.items.length > 1 && (
+                        <span className="text-muted-foreground"> +{o.items.length - 1} more</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Updated {o.updatedAt}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-base font-bold text-primary">{o.total}</p>
+                  <p className="text-xs text-muted-foreground">{o.totalLocal}</p>
+                </div>
+              </div>
+
+              {/* Contextual actions */}
+              <div className="mt-4 pt-3 border-t flex flex-wrap items-center gap-2">
+                {o.status === "in_warehouse" && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Repack option: retail packaging removed — saves ~20% volumetric weight")}
+                      className="rounded-full border-primary/40">
+                      <Boxes className="w-3.5 h-3.5" /> Repack to save weight
+                    </Button>
+                    <Button size="sm" asChild className="rounded-full active:scale-[0.97]">
+                      <Link href="/checkout">
+                        Choose shipping <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </Button>
+                  </>
+                )}
+                {(o.status === "shipped" || o.status === "purchased") && (
+                  <Button size="sm" variant="outline" asChild className="rounded-full border-primary/40">
+                    <Link href="/tracking">
+                      <Truck className="w-3.5 h-3.5" /> Track shipment
+                    </Link>
+                  </Button>
+                )}
+                {o.status === "delivered" && (
+                  <p className="text-xs text-muted-foreground">Delivered {o.updatedAt} — enjoy your items!</p>
+                )}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {o.shippedTo ? `Destination: ${o.shippedTo}` : o.edd ? `EDD ${o.edd}` : "Warehouse: London"}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
