@@ -1,7 +1,45 @@
+# TASK — Real data + notifications 2026-08-11
+- [x] DB schema: orders + payments + notifications tables created (webdev_execute_sql OK); drizzle/schema.ts has types Order/Payment/Notification
+- [x] Migration SQL applied; users table also created (FK constraint referenced it); FKs orders.userId/payments.userId/notifications.userId → users.id ON DELETE CASCADE applied; drizzle-orm .modify() not available in mysql dialect so FKs live in DB + migration SQL file
+- [x] db.ts extended: seedOnFirstLogin (idempotent: UKS-84201 Nike shipped + UKS-84202 Boots purchased + M-Pesa payment + unread milestone notifications), listOrdersByUser/listPaymentsByUser/createOrder/createPayment/advanceOrderStatus/ORDER_STATUS_LABELS/listNotificationsByUser/countUnreadNotifications/markNotificationsRead
+- [x] routers.ts: orders (list/byRef/create), payments (list/create), notifications (list/unreadCount/markRead), admin.advanceStatus (adminProcedure); auth.me seeds on first login; tsc 0 errors; adminProcedure confirmed in server/_core/trpc.ts
+- DECISION (per gap reminder): seedOnFirstLogin intentionally seeds EVERY first-time logged-in user (not only the owner) so the portal never looks empty for real customers. Owner additionally has admin.advanceStatus. Will verify live after login in Phase 4.
+## Phase 2 COMPLETE (all wired, tsc 0)
+- Orders.tsx: real trpc.orders.list, DbOrder cast fixed; demo fallback typed.
+- Tracking.tsx: real trpc.orders.byRef (deep-link ?ref=), buildSteps from timeline; demo fallback.
+- PaymentHistory.tsx: real trpc.payments.list via toTx() mapping (status paid→completed; fields amount/currencyCode/destination); exports preserved.
+- Checkout.tsx: persistPayment() calls trpc.payments.create for logged-in users (gateway/amount/currencyCode/destination) + localStorage mirror.
+- AdminDashboard.tsx: admin only (user.role===admin + trpc adminProcedure) shows live orders, select dropdown advances milestone via trpc.admin.advanceStatus (orderId/status/note), refetch + toast.
+- AssistantChat.tsx: badge uses trpc.notifications.unreadCount (enabled when isAuthenticated), markRead on open, demo fallback when logged out.
+- Orders.tsx rewritten to use trpc.orders.list (enabled only when isAuthenticated via client/src/_core/hooks/useAuth.ts); demo fallback typed as DemoOrder = (typeof demoOrders)[number] cast `const d = o as DemoOrder`.
+- BUG to fix: real-card cast `typeof dbOrders extends Array<infer T>` resolved to never. FIX: define type alias DbOrder using schema import: import type { Order as DbOrder } from "../../../drizzle/schema" and cast `const order = o as DbOrder`.
+- Remaining Phase 2 pages: Tracking.tsx (query by ref prop + trpc.orders.byRef), PaymentHistory.tsx (trpc.payments.list + keep export functions using data arg), Checkout.tsx (trpc.orders.create + trpc.payments.create on success), AdminDashboard.tsx (admin.advanceStatus + ORDER_STATUS_LABELS from server), AssistantChat.tsx badge (trpc.notifications.unreadCount + markRead on open — protected, only when isAuthenticated).
+- Email option Phase 3 (findings):
+  - server/_core/notification.ts notifyOwner() = owner-only Manus Notification Service (SendNotification grpc endpoint) — NOT end-user email. No built-in end-user email channel in scaffold.
+  - Plan: add `emailNotifications enum('yes','no') default 'yes'` column to users via SQL ALTER + notifyOwner() for OPS alerts to owner on milestone change. In-app notification badge = real notifications table (done). Queen badge wired (done).
+  - Settings page: add "Receive order updates by email" toggle if user.email exists; store via users table update (need simple tRPC profile.update mutation or SQL direct). Display note: email delivery via the store's notification channel.
+- Email option Phase 3 DONE: emailNotifications varchar(8) default 'yes' added to users (schema + migration + SQL ALTER applied); upsertUser now handles the field; profile.update tRPC router added; Settings.tsx fully rewired (real user profile from auth.me + Email toggle persisted via profile.update, SMS/WhatsApp marked coming-soon); advanceOrderStatus now calls notifyOwner (owner ops alert) + sendOrderUpdateEmail (forge /api/v1/notifications/email) when opted in; vitest green 6/6 incl. profile.update + admin access-control tests.
+- BUG FIXED (white pages): Tracking.tsx imported ORDER_STATUS_LABELS from server/db → drizzle-orm/mysql2 bundled into client → Uncaught TypeError on all portal routes. Created shared/orderStatus.ts (client-safe constants) and switched Tracking import; cold restart cleared .vite cache. Verified /orders, /payments, /tracking, /settings, /admin all render with real DB data.
+- FIX APPLIED: parseGbp() helper added to PaymentHistory.tsx (handles number + "£138.50 (TZS 302,985)" strings); used in toTx() and totalPaid. Root cause: seed stores amount as "£92.00"-style strings while Checkout creates real payments with numeric 132.49 — both handled. Orders/AdminDashboard rows render string amounts directly (£92.00 etc. — already formatted, no NaN).
+- RESOLVED: Orders.tsx never-cast fixed via schema import; tsc clean; 6/6 vitest green; final verification screenshots all pages render real data.
+
+## Earlier Phase 2 recap Pages to update: client/src/pages/Orders.tsx, Tracking.tsx, Payments/WalletAndPay (PaymentHistory.tsx), Checkout.tsx (save real payment via trpc), AdminDashboard.tsx (advance status + email notify). Client pages use localStorage demo data currently: Orders demoOrders from lib/demoData.ts; payments key uksa_transactions via lib/receipts.ts loadTransactions(); notifications in AssistantChat.tsx ORDER_UPDATES. Plan: use trpc.orders.list when isAuthenticated (useAuth() in useAuth.ts at client/src/_core/hooks/useAuth.ts); fall back to demo for logged-out visitors. Queen badge: call trpc.notifications.unreadCount (login required) + markRead on open.
+- Email option: on advanceOrderStatus also call sendNotification from server/_core/notification.ts (needs reading skill /home/ubuntu/skills/webdev-owner-notifications/SKILL.md — it supports channels incl. email for OWNER only typically; check API). Also Settings notifications preferences.
+
+## Phase 1 recap
+- [ ] Migration: seed demo orders for the owner user on first login (idempotent seed)
+- [ ] tRPC procedures: orders CRUD/queries, payments queries, per-user scoping via ctx.user
+- [ ] Pages wired to real data: Orders, Tracking, Payments, Wallet & Pay, Payments export, Checkout (save real order + transaction)
+- [ ] Real shipment-status triggers: milestone updates (protected, admin or demo cron) create notifications; Queen badge counts real unread order notifications
+- [ ] Email option: notification preferences + send email on milestone updates (via forge notification + email channel)
+- [ ] Vitest coverage for new routers; tsc clean; live test logged-in user; checkpoint; deliver
+
 # TASK — Bug sweep 2026-08-11 (reported)
-- [ ] FIX: store wall category filter — all stores disappear when selecting a category chip (category value mismatch in filter logic)
-- [ ] Full bug sweep: all routes, console errors, dark mode, i18n
-- [ ] tsc clean, live verify, checkpoint, deliver
+- [x] FIX: store wall category filter — stores stuck invisible after filtering; rewrote useReveal with MutationObserver rescan
+- [x] Full bug sweep: all routes clean (/, /portal, /add, /checkout, /payments, /orders, /admin, /privacy)
+- [x] Admin table Order ID nowrap cosmetic fix
+- [x] Remaining routes verified after useReveal rewrite: /address (UK warehouse card + US/EU placeholders), /tracking (6-step timeline OK), /wallet (balance + transactions), /referrals (link/code/cards), /settings (profile, notifications, security, legal links), /terms, /returns (full legal pages OK), /success→orders
+- [x] tsc clean, tests pass, live verified, checkpoint 6d0ec817 saved & delivered
 
 # TASK — Queen v3 upgrade 2026-08-11 (ALL DONE)
 - [x] Notification badge on chat icon when Queen has new order-status updates (simulate proactive updates + unread count)

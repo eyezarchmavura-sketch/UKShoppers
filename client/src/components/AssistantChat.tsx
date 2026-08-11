@@ -3,6 +3,7 @@ import { Bot, Loader2, MessageCircle, PackageSearch, Receipt, Send, ShoppingCart
 import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { loadTransactions } from "@/lib/receipts";
 import { demoOrders, demoTransactions } from "@/lib/demoData";
 import type { Lang } from "@/lib/i18n";
@@ -231,17 +232,27 @@ function loadSaved(): { messages: ChatMessage[]; language: Lang } | null {
 
 export default function AssistantChat() {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [language, setLanguage] = useState<Lang>("en");
   const [initialized, setInitialized] = useState(false);
   const [pending, setPending] = useState(false);
-  const [unread, setUnread] = useState(loadSavedUpdates().length);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatMutation = trpc.assistant.chat.useMutation({
     mutationKey: ["queen-chat", language],
   });
+
+  // Real unread order-status notification count — drives the Queen badge.
+  const { data: unreadCount, refetch: refetchUnread } = trpc.notifications.unreadCount.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const markRead = trpc.notifications.markRead.useMutation();
+  // Fallback to the simulated demo updates when logged out.
+  const realUnread = isAuthenticated ? (unreadCount ?? 0) : 0;
+  const unread = isAuthenticated ? realUnread : loadSavedUpdates().length;
 
   // Persist conversation across page refreshes.
   useEffect(() => {
@@ -260,8 +271,6 @@ export default function AssistantChat() {
       setLanguage(saved.language);
     }
     setInitialized(true);
-    // Fresh badge count on every page load — any update not yet opened counts.
-    setUnread(loadSavedUpdates().length);
   }, []);
 
   useEffect(() => {
@@ -269,11 +278,15 @@ export default function AssistantChat() {
   }, [messages, open, pending]);
 
   const dismissUpdates = () => {
-    setUnread(0);
-    try {
-      localStorage.setItem(UPDATES_KEY, JSON.stringify([]));
-    } catch {
-      // Storage unavailable — degrade gracefully.
+    // Mark real unread notifications as read on first open.
+    if (isAuthenticated) {
+      markRead.mutate(undefined, { onSuccess: () => refetchUnread() });
+    } else {
+      try {
+        localStorage.setItem(UPDATES_KEY, JSON.stringify([]));
+      } catch {
+        // Storage unavailable — degrade gracefully.
+      }
     }
   };
 

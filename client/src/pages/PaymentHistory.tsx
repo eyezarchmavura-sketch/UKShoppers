@@ -1,12 +1,16 @@
 /* UK Shoppers Africa — Payment History
-   Brand: black ink + gold. Shows past transactions: date, gateway, amount (GBP + local), status, receipt download.
+   Brand: black ink + gold. Real database transactions for logged-in users,
+   demo fallback for logged-out visitors. Export works for both.
    Style note: gold/black/faint-blue tokens from index.css; fully localized via t() (en/sw/rw/lg). */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CreditCard, Smartphone, Landmark, Wallet, Download, Search, FileSpreadsheet, FileText } from "lucide-react";
 import { ensureDemoHistory, downloadReceipt, downloadTransactionsCsv, downloadTransactionsPdf, type PaymentTransaction } from "@/lib/receipts";
 import { DESTINATION_LABELS } from "@/lib/currency";
 import { tr } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import type { Payment as DbPayment } from "../../../drizzle/schema";
 
 const GATEWAY_ICON: Record<string, typeof CreditCard> = {
   paystack: CreditCard,
@@ -16,15 +20,32 @@ const GATEWAY_ICON: Record<string, typeof CreditCard> = {
   wallet: Wallet,
 };
 
+const STATUS_STYLE: Record<string, string> = {
+  completed: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
+  pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+  refunded: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800",
+  failed: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800",
+};
+
 export default function PaymentHistory() {
   const { lang } = useLanguage();
-  const [txs, setTxs] = useState<PaymentTransaction[]>([]);
-  const [filter, setFilter] = useState<"all" | PaymentTransaction["status"]>("all");
+  const { isAuthenticated } = useAuth();
+  const [filter, setFilter] = useState<"all" | "completed" | "pending" | "refunded" | "failed">("all");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    setTxs(ensureDemoHistory());
-  }, []);
+  const { data: dbPayments, isLoading } = trpc.payments.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const txs = useMemo<PaymentTransaction[]>(() => {
+    if (!isAuthenticated || !dbPayments) {
+      return ensureDemoHistory();
+    }
+    // Map real DB payments into the shared transaction shape so filters,
+    // summary cards, and exports work identically.
+    return dbPayments.map((p) => toTx(p));
+  }, [dbPayments, isAuthenticated]);
 
   const filtered = txs.filter(
     (t) =>
@@ -32,25 +53,19 @@ export default function PaymentHistory() {
       (query === "" || t.ref.toLowerCase().includes(query.toLowerCase()) || t.gatewayLabel.toLowerCase().includes(query.toLowerCase()))
   );
 
-  const totalPaid = txs.filter((t) => t.status === "completed").reduce((s, t) => s + t.amountGbp, 0);
-
-  const STATUS_STYLE: Record<PaymentTransaction["status"], string> = {
-    completed: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
-    pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-    refunded: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800",
-  };
-
-  const STATUS_LABEL: Record<PaymentTransaction["status"], string> = {
-    completed: tr("pay.paid", lang),
-    pending: tr("pay.pendingStatus", lang),
-    refunded: tr("pay.refunded", lang),
-  };
+  const totalPaid = txs
+    .filter((t) => t.status === "completed")
+    .reduce((s, t) => s + (Number.isFinite(t.amountGbp) ? t.amountGbp : 0), 0);
+  const isReal = isAuthenticated && Boolean(dbPayments);
 
   return (
     <div className="p-4 lg:p-8 max-w-[1000px] mx-auto space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-primary">{tr("pay.title", lang)}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{tr("pay.sub", lang)}</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {tr("pay.sub", lang)}
+          {isLoading ? " Loading…" : ""}
+        </p>
       </div>
 
       {/* Summary cards */}
@@ -140,7 +155,9 @@ export default function PaymentHistory() {
         {filtered.length === 0 && (
           <div className="bg-white dark:bg-card rounded-xl p-10 text-center">
             <Wallet className="w-10 h-10 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground mt-3">{tr("pay.none", lang)}</p>
+            <p className="text-sm text-muted-foreground mt-3">
+              {isReal ? tr("pay.none", lang) + " " + tr("pay.noneRealHint", lang) : tr("pay.none", lang)}
+            </p>
           </div>
         )}
         {filtered.map((t) => {
@@ -160,8 +177,8 @@ export default function PaymentHistory() {
                 <p className="text-[11px] text-muted-foreground">{t.localAmount}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${STATUS_STYLE[t.status]}`}>
-                  {STATUS_LABEL[t.status]}
+                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${STATUS_STYLE[t.status] ?? STATUS_STYLE.pending}`}>
+                  {t.status === "completed" ? tr("pay.paid", lang) : t.status === "refunded" ? tr("pay.refunded", lang) : tr("pay.pendingStatus", lang)}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   {new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
@@ -182,4 +199,38 @@ export default function PaymentHistory() {
       </div>
     </div>
   );
+}
+
+/** Parse a DB amount value (number or "£92.00 (TZS 231,840)" style string) into a GBP number. */
+function parseGbp(value: number | string | null | undefined): number {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (!value) return 0;
+  const match = String(value).match(/\d+(?:[.,]\d+)*/);
+  const n = match ? parseFloat(match[0].replace(/,/, ".")) : 0;
+  return Number.isFinite(n) ? n : 0;
+}
+
+const GATEWAY_LABEL: Record<string, string> = {
+  paystack: "Paystack",
+  flutterwave: "Flutterwave",
+  mpesa: "M-Pesa",
+  bank: "Bank Transfer",
+  wallet: "Wallet",
+};
+
+/** Convert a real DB payment row into the shared PaymentTransaction shape. */
+export function toTx(p: DbPayment): PaymentTransaction {
+  const status: PaymentTransaction["status"] = p.status === "paid" ? "completed" : "pending";
+  return {
+    ref: p.ref,
+    date: p.createdAt.toISOString(),
+    gateway: p.gateway,
+    gatewayLabel: GATEWAY_LABEL[p.gateway] ?? p.gateway,
+    items: p.destination ?? "",
+    amountGbp: parseGbp(p.amount),
+    localAmount: p.currencyCode !== "GBP" ? p.amount + " " + p.currencyCode : "",
+    destCode: p.destination ?? "",
+    customer: "",
+    status,
+  };
 }

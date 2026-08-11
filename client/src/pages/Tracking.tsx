@@ -1,23 +1,99 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, MapPin, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { demoTracking, demoOrders } from "@/lib/demoData";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import type { Order as DbOrder } from "../../../drizzle/schema";
+import { ORDER_STATUS_LABELS } from "@shared/orderStatus";
+
+type Step = { title: string; detail: string; time: string; done: boolean; active: boolean };
+
+function useAuthOrders(ref?: string) {
+  const { isAuthenticated } = useAuth();
+  const { data: dbOrder } = trpc.orders.byRef.useQuery(
+    { ref: ref ?? "" },
+    { enabled: isAuthenticated && Boolean(ref), retry: false },
+  );
+  return { isAuthenticated, dbOrder };
+}
+
+function buildSteps(order: DbOrder): Step[] {
+  const pipeline = Object.keys(ORDER_STATUS_LABELS);
+  const timeline = order.timeline ? (JSON.parse(order.timeline) as Array<{ at: string; status: string; note: string }>) : [];
+  const reached = new Set(timeline.map((t) => t.status));
+  const activeIdx = pipeline.indexOf(order.status);
+
+  return pipeline.map((status, i) => {
+    const ev = [...timeline].reverse().find((t) => t.status === status);
+    if (i < activeIdx) {
+      return {
+        title: ORDER_STATUS_LABELS[status],
+        detail: ev?.note ?? "Completed",
+        time: ev ? new Date(ev.at).toLocaleString() : "",
+        done: true,
+        active: false,
+      };
+    }
+    if (i === activeIdx) {
+      return {
+        title: ORDER_STATUS_LABELS[status],
+        detail: ev?.note ?? "Latest checkpoint",
+        time: ev ? new Date(ev.at).toLocaleString() : "",
+        done: false,
+        active: true,
+      };
+    }
+    return {
+      title: ORDER_STATUS_LABELS[status],
+      detail: "Upcoming checkpoint",
+      time: "",
+      done: false,
+      active: false,
+    };
+  });
+}
 
 export default function Tracking() {
   const [whatsapp, setWhatsapp] = useState(true);
+
+  // Accept ?ref=UKS-84201 to deep-link from an order card; otherwise default to the first shipped order.
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const refParam = params.get("ref") ?? undefined;
+
+  const { isAuthenticated, dbOrder } = useAuthOrders(refParam);
+
+  const { steps, orderLabel, orderEdd, real } = useMemo(() => {
+    if (isAuthenticated && dbOrder) {
+      const timeline = dbOrder.timeline ? (JSON.parse(dbOrder.timeline) as Array<{ at: string }>) : [];
+      const last = timeline[timeline.length - 1];
+      return {
+        steps: buildSteps(dbOrder),
+        orderLabel: `${dbOrder.ref} · ${dbOrder.store} → ${dbOrder.destination}`,
+        orderEdd: last ? new Date(last.at).toLocaleDateString() : undefined,
+        real: true,
+      };
+    }
+    return {
+      steps: demoTracking,
+      orderLabel: `${demoOrders[0].trackingNumber} · Nike UK → Dar es Salaam`,
+      orderEdd: demoOrders[0].edd,
+      real: false,
+    };
+  }, [dbOrder, isAuthenticated]);
 
   return (
     <div className="p-4 lg:p-8 max-w-[900px] mx-auto space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-primary">Shipment Tracking</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-mono">{demoOrders[0].trackingNumber} · Nike UK → Dar es Salaam</p>
+          <p className="text-sm text-muted-foreground mt-1 font-mono">{orderLabel}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground uppercase tracking-wide">Estimated delivery</p>
-          <p className="text-lg font-bold text-primary">{demoOrders[0].edd}, 2026</p>
+          <p className="text-lg font-bold text-primary">{orderEdd ?? "—"}</p>
         </div>
       </div>
 
@@ -43,12 +119,10 @@ export default function Tracking() {
       {/* Stepper */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
         <div className="relative pl-6 space-y-0">
-          {demoTracking.map((s, i) => (
+          {steps.map((s, i) => (
             <div key={s.title} className="relative pb-6 last:pb-0">
-              {i < demoTracking.length - 1 && (
-                <span
-                  className={`absolute left-[11px] top-6 bottom-0 w-px ${s.done ? "bg-primary" : "bg-border"}`}
-                />
+              {i < steps.length - 1 && (
+                <span className={`absolute left-[11px] top-6 bottom-0 w-px ${s.done ? "bg-primary" : "bg-border"}`} />
               )}
               <span
                 className={`absolute -left-6 top-0.5 w-[23px] h-[23px] rounded-full flex items-center justify-center ${
@@ -63,11 +137,16 @@ export default function Tracking() {
               <div className={`ml-9 ${s.done || s.active ? "" : "opacity-60"}`}>
                 <p className={`text-sm font-semibold ${s.active ? "text-primary" : "text-foreground"}`}>{s.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{s.detail}</p>
-                <p className="text-xs text-muted-foreground/70 mt-0.5">{s.time}</p>
+                {s.time && <p className="text-xs text-muted-foreground/70 mt-0.5">{s.time}</p>}
               </div>
             </div>
           ))}
         </div>
+        {real && (
+          <p className="text-xs text-muted-foreground mt-4 border-t pt-3">
+            Live tracking from the London warehouse to your doorstep — updated automatically at each checkpoint.
+          </p>
+        )}
       </div>
 
       {/* WhatsApp toggle */}
@@ -81,7 +160,7 @@ export default function Tracking() {
             </p>
           </div>
         </div>
-        <Switch checked={whatsapp} onCheckedChange={setWhatsapp} />
+        <Switch checked={whatsapp} onCheckedChange={(v) => { setWhatsapp(v); toast.success(v ? "WhatsApp updates enabled" : "WhatsApp updates paused"); }} />
       </div>
 
       <Button variant="outline" asChild className="rounded-full border-primary/40 w-fit">

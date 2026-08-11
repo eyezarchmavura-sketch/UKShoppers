@@ -3,14 +3,34 @@ import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { ASSISTANT_KNOWLEDGE } from "./assistantKnowledge";
+import {
+  ORDER_STATUS_LABELS,
+  advanceOrderStatus,
+  countUnreadNotifications,
+  createOrder,
+  createPayment,
+  listNotificationsByUser,
+  listOrdersByUser,
+  listPaymentsByUser,
+  markNotificationsRead,
+  seedOnFirstLogin,
+  upsertUser,
+} from "./db";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(async ({ ctx }) => {
+      // Seed starter orders, a payment, and milestone notifications the first
+      // time a logged-in user visits the portal so the experience is never empty.
+      if (ctx.user && ctx.user.id) {
+        await seedOnFirstLogin(ctx.user.id, ctx.user.name ?? null);
+      }
+      return ctx.user;
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -20,12 +40,110 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  orders: router({
+    list: protectedProcedure.query(({ ctx }) => listOrdersByUser(ctx.user.id)),
+    byRef: protectedProcedure
+      .input(z.object({ ref: z.string().min(3) }))
+      .query(async ({ ctx, input }) => {
+        const all = await listOrdersByUser(ctx.user.id);
+        return all.find(o => o.ref.toLowerCase() === input.ref.toLowerCase());
+      }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          store: z.string().min(1),
+          item: z.string().min(1).max(512),
+          destination: z.string().min(1),
+          amountGbp: z.string().min(1),
+          amountLocal: z.string().optional(),
+          currencyCode: z.string().optional(),
+          weightKg: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const count = (await listOrdersByUser(ctx.user.id)).length;
+        const ref = `UKS-${84300 + count + Math.floor(Math.random() * 99)}`;
+        await createOrder({
+          ref,
+          userId: ctx.user.id,
+          store: input.store,
+          item: input.item,
+          destination: input.destination,
+          amountGbp: input.amountGbp,
+          amountLocal: input.amountLocal,
+          currencyCode: input.currencyCode ?? "GBP",
+          weightKg: input.weightKg,
+          status: "pending_purchase",
+          timeline: JSON.stringify([
+            { at: new Date().toISOString(), status: "pending_purchase", note: "Order created by " + (ctx.user.name ?? "customer") },
+          ]),
+        });
+        return { ref };
+      }),
+  }),
+
+  payments: router({
+    list: protectedProcedure.query(({ ctx }) => listPaymentsByUser(ctx.user.id)),
+    create: protectedProcedure
+      .input(
+        z.object({
+          orderId: z.number().optional(),
+          gateway: z.string().min(1),
+          amount: z.string().min(1),
+          currencyCode: z.string().min(1),
+          destination: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const count = (await listPaymentsByUser(ctx.user.id)).length;
+        const ref = `TXN-${Date.now().toString().slice(-8)}-${count}`;
+        await createPayment({
+          ref,
+          userId: ctx.user.id,
+          orderId: input.orderId ?? null,
+          gateway: input.gateway,
+          status: "paid",
+          amount: input.amount,
+          currencyCode: input.currencyCode,
+          destination: input.destination,
+        });
+        return { ref };
+      }),
+  }),
+
+  notifications: router({
+    list: protectedProcedure.query(({ ctx }) => listNotificationsByUser(ctx.user.id)),
+    unreadCount: protectedProcedure.query(({ ctx }) => countUnreadNotifications(ctx.user.id)),
+    markRead: protectedProcedure.mutation(({ ctx }) => markNotificationsRead(ctx.user.id)),
+  }),
+
+  profile: router({
+    update: protectedProcedure
+      .input(
+        z.object({
+          emailNotifications: z.enum(["yes", "no"]).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        await upsertUser({ openId: ctx.user.openId, emailNotifications: input.emailNotifications });
+        return { success: true };
+      }),
+  }),
+
+  admin: router({
+    advanceStatus: adminProcedure
+      .input(
+        z.object({
+          orderId: z.number(),
+          status: z.enum(Object.keys(ORDER_STATUS_LABELS) as [string, ...string[]]),
+          note: z.string().min(1).max(200),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const newStatus = await advanceOrderStatus(input.orderId, input.status, input.note);
+        return { status: newStatus };
+      }),
+  }),
 
   assistant: router({
     chat: publicProcedure

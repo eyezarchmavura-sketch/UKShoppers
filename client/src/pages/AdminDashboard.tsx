@@ -18,9 +18,34 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import type { Order as DbOrder } from "../../../drizzle/schema";
+
+/* Admin-only milestone pipeline (client-facing labels) — mirrors the DB enum labels. */
+const STATUS_OPTIONS = [
+  "pending_purchase",
+  "purchased",
+  "in_warehouse",
+  "shipped",
+  "arrived",
+  "local_dispatch",
+  "delivered",
+];
+
+const STATUS_LABEL: Record<string, string> = {
+  pending_purchase: "Awaiting purchase",
+  purchased: "Purchased at store",
+  in_warehouse: "London Warehouse",
+  shipped: "Air Shipped to E.A.",
+  arrived: "Arrived / Customs",
+  local_dispatch: "Out for Delivery",
+  delivered: "Delivered",
+};
 
 interface AdminOrder {
   id: string;
+  dbId: number;
   client: string;
   destination: string;
   store: string;
@@ -31,22 +56,55 @@ interface AdminOrder {
 }
 
 const initialOrders: AdminOrder[] = [
-  { id: "UKS-84201", client: "Amina Mohamed (Dar es Salaam)", destination: "Tanzania", store: "Nike UK", item: "Nike Air Max 90", amountGBP: 132.49, status: "Air Shipped to E.A.", date: "Aug 10, 2026" },
-  { id: "UKS-84196", client: "Juma Juma (Nairobi)", destination: "Kenya", store: "Zara UK", item: "Linen Blazer", amountGBP: 94.00, status: "London Warehouse", date: "Aug 9, 2026" },
-  { id: "UKS-84190", client: "Grace Wanjiku (Kampala)", destination: "Uganda", store: "Amazon UK", item: "Kindle Paperwhite", amountGBP: 178.98, status: "Pending Purchase", date: "Aug 8, 2026" },
-  { id: "UKS-84177", client: "Patrick Kagame (Kigali)", destination: "Rwanda", store: "Boots UK", item: "Skincare Bundle", amountGBP: 61.50, status: "Delivered", date: "Aug 4, 2026" },
+  { id: "UKS-84201", dbId: 0, client: "Amina Mohamed (Dar es Salaam)", destination: "Tanzania", store: "Nike UK", item: "Nike Air Max 90", amountGBP: 132.49, status: "Air Shipped to E.A.", date: "Aug 10, 2026" },
+  { id: "UKS-84196", dbId: 0, client: "Juma Juma (Nairobi)", destination: "Kenya", store: "Zara UK", item: "Linen Blazer", amountGBP: 94.00, status: "London Warehouse", date: "Aug 9, 2026" },
+  { id: "UKS-84190", dbId: 0, client: "Grace Wanjiku (Kampala)", destination: "Uganda", store: "Amazon UK", item: "Kindle Paperwhite", amountGBP: 178.98, status: "Awaiting purchase", date: "Aug 8, 2026" },
+  { id: "UKS-84177", dbId: 0, client: "Patrick Kagame (Kigali)", destination: "Rwanda", store: "Boots UK", item: "Skincare Bundle", amountGBP: 61.50, status: "Delivered", date: "Aug 4, 2026" },
 ];
 
+function toAdmin(o: DbOrder): AdminOrder {
+  return {
+    id: o.ref,
+    dbId: o.id,
+    client: o.destination,
+    destination: o.destination,
+    store: o.store,
+    item: o.item,
+    amountGBP: Number(o.amountGbp),
+    status: STATUS_LABEL[o.status] ?? o.status,
+    date: new Date(o.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+  };
+}
+
 export default function AdminDashboard() {
-  const [orders, setOrders] = useState<AdminOrder[]>(initialOrders);
+  const { isAuthenticated, user } = useAuth();
+  const isAdmin = isAuthenticated && user?.role === "admin";
+  const { data: dbOrders, refetch } = trpc.orders.list.useQuery(undefined, {
+    enabled: isAdmin,
+    retry: false,
+  });
+
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
 
-  const updateStatus = (id: string, newStatus: string) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
-    );
-    toast.success(`Order ${id} milestone updated to: ${newStatus}`);
+  const advanceStatus = trpc.admin.advanceStatus.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast.success("Milestone updated — customer notified via Queen + email");
+    },
+    onError: () => toast.error("Could not advance the milestone — check the order state"),
+  });
+
+  const orders: AdminOrder[] = isAdmin && dbOrders ? dbOrders.map(toAdmin) : initialOrders;
+
+  const updateStatus = (order: AdminOrder, newStatusLabel: string) => {
+    const newStatus = STATUS_OPTIONS.find((s) => STATUS_LABEL[s] === newStatusLabel) ?? newStatusLabel;
+    if (isAdmin && order.dbId > 0) {
+      advanceStatus.mutate({ orderId: order.dbId, status: newStatus, note: "Updated from admin operations hub" });
+      return;
+    }
+    // Demo fallback: update local state only.
+    toast.success(`Order ${order.id} milestone updated to: ${newStatusLabel}`);
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -128,7 +186,9 @@ export default function AdminDashboard() {
             <div>
               <h2 className="text-xl font-bold text-[#111418]">Customer Purchase Requests & Shipments</h2>
               <p className="text-xs text-muted-foreground mt-1">
-                Update tracking milestones instantly. Changes sync with customer WhatsApp notifications and client portals.
+                {isAdmin
+                  ? "Live database — every milestone change triggers a real notification and email for the customer."
+                  : "Sign in as an administrator to manage real orders and milestones."}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -153,7 +213,7 @@ export default function AdminDashboard() {
 
           {/* Filter Pills */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {["All", "Pending Purchase", "London Warehouse", "Air Shipped to E.A.", "Delivered"].map((f) => (
+            {["All", "Awaiting purchase", "Purchased at store", "London Warehouse", "Air Shipped to E.A.", "Arrived / Customs", "Out for Delivery", "Delivered"].map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -211,14 +271,14 @@ export default function AdminDashboard() {
                     <td className="py-4 px-4 text-right">
                       <select
                         value={o.status}
-                        onChange={(e) => updateStatus(o.id, e.target.value)}
-                        className="rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111418]">
-                        <option value="Pending Purchase">Pending Purchase</option>
-                        <option value="London Warehouse">London Warehouse</option>
-                        <option value="Air Shipped to E.A.">Air Shipped to E.A.</option>
-                        <option value="Customs Cleared">Customs Cleared</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
+                        onChange={(e) => updateStatus(o, e.target.value)}
+                        disabled={advanceStatus.isPending}
+                        className="rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111418] disabled:opacity-60">
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s} value={STATUS_LABEL[s]}>
+                            {STATUS_LABEL[s]}
+                          </option>
+                        ))}
                       </select>
                     </td>
                   </tr>

@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `emailNotifications` varchar(8) DEFAULT 'yes' NOT NULL;

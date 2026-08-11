@@ -30,6 +30,8 @@ import { PaystackButton } from "react-paystack";
 import { useFlutterwave } from "flutterwave-react-v3";
 import { DESTINATIONS, DESTINATION_LABELS, gbpWithLocal, type LocalCurrency } from "@/lib/currency";
 import { saveLastPayment, type PaymentTransaction } from "@/lib/receipts";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const TOTAL_GBP = 132.49;
 
@@ -97,6 +99,8 @@ const steps = ["Address", "Payment", "Confirm"];
 
 export default function Checkout() {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
+  const createPayment = trpc.payments.create.useMutation();
   const [step, setStep] = useState(0);
   const [gateway, setGateway] = useState<GatewayId>("paystack");
   const [destCode, setDestCode] = useState("TZ");
@@ -166,22 +170,38 @@ export default function Checkout() {
     setStep((s) => Math.min(s + 1, 2));
   };
 
-  const onSuccess = (tref: string, gwLabel = gateways.find((g) => g.id === gateway)?.label ?? gateway) => {
-    setPaying(false);
-    setTxRef(tref);
+  const persistPayment = (tref: string, gwLabel: string, status: "completed" | "pending") => {
+    const local = gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "";
+    // Persist to the real database for logged-in users; keep the localStorage mirror so
+    // receipts/exports continue to work for everyone.
     const tx: PaymentTransaction = {
       ref: tref,
       date: new Date().toISOString(),
       gateway,
       gatewayLabel: gwLabel,
       amountGbp: TOTAL_GBP,
-      localAmount: gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "—",
+      localAmount: local,
       destCode,
       customer: "Amina M.",
-      status: "completed",
+      status,
       items: "Nike sneakers + ASOS dress + Boots skincare bundle",
     };
     saveLastPayment({ tx });
+    if (isAuthenticated) {
+      createPayment.mutate({
+        gateway,
+        amount: String(TOTAL_GBP),
+        currencyCode: "GBP",
+        destination: DESTINATION_LABELS[destCode] ?? destCode,
+      });
+    }
+    return tx;
+  };
+
+  const onSuccess = (tref: string, gwLabel = gateways.find((g) => g.id === gateway)?.label ?? gateway) => {
+    setPaying(false);
+    setTxRef(tref);
+    persistPayment(tref, gwLabel, "completed");
     toast.success(`Payment received (${tref}) — our London team will buy your items within 24 hours`);
     setTimeout(() => navigate(`/success?ref=${encodeURIComponent(tref)}`), 900);
   };
@@ -238,20 +258,7 @@ export default function Checkout() {
   const confirmBank = () => {
     const tref = txRef || ref();
     setTxRef(tref);
-    saveLastPayment({
-      tx: {
-        ref: tref,
-        date: new Date().toISOString(),
-        gateway: "bank",
-        gatewayLabel: "Bank Transfer",
-        amountGbp: TOTAL_GBP,
-        localAmount: gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "—",
-        destCode,
-        customer: "Amina M.",
-        status: "pending",
-        items: "Nike sneakers + ASOS dress + Boots skincare bundle",
-      },
-    });
+    persistPayment(tref, "Bank Transfer", "pending");
     setBankOpen(false);
     toast.success(`Transfer reference ${tref} logged — order activated once funds clear (1 business day)`);
     navigate(`/success?ref=${encodeURIComponent(tref)}`);
