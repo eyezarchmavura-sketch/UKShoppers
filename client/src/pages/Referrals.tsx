@@ -30,7 +30,7 @@ export default function Referrals() {
         </div>
         <div className="relative space-y-4">
           <div className="flex items-center gap-3">
-            <Gift className="w-6 h-6 text-[#F6E05E]" />
+            <Gift className="w-6 h-6 text-[#D4AF37]" />
             <div>
               <p className="font-display text-xl font-bold">Your referral link</p>
               <p className="text-xs text-primary-foreground/70">Share it anywhere — WhatsApp works best across East Africa.</p>
@@ -38,7 +38,7 @@ export default function Referrals() {
           </div>
           <p className="font-mono text-sm bg-white/10 rounded-lg px-4 py-3 break-all">{link}</p>
           <p className="text-sm">
-            Referral code: <span className="font-mono font-bold text-[#F6E05E]">{code}</span>
+            Referral code: <span className="font-mono font-bold text-[#D4AF37]">{code}</span>
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -49,14 +49,14 @@ export default function Referrals() {
                 toast.success("Link + code copied to clipboard");
               }}
               className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-medium transition-colors active:scale-[0.97]">
-              {copied ? <Check className="w-4 h-4 text-[#F6E05E]" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-[#D4AF37]" /> : <Copy className="w-4 h-4" />}
               {copied ? "Copied!" : "Copy link"}
             </button>
             <a
               href={"https://wa.me/?text=" + encodeURIComponent(`Shop the UK and ship to East Africa with UK Shoppers Africa — use my code ${code} for £6.00 credit: ${link}`)}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#F6E05E] text-primary px-4 py-2 text-sm font-semibold hover:brightness-95 transition-all active:scale-[0.97]">
+              className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] text-primary px-4 py-2 text-sm font-semibold hover:brightness-95 transition-all active:scale-[0.97]">
               <MessageCircle className="w-4 h-4" /> Share to WhatsApp
             </a>
           </div>
@@ -97,7 +97,7 @@ export default function Referrals() {
                   <p className="text-xs text-muted-foreground">{u.status}</p>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
                 £6.00 Earned
               </span>
             </div>

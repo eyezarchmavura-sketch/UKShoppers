@@ -30,7 +30,7 @@ export default function Wallet() {
           </div>
           <Button
             onClick={() => toast("Deposit via M-Pesa, Tigo Pesa, or Card")}
-            className="rounded-full bg-[#F6E05E] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
+            className="rounded-full bg-[#D4AF37] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
             <Plus className="w-4 h-4" /> Deposit funds
           </Button>
         </div>
@@ -56,10 +56,10 @@ export default function Wallet() {
             <div key={t.id} className="flex items-center gap-3 py-3">
               <span
                 className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                  t.type === "in" ? "bg-emerald-100" : "bg-orange-100"
+                  t.type === "in" ? "bg-amber-100" : "bg-orange-100"
                 }`}>
                 {t.type === "in" ? (
-                  <ArrowDownRight className="w-4 h-4 text-emerald-700" />
+                  <ArrowDownRight className="w-4 h-4 text-amber-700" />
                 ) : (
                   <ArrowUpRight className="w-4 h-4 text-orange-700" />
                 )}
@@ -68,7 +68,7 @@ export default function Wallet() {
                 <p className="text-sm font-medium truncate">{t.label}</p>
                 <p className="text-xs text-muted-foreground">{t.time}</p>
               </div>
-              <span className={`text-sm font-bold ${t.type === "in" ? "text-emerald-700" : "text-foreground"}`}>
+              <span className={`text-sm font-bold ${t.type === "in" ? "text-amber-700" : "text-foreground"}`}>
                 {t.amount}
               </span>
             </div>

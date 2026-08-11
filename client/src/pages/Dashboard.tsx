@@ -92,7 +92,7 @@ export default function Dashboard() {
         </div>
         <div className="relative">
           <h2 className="font-display text-xl font-bold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#F6E05E]" /> Paste a link, get an instant quote
+            <Zap className="w-5 h-5 text-[#D4AF37]" /> Paste a link, get an instant quote
           </h2>
           <p className="text-sm text-primary-foreground/70 mt-1">
             Works on Amazon UK, ASOS, Zara, Next, and all UK retail stores.
@@ -111,11 +111,11 @@ export default function Dashboard() {
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://www.amazon.co.uk/dp/..."
-              className="h-11 rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#F6E05E]"
+              className="h-11 rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#D4AF37]"
             />
             <Button
               type="submit"
-              className="h-11 rounded-full bg-[#F6E05E] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
+              className="h-11 rounded-full bg-[#D4AF37] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
               Get Instant Quote
             </Button>
           </form>
@@ -168,7 +168,7 @@ export default function Dashboard() {
         <div className="space-y-4">
           <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
             <h3 className="font-semibold text-sm flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#F6E05E]" /> Loyalty Points
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37]" /> Loyalty Points
             </h3>
             <p className="mt-2 text-2xl font-bold text-primary">2,840 pts</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -178,8 +178,8 @@ export default function Dashboard() {
           </div>
 
           <div className="relative overflow-hidden bg-primary text-primary-foreground rounded-xl p-5">
-            <Gift className="w-8 h-8 text-[#F6E05E] absolute -right-2 -bottom-2 opacity-25" />
-            <p className="text-sm font-semibold text-[#F6E05E]">Refer a friend</p>
+            <Gift className="w-8 h-8 text-[#D4AF37] absolute -right-2 -bottom-2 opacity-25" />
+            <p className="text-sm font-semibold text-[#D4AF37]">Refer a friend</p>
             <p className="text-xs text-primary-foreground/70 mt-1">
               Earn £6.00 credit for every friend who completes their first order to East Africa.
             </p>

@@ -37,8 +37,8 @@ export default function Address() {
         <div className="flex flex-col sm:flex-row gap-5">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <p className="text-sm font-bold text-emerald-700 uppercase tracking-wide">Active · UK Warehouse</p>
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <p className="text-sm font-bold text-amber-700 uppercase tracking-wide">Active · UK Warehouse</p>
             </div>
             <div className="mt-3 space-y-1 font-mono text-sm text-foreground/80">
               <p>{address.name} <span className="font-semibold text-primary">({address.unit})</span></p>
@@ -71,7 +71,7 @@ export default function Address() {
       </div>
 
       {/* How to use */}
-      <div className="bg-[#F6E05E]/40 border border-[#F6E05E] rounded-xl p-5 flex gap-3">
+      <div className="bg-[#D4AF37]/40 border border-[#D4AF37] rounded-xl p-5 flex gap-3">
         <Sparkles className="w-5 h-5 text-[#8a7415] shrink-0 mt-0.5" />
         <div className="text-sm">
           <p className="font-semibold text-[#6b5a0f]">How to use it</p>

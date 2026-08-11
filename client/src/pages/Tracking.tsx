@@ -55,7 +55,7 @@ export default function Tracking() {
                   s.active
                     ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
                     : s.done
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-amber-100 text-amber-700"
                       : "bg-muted text-muted-foreground"
                 }`}>
                 {s.done ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
@@ -73,7 +73,7 @@ export default function Tracking() {
       {/* WhatsApp toggle */}
       <div className="bg-primary text-primary-foreground rounded-xl p-5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <MessageCircle className="w-5 h-5 text-[#F6E05E]" />
+          <MessageCircle className="w-5 h-5 text-[#D4AF37]" />
           <div>
             <p className="text-sm font-semibold">Notify me on WhatsApp</p>
             <p className="text-xs text-primary-foreground/70">

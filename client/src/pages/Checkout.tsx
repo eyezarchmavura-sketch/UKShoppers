@@ -64,7 +64,7 @@ export default function Checkout() {
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5 space-y-4">
           <h2 className="font-semibold">Shipping Destination in East Africa</h2>
           <label className="flex items-start gap-3 border-2 border-primary rounded-lg p-4 cursor-pointer">
-            <input type="radio" name="addr" defaultChecked className="mt-1 accent-[#0A3622]" />
+            <input type="radio" name="addr" defaultChecked className="mt-1 accent-[#111418]" />
             <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold">Home — Dar es Salaam, Tanzania</p>
@@ -88,7 +88,7 @@ export default function Checkout() {
                 </p>
               </div>
             </div>
-            <span className="text-sm font-semibold text-emerald-700">+£11.80 incl.</span>
+            <span className="text-sm font-semibold text-amber-700">+£11.80 incl.</span>
           </div>
         </div>
       )}
@@ -108,7 +108,7 @@ export default function Checkout() {
                   name="pay"
                   checked={payment === p.id}
                   onChange={() => setPayment(p.id)}
-                  className="accent-[#0A3622]"
+                  className="accent-[#111418]"
                 />
                 <p.icon className="w-5 h-5 text-primary" />
                 <div className="flex-1">
@@ -160,7 +160,7 @@ export default function Checkout() {
             Continue to {steps[step + 1]}
           </Button>
         ) : (
-          <Button onClick={pay} disabled={paying} className="rounded-full px-8 bg-[#F6E05E] text-primary hover:brightness-95 font-semibold">
+          <Button onClick={pay} disabled={paying} className="rounded-full px-8 bg-[#D4AF37] text-primary hover:brightness-95 font-semibold">
             {paying ? "Processing payment..." : "Authorize & Pay (£132.49)"}
           </Button>
         )}

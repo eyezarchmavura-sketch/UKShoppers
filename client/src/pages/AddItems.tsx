@@ -89,7 +89,7 @@ export default function AddItems() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Option 1: Paste Link */}
         <form onSubmit={fetchQuote} className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
-          <div className="flex items-center gap-2 font-bold text-[#0A3622]">
+          <div className="flex items-center gap-2 font-bold text-[#111418]">
             <Link2 className="w-5 h-5 text-[#C9A227]" /> Option 1: Paste UK Product Link
           </div>
           <p className="text-xs text-muted-foreground">
@@ -100,9 +100,9 @@ export default function AddItems() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://www.amazon.co.uk/dp/..."
-              className="flex-1 rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3622]"
+              className="flex-1 rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
             />
-            <Button type="submit" disabled={loading} className="rounded-xl px-5 bg-[#0A3622] text-[#F6E05E]">
+            <Button type="submit" disabled={loading} className="rounded-xl px-5 bg-[#111418] text-[#D4AF37]">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
             </Button>
           </div>
@@ -110,21 +110,21 @@ export default function AddItems() {
 
         {/* Option 2: Upload Screenshot */}
         <div className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
-          <div className="flex items-center gap-2 font-bold text-[#0A3622]">
+          <div className="flex items-center gap-2 font-bold text-[#111418]">
             <Upload className="w-5 h-5 text-[#C9A227]" /> Option 2: Upload Cart Screenshot
           </div>
           <p className="text-xs text-muted-foreground">
             Screenshot your basket from any UK store and upload it here for personal shopper review.
           </p>
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:border-[#0A3622] transition-colors bg-[#F4F7F6]">
+          <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:border-[#111418] transition-colors bg-[#F2F4F7]">
             {uploading ? (
               <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-[#0A3622]" /> Uploading & reviewing screenshot...
+                <Loader2 className="w-4 h-4 animate-spin text-[#111418]" /> Uploading & reviewing screenshot...
               </div>
             ) : (
               <>
-                <ImageIcon className="w-6 h-6 text-[#0A3622] mb-1" />
-                <span className="text-xs font-semibold text-[#0A3622]">Click to upload screenshot</span>
+                <ImageIcon className="w-6 h-6 text-[#111418] mb-1" />
+                <span className="text-xs font-semibold text-[#111418]">Click to upload screenshot</span>
                 <span className="text-[10px] text-muted-foreground mt-0.5">PNG, JPG up to 10MB</span>
               </>
             )}
@@ -137,8 +137,8 @@ export default function AddItems() {
       {fetched && (
         <div className="bg-white rounded-2xl shadow-lg border border-border p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex flex-col sm:flex-row gap-6">
-            <div className="w-full sm:w-40 h-40 rounded-2xl bg-[#0A3622]/5 flex items-center justify-center shrink-0 border border-[#0A3622]/10">
-              <ShoppingCart className="w-12 h-12 text-[#0A3622]" />
+            <div className="w-full sm:w-40 h-40 rounded-2xl bg-[#111418]/5 flex items-center justify-center shrink-0 border border-[#111418]/10">
+              <ShoppingCart className="w-12 h-12 text-[#111418]" />
             </div>
             <div className="flex-1 space-y-3">
               <div>
@@ -148,35 +148,35 @@ export default function AddItems() {
                 <h2 className="text-lg font-bold text-foreground mt-1.5">{fetched.name}</h2>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm bg-[#F4F7F6] p-4 rounded-xl">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm bg-[#F2F4F7] p-4 rounded-xl">
                 <div>
                   <p className="text-muted-foreground text-[11px]">Item Price</p>
-                  <p className="font-bold text-[#0A3622]">£{fetched.storePrice.toFixed(2)}</p>
+                  <p className="font-bold text-[#111418]">£{fetched.storePrice.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-[11px]">Service Fee</p>
-                  <p className="font-bold text-[#0A3622]">£{fetched.fee.toFixed(2)}</p>
+                  <p className="font-bold text-[#111418]">£{fetched.fee.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-[11px]">Est. Weight</p>
-                  <p className="font-bold text-[#0A3622]">{fetched.weight} kg</p>
+                  <p className="font-bold text-[#111418]">{fetched.weight} kg</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground text-[11px]">Air Shipping</p>
-                  <p className="font-bold text-[#0A3622]">£{fetched.shipping.toFixed(2)}</p>
+                  <p className="font-bold text-[#111418]">£{fetched.shipping.toFixed(2)}</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Total Estimated Cost (Duties Prepaid)</p>
-                  <p className="text-2xl font-bold text-[#0A3622]">
+                  <p className="text-2xl font-bold text-[#111418]">
                     £{(fetched.storePrice + fetched.fee + fetched.shipping).toFixed(2)}
                   </p>
                   <p className="text-xs font-semibold text-[#C9A227]">≈ TSh 448,500 / KSh 22,400</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={addToCart} className="rounded-full border-[#0A3622]/30">
+                  <Button variant="outline" onClick={addToCart} className="rounded-full border-[#111418]/30">
                     Add to Cart
                   </Button>
                   <Button
@@ -184,7 +184,7 @@ export default function AddItems() {
                       toast.success("Proceeding to checkout with locked quote");
                       navigate("/checkout");
                     }}
-                    className="rounded-full bg-[#0A3622] text-[#F6E05E] hover:bg-[#0A3622]/90 font-semibold px-6">
+                    className="rounded-full bg-[#111418] text-[#D4AF37] hover:bg-[#111418]/90 font-semibold px-6">
                     Proceed to Checkout <CreditCard className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -197,11 +197,11 @@ export default function AddItems() {
       {/* Cart summary */}
       <div className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-[#0A3622] flex items-center gap-2">
+          <h2 className="font-bold text-[#111418] flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-[#C9A227]" /> Active Cart ({cart.length} items)
           </h2>
           {cart.length > 0 && (
-            <span className="font-bold text-[#0A3622]">
+            <span className="font-bold text-[#111418]">
               £{cart.reduce((s, i) => s + i.storePrice + i.fee + i.shipping, 0).toFixed(2)}
             </span>
           )}
@@ -213,12 +213,12 @@ export default function AddItems() {
         ) : (
           <div className="space-y-3">
             {cart.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3.5 bg-[#F4F7F6] rounded-xl text-sm">
+              <div key={idx} className="flex items-center justify-between p-3.5 bg-[#F2F4F7] rounded-xl text-sm">
                 <div>
-                  <p className="font-semibold text-[#0A3622]">{item.name}</p>
+                  <p className="font-semibold text-[#111418]">{item.name}</p>
                   <p className="text-xs text-muted-foreground">{item.store}</p>
                 </div>
-                <p className="font-bold text-[#0A3622]">
+                <p className="font-bold text-[#111418]">
                   £{(item.storePrice + item.fee + item.shipping).toFixed(2)}
                 </p>
               </div>
@@ -226,7 +226,7 @@ export default function AddItems() {
             <div className="pt-2 flex justify-end">
               <Button
                 onClick={() => navigate("/checkout")}
-                className="rounded-full bg-[#0A3622] text-[#F6E05E] font-semibold px-8">
+                className="rounded-full bg-[#111418] text-[#D4AF37] font-semibold px-8">
                 Proceed to Checkout
               </Button>
             </div>

@@ -40,78 +40,95 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-faint-blue: var(--faint-blue);
 }
 
 :root {
-  /* GlobalCart brand: deep green #0A3622, yellow #F6E05E, canvas #F4F7F6 */
-  --primary: oklch(0.32 0.07 160);
-  --primary-foreground: oklch(0.98 0.02 100);
-  --sidebar-primary: oklch(0.32 0.07 160);
-  --sidebar-primary-foreground: oklch(0.98 0.02 100);
-  --chart-1: oklch(0.88 0.15 95);
-  --chart-2: oklch(0.62 0.09 160);
-  --chart-3: oklch(0.45 0.08 160);
-  --chart-4: oklch(0.38 0.075 160);
-  --chart-5: oklch(0.32 0.07 160);
+  /*
+   * Brand: Gold + Black + Faint Blue (UK Shoppers Africa — luxury courier identity)
+   * primary: near-black ink   gold: metallic gold   faint-blue: mist accent
+   */
+  --primary: oklch(0.185 0.015 270);
+  --primary-foreground: oklch(0.97 0.02 90);
+  --sidebar-primary: oklch(0.185 0.015 270);
+  --sidebar-primary-foreground: oklch(0.97 0.02 90);
+  --chart-1: oklch(0.78 0.13 85);
+  --chart-2: oklch(0.62 0.09 85);
+  --chart-3: oklch(0.5 0.06 85);
+  --chart-4: oklch(0.42 0.04 85);
+  --chart-5: oklch(0.32 0.02 85);
   --radius: 0.65rem;
-  --background: oklch(0.97 0.006 160);
-  --foreground: oklch(0.24 0.02 240);
+
+  /* Faint blue + warm ivory canvas */
+  --background: oklch(0.982 0.004 230);
+  --foreground: oklch(0.17 0.012 270);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
+  --card-foreground: oklch(0.17 0.012 270);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.17 0.012 270);
+  --secondary: oklch(0.955 0.008 230);
+  --secondary-foreground: oklch(0.35 0.015 270);
+  --muted: oklch(0.95 0.008 230);
+  --muted-foreground: oklch(0.5 0.012 265);
+  --accent: oklch(0.955 0.012 230);
+  --accent-foreground: oklch(0.2 0.012 270);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.28 0.06 160);
-  --sidebar-foreground: oklch(0.92 0.02 160);
-  --sidebar-accent: oklch(0.36 0.07 160);
-  --sidebar-accent-foreground: oklch(0.98 0.02 100);
-  --sidebar-border: oklch(0.4 0.06 160);
-  --sidebar-ring: oklch(0.88 0.15 95);
+  --border: oklch(0.9 0.008 240);
+  --input: oklch(0.9 0.008 240);
+  --ring: oklch(0.78 0.13 85);
+  --gold: oklch(0.78 0.13 85);
+  --gold-soft: oklch(0.88 0.11 92);
+  --faint-blue: oklch(0.8 0.035 235);
+  --sidebar: oklch(0.22 0.02 270);
+  --sidebar-foreground: oklch(0.9 0.02 90);
+  --sidebar-accent: oklch(0.3 0.03 270);
+  --sidebar-accent-foreground: oklch(0.97 0.02 90);
+  --sidebar-border: oklch(0.32 0.025 270);
+  --sidebar-ring: oklch(0.78 0.13 85);
 }
 
 .dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
+  /*
+   * Dark mode: deep obsidian + glowing gold + faint ice-blue highlights
+   */
+  --primary: oklch(0.92 0.11 90);
+  --primary-foreground: oklch(0.15 0.015 270);
+  --sidebar-primary: oklch(0.92 0.11 90);
+  --sidebar-primary-foreground: oklch(0.15 0.015 270);
+  --background: oklch(0.145 0.012 270);
+  --foreground: oklch(0.92 0.01 90);
+  --card: oklch(0.19 0.014 270);
+  --card-foreground: oklch(0.92 0.01 90);
+  --popover: oklch(0.19 0.014 270);
+  --popover-foreground: oklch(0.92 0.01 90);
+  --secondary: oklch(0.23 0.016 270);
+  --secondary-foreground: oklch(0.85 0.015 90);
+  --muted: oklch(0.24 0.016 270);
+  --muted-foreground: oklch(0.66 0.012 260);
+  --accent: oklch(0.25 0.02 255);
+  --accent-foreground: oklch(0.92 0.03 230);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.13 85);
+  --gold: oklch(0.82 0.135 88);
+  --gold-soft: oklch(0.7 0.1 85);
+  --faint-blue: oklch(0.72 0.05 240);
+  --chart-1: oklch(0.82 0.135 88);
+  --chart-2: oklch(0.72 0.09 85);
+  --chart-3: oklch(0.6 0.07 85);
+  --chart-4: oklch(0.5 0.05 85);
+  --chart-5: oklch(0.42 0.03 85);
+  --sidebar: oklch(0.17 0.014 270);
+  --sidebar-foreground: oklch(0.9 0.02 90);
+  --sidebar-accent: oklch(0.24 0.02 270);
+  --sidebar-accent-foreground: oklch(0.97 0.02 90);
+  --sidebar-border: oklch(1 0 0 / 11%);
+  --sidebar-ring: oklch(0.82 0.135 88);
 }
 
 @layer base {
@@ -142,24 +159,11 @@
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
 
@@ -170,16 +174,115 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
+}
+
+/* ============================================================
+   Cinematic hero animations — Gold / Black / Faint Blue brand
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Slow Ken Burns zoom on the hero backdrop */
+  .hero-kenburns {
+    animation: heroKenBurns 26s ease-in-out infinite alternate;
+  }
+  @keyframes heroKenBurns {
+    0% { transform: scale(1) translateY(0); }
+    100% { transform: scale(1.12) translateY(-2.5%); }
+  }
+
+  /* Entrance: rise + fade for hero copy */
+  .hero-rise {
+    animation: heroRise 0.9s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .hero-rise-d1 { animation-delay: 0.12s; }
+  .hero-rise-d2 { animation-delay: 0.28s; }
+  .hero-rise-d3 { animation-delay: 0.44s; }
+  .hero-rise-d4 { animation-delay: 0.6s; }
+  @keyframes heroRise {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Drifting faint-blue gradient wave behind the hero */
+  .hero-wave {
+    animation: heroWave 14s ease-in-out infinite alternate;
+  }
+  @keyframes heroWave {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(4%) translateY(-3%); }
+  }
+
+  /* Gold shimmer sweep on the hero headline */
+  .hero-shimmer {
+    background: linear-gradient(
+      100deg,
+      oklch(0.82 0.135 88) 0%,
+      oklch(0.95 0.1 92) 25%,
+      oklch(0.72 0.12 80) 48%,
+      oklch(0.95 0.1 92) 62%,
+      oklch(0.82 0.135 88) 100%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: shimmerSweep 5.5s ease-in-out infinite;
+  }
+  @keyframes shimmerSweep {
+    0% { background-position: 110% 0; }
+    100% { background-position: -60% 0; }
+  }
+
+  /* Subtle float for the hero calculator card */
+  .hero-float {
+    animation: heroFloat 7s ease-in-out infinite alternate;
+  }
+  @keyframes heroFloat {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+  }
+
+  /* Section entrance on scroll (used with IntersectionObserver via fade-in-up) */
+  .reveal {
+    animation: heroRise 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  /* Slow drift for floating accent blobs */
+  .drift-slow {
+    animation: driftBlob 22s ease-in-out infinite alternate;
+  }
+  @keyframes driftBlob {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(3%, -4%) scale(1.06); }
+    100% { transform: translate(-2%, 2%) scale(0.97); }
+  }
+}
+
+/* Gold gradient text utility */
+.text-gradient-gold {
+  background: linear-gradient(110deg, oklch(0.72 0.12 80), oklch(0.88 0.12 92), oklch(0.68 0.11 78));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.dark .text-gradient-gold {
+  background: linear-gradient(110deg, oklch(0.78 0.13 85), oklch(0.93 0.12 92), oklch(0.74 0.12 82));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }

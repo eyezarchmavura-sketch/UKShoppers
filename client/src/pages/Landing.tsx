@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Moon, Sun } from "lucide-react";
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
 const HERO_DELIVERY_IMG = "/manus-storage/hero-delivery-dar_77b8be1d.png";
@@ -169,7 +171,7 @@ function FaqItem({ faq }: { faq: { q: string; a: string } }) {
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
-        <span className="font-bold text-[#0A3622] text-sm sm:text-base">{faq.q}</span>
+        <span className="font-bold text-[#111418] text-sm sm:text-base">{faq.q}</span>
         <ChevronDown
           className={`w-5 h-5 shrink-0 text-[#C9A227] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
@@ -211,6 +213,34 @@ const destinations = [
   { code: "RW", name: "Rwanda (Kigali)", flag: "🇷🇼", currency: "RWF", perKg: 15000, handling: 6000, days: "6–9 Days" },
 ];
 
+/* Official brand marks — factual supported-store reference per industry practice */
+const storeLogos: Record<string, string> = {
+  "Amazon UK": "/manus-storage/amazon_2a7347b3.png",
+  "eBay UK": "/manus-storage/ebay_86268e48.png",
+  ASOS: "/manus-storage/asos_054104bd.png",
+  "Nike UK": "/manus-storage/nike_a2ad4d50.png",
+  "Adidas UK": "/manus-storage/adidas_e76ffa5d.jpg",
+  "Zara UK": "/manus-storage/zara_9dbaa816.png",
+  "Next UK": "/manus-storage/next_e0017815.png",
+  "Marks & Spencer": "/manus-storage/ms_235f8386.png",
+  "Primark Online": "/manus-storage/primark_99111fca.png",
+  Boots: "/manus-storage/boots_a4a41643.png",
+  Superdrug: "/manus-storage/superdrug_3a35d1ad.png",
+  "Apple UK": "/manus-storage/apple_88777630.png",
+  Argos: "/manus-storage/argos_ce8e8ab5.png",
+  Currys: "/manus-storage/currys_8719af84.png",
+  "John Lewis": "/manus-storage/johnlewis_6fb5a2b7.png",
+  "Sports Direct": "/manus-storage/sportsdirect_3c993fe4.png",
+  "JD Sports": "/manus-storage/jdsports_b38fa866.png",
+  "Decathlon UK": "/manus-storage/decathlon_cd3874d7.png",
+  Lakeland: "/manus-storage/lakeland_ece68d7b.png",
+  "IKEA UK": "/manus-storage/ikea_5147cb5e.png",
+  "H&M UK": "/manus-storage/hm_eda09649.png",
+  "The Body Shop": "/manus-storage/thebodyshop_9b025f1f.png",
+  "Sephora UK": "/manus-storage/sephora_ec8b3e69.jpg",
+  HMV: "/manus-storage/hmv_de33faf9.png",
+};
+
 function StoreWall() {
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -225,7 +255,7 @@ function StoreWall() {
         <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
           100+ Supported Stores
         </span>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#0A3622] mt-3">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
           Shop From Any UK Retailer
         </h2>
         <p className="text-sm text-muted-foreground mt-2">
@@ -241,8 +271,8 @@ function StoreWall() {
             onClick={() => setActiveCategory(cat)}
             className={`rounded-full px-4.5 py-2 text-sm font-semibold transition-all active:scale-[0.97] ${
               activeCategory === cat
-                ? "bg-[#0A3622] text-[#F6E05E] shadow-md"
-                : "bg-background text-foreground/70 border border-border hover:border-[#0A3622]/50 hover:text-[#0A3622]"
+                ? "bg-[#111418] text-[#D4AF37] shadow-md"
+                : "bg-background text-foreground/70 border border-border hover:border-[#111418]/50 hover:text-[#111418]"
             }`}>
             {cat}
           </button>
@@ -250,20 +280,29 @@ function StoreWall() {
       </div>
 
       {/* Store grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {filtered.map((store) => (
           <div
             key={store.name}
-            className="group bg-background rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A3622] to-[#124a30] text-[#F6E05E] flex items-center justify-center font-black text-sm shadow-sm">
-              {store.name.charAt(0)}
+            className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-background border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
+              {storeLogos[store.name] ? (
+                <img
+                  src={storeLogos[store.name]}
+                  alt={`${store.name} brand logo`}
+                  className="w-8 h-8 object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-[#111418] dark:text-[#D4AF37] font-black text-sm">{store.name.charAt(0)}</span>
+              )}
             </div>
-            <h3 className="font-bold text-[#0A3622] text-sm mt-3 leading-tight">
+            <h3 className="font-bold text-[#111418] text-sm mt-3 leading-tight">
               {store.name}
             </h3>
             <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
             <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
-            <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 w-full">
+            <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 w-full">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified UK Store
             </div>
           </div>
@@ -278,6 +317,7 @@ function StoreWall() {
 }
 
 export default function Landing() {
+  const { theme, toggleTheme } = useTheme();
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
   const [productUrl, setProductUrl] = useState("");
   const [itemPriceGBP, setItemPriceGBP] = useState(75);
@@ -311,24 +351,24 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-[#0A3622] selection:text-[#F6E05E]">
+    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-[#111418] selection:text-[#D4AF37]">
       {/* ============ ANNOUNCE BAR ============ */}
-      <div className="bg-[#0A3622] text-[#F6E05E] px-4 py-2 text-xs sm:text-sm font-medium text-center flex items-center justify-center gap-2">
-        <span className="bg-[#F6E05E] text-[#0A3622] text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
+      <div className="bg-[#111418] text-[#D4AF37] px-4 py-2 text-xs sm:text-sm font-medium text-center flex items-center justify-center gap-2">
+        <span className="bg-[#D4AF37] text-[#111418] text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
           East Africa Express
         </span>
         Direct UK Personal Shopping & Parcel Forwarding for Tanzania, Kenya, Uganda & Rwanda
       </div>
 
       {/* ============ NAV ============ */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border shadow-xs">
+      <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#1a1d23]/95 backdrop-blur-md border-b border-border shadow-xs">
         <div className="container flex items-center justify-between h-20">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0A3622] flex items-center justify-center text-[#F6E05E] font-bold text-xl shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-[#111418] flex items-center justify-center text-[#D4AF37] font-bold text-xl shadow-md">
               UK
             </div>
             <div>
-              <span className="font-bold text-lg text-[#0A3622] tracking-tight block leading-none">
+              <span className="font-bold text-lg text-[#111418] tracking-tight block leading-none">
                 UK Shoppers <span className="text-[#C9A227]">Africa</span>
               </span>
               <span className="text-[11px] text-muted-foreground font-medium tracking-wide">
@@ -338,70 +378,92 @@ export default function Landing() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
-            <a href="#how-it-works" className="hover:text-[#0A3622] transition-colors">How It Works</a>
-            <a href="#calculator" className="hover:text-[#0A3622] transition-colors">Instant Quote</a>
-            <a href="#stores" className="hover:text-[#0A3622] transition-colors">Popular Stores</a>
-            <Link href="/admin" className="text-[#0A3622] font-semibold hover:underline">Staff Admin</Link>
+            <a href="#how-it-works" className="hover:text-[#111418] transition-colors">How It Works</a>
+            <a href="#calculator" className="hover:text-[#111418] transition-colors">Instant Quote</a>
+            <a href="#stores" className="hover:text-[#111418] transition-colors">Popular Stores</a>
+            <Link href="/admin" className="text-[#111418] font-semibold hover:underline">Staff Admin</Link>
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+              aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>
+              {theme === "light" ? (
+                <Moon className="w-5 h-5 text-foreground/80" />
+              ) : (
+                <Sun className="w-5 h-5 text-[#D4AF37]" />
+              )}
+            </button>
             <Link
               href="/portal"
-              className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-[#0A3622] hover:text-[#0A3622]/80 px-4 py-2">
+              className="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-[#111418] dark:text-foreground hover:text-[#111418]/80 px-4 py-2">
               Customer Login
             </Link>
             <Link
               href="/add"
-              className="inline-flex items-center gap-2 rounded-full bg-[#0A3622] text-[#F6E05E] px-5 py-2.5 text-sm font-semibold shadow-md hover:bg-[#0A3622]/90 transition-all active:scale-[0.98]">
+              className="inline-flex items-center gap-2 rounded-full bg-[#111418] text-[#D4AF37] px-5 py-2.5 text-sm font-semibold shadow-md hover:bg-[#111418]/90 transition-all active:scale-[0.98]">
               Start Shopping <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </header>
 
-      {/* ============ HERO SECTION ============ */}
-      <section className="relative pt-16 pb-24 overflow-hidden bg-gradient-to-b from-[#0A3622]/5 via-background to-background">
-        <div className="absolute inset-0 opacity-[0.35] bg-cover bg-center pointer-events-none" style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 30%" }} aria-hidden />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/85 to-white/70 pointer-events-none" aria-hidden />
+      {/* ============ HERO SECTION (cinematic) ============ */}
+      <section className="relative pt-20 pb-28 overflow-hidden">
+        {/* drifting faint-blue accent blobs */}
+        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] rounded-full bg-[#9db8dd]/25 dark:bg-[#3d5a8a]/30 blur-3xl pointer-events-none drift-slow" aria-hidden />
+        <div className="absolute -bottom-32 right-0 w-[560px] h-[560px] rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none drift-slow" style={{ animationDelay: "-8s" }} aria-hidden />
+
+        {/* Ken Burns backdrop */}
+        <div className="absolute inset-0 pointer-events-none hero-kenburns" aria-hidden>
+          <div
+            className="absolute inset-0 bg-cover bg-center scale-105"
+            style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 30%" }}
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background pointer-events-none" aria-hidden />
+
         <div className="container relative z-10">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-8">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0A3622]/10 text-[#0A3622] text-xs font-semibold tracking-wide">
+              <div className="hero-rise inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#111418]/10 dark:bg-[#111418]/60 text-[#111418] dark:text-[#D4AF37] text-xs font-semibold tracking-wide backdrop-blur-sm">
                 <Globe className="w-4 h-4 text-[#C9A227]" />
                 London Warehouse to Dar es Salaam, Nairobi, Kampala & Kigali
               </div>
-              <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#0A3622] leading-[1.1]" style={{ textShadow: "0 2px 20px rgba(255,255,255,0.7)" }}>
+              <h1 className="hero-rise hero-rise-d1 text-4xl sm:text-6xl font-bold tracking-tight text-[#111418] dark:text-foreground leading-[1.1]">
                 Shop the UK. <br />
-                <span className="text-[#C9A227]">Delivered to East Africa.</span>
+                <span className="hero-shimmer font-display italic">Delivered to East Africa.</span>
               </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed max-w-xl bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3">
+              <p className="hero-rise hero-rise-d2 text-lg text-muted-foreground leading-relaxed max-w-xl bg-white/60 dark:bg-card/70 backdrop-blur-sm rounded-xl px-4 py-3">
                 Get your favorite items from Amazon UK, ASOS, Zara, and top British stores. Paste any product link, upload a cart screenshot, or use your free UK address. We handle purchase, consolidation, and express air freight with customs cleared.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <div className="hero-rise hero-rise-d3 flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/add"
-                  className="inline-flex items-center justify-center gap-3 rounded-full bg-[#0A3622] text-white px-8 py-4 text-base font-semibold shadow-lg hover:bg-[#0A3622]/90 transition-all">
-                  <Link2 className="w-5 h-5 text-[#F6E05E]" /> Paste Link or Upload Cart
+                  className="inline-flex items-center justify-center gap-3 rounded-full bg-[#111418] dark:bg-[#D4AF37] text-white dark:text-[#111418] px-8 py-4 text-base font-semibold shadow-lg hover:bg-[#111418]/90 dark:hover:brightness-95 transition-all active:scale-[0.97]">
+                  <Link2 className="w-5 h-5 text-[#D4AF37] dark:text-[#111418]" /> Paste Link or Upload Cart
                 </Link>
                 <Link
                   href="/portal"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#0A3622]/20 bg-white text-[#0A3622] px-8 py-4 text-base font-semibold hover:border-[#0A3622] transition-all">
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#111418]/20 dark:border-[#D4AF37]/50 bg-white/80 dark:bg-card/80 text-[#111418] dark:text-foreground px-8 py-4 text-base font-semibold hover:border-[#111418] dark:hover:border-[#D4AF37] transition-all active:scale-[0.97]">
                   Open Customer Portal
                 </Link>
               </div>
 
-              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-border/60">
+              <div className="hero-rise hero-rise-d4 grid grid-cols-3 gap-6 pt-6 border-t border-border/60">
                 <div>
-                  <div className="text-2xl font-bold text-[#0A3622]">4–8 Days</div>
+                  <div className="text-2xl font-bold text-[#111418] dark:text-foreground">4–8 Days</div>
                   <div className="text-xs text-muted-foreground font-medium">Fast Air Transit</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-[#0A3622]">100%</div>
+                  <div className="text-2xl font-bold text-[#C9A227] dark:text-[#D4AF37]">100%</div>
                   <div className="text-xs text-muted-foreground font-medium">Duties Prepaid</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-[#0A3622]">24/7</div>
+                  <div className="text-2xl font-bold text-[#111418] dark:text-foreground">24/7</div>
                   <div className="text-xs text-muted-foreground font-medium">WhatsApp & Portal Updates</div>
                 </div>
               </div>
@@ -409,11 +471,11 @@ export default function Landing() {
 
             {/* Quick Quote Widget in Hero */}
             <div id="calculator" className="lg:col-span-5">
-              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-[#C9A227]/20 text-[#0A3622] text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
+              <div className="hero-float bg-white dark:bg-card rounded-3xl p-6 sm:p-8 shadow-2xl dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] border border-border relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-[#C9A227]/20 text-[#111418] text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
                   Instant Calculator
                 </div>
-                <h3 className="text-xl font-bold text-[#0A3622] mb-1 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-[#111418] mb-1 flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-[#C9A227]" /> Estimate Your Order
                 </h3>
                 <p className="text-xs text-muted-foreground mb-6">
@@ -431,7 +493,7 @@ export default function Landing() {
                         const found = destinations.find((d) => d.code === e.target.value);
                         if (found) setSelectedDest(found);
                       }}
-                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0A3622]">
+                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#111418]">
                       {destinations.map((d) => (
                         <option key={d.code} value={d.code}>
                           {d.flag} {d.name} ({d.days})
@@ -449,7 +511,7 @@ export default function Landing() {
                       placeholder="https://www.amazon.co.uk/dp/..."
                       value={productUrl}
                       onChange={(e) => setProductUrl(e.target.value)}
-                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3622]"
+                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
                     />
                   </div>
 
@@ -463,7 +525,7 @@ export default function Landing() {
                         min="5"
                         value={itemPriceGBP}
                         onChange={(e) => setItemPriceGBP(Number(e.target.value))}
-                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3622]"
+                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
                       />
                     </div>
                     <div>
@@ -476,12 +538,12 @@ export default function Landing() {
                         min="0.2"
                         value={weightKg}
                         onChange={(e) => setWeightKg(Number(e.target.value))}
-                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3622]"
+                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-[#0A3622]/5 rounded-2xl p-4 border border-[#0A3622]/10 space-y-2 mt-4">
+                  <div className="bg-[#111418]/5 rounded-2xl p-4 border border-[#111418]/10 space-y-2 mt-4">
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Estimated UK Shipping ({weightKg}kg):</span>
                       <span>£{shippingCostGBP.toFixed(2)}</span>
@@ -491,9 +553,9 @@ export default function Landing() {
                       <span>£{serviceFeeGBP.toFixed(2)}</span>
                     </div>
                     <div className="border-t border-border pt-2 flex justify-between items-center">
-                      <span className="text-sm font-bold text-[#0A3622]">Total Est. Cost:</span>
+                      <span className="text-sm font-bold text-[#111418]">Total Est. Cost:</span>
                       <div className="text-right">
-                        <div className="text-base font-bold text-[#0A3622]">£{totalGBP.toFixed(2)}</div>
+                        <div className="text-base font-bold text-[#111418]">£{totalGBP.toFixed(2)}</div>
                         <div className="text-xs font-semibold text-[#C9A227]">{localTotal}</div>
                       </div>
                     </div>
@@ -501,7 +563,7 @@ export default function Landing() {
 
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-[#0A3622] text-[#F6E05E] py-3.5 text-sm font-bold shadow-lg hover:bg-[#0A3622]/90 transition-all flex items-center justify-center gap-2">
+                    className="w-full rounded-xl bg-[#111418] text-[#D4AF37] py-3.5 text-sm font-bold shadow-lg hover:bg-[#111418]/90 transition-all flex items-center justify-center gap-2">
                     Proceed with Order <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -512,20 +574,20 @@ export default function Landing() {
       </section>
 
       {/* ============ SHOP BY CATEGORY VISUALS ============ */}
-      <section className="py-16 sm:py-20 bg-[#F4F7F6]">
+      <section className="py-16 sm:py-20 bg-[#F2F4F7]">
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               Shop by Category
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0A3622] mt-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
               Everything You Love, One Link Away
             </h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
             <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
               <img src={LIFESTYLE_FASHION_IMG} alt="Fashion and accessories shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111418]/90 via-[#111418]/30 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6">
                 <h3 className="text-white font-bold text-xl">Fashion & Accessories</h3>
                 <p className="text-white/80 text-xs mt-1">Nike · ASOS · Zara · Next · H&M · Primark</p>
@@ -533,7 +595,7 @@ export default function Landing() {
             </div>
             <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
               <img src={LIFESTYLE_ELECTRONICS_IMG} alt="Electronics and gadgets shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111418]/90 via-[#111418]/30 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6">
                 <h3 className="text-white font-bold text-xl">Electronics & Tech</h3>
                 <p className="text-white/80 text-xs mt-1">Apple · Currys · Argos · John Lewis · Back Market</p>
@@ -541,7 +603,7 @@ export default function Landing() {
             </div>
             <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
               <img src={LIFESTYLE_BEAUTY_IMG} alt="Beauty and skincare shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111418]/90 via-[#111418]/30 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6">
                 <h3 className="text-white font-bold text-xl">Beauty & Health</h3>
                 <p className="text-white/80 text-xs mt-1">Boots · Superdrug · Sephora · The Body Shop</p>
@@ -557,13 +619,13 @@ export default function Landing() {
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
-      <section id="how-it-works" className="py-24 bg-[#F4F7F6]">
+      <section id="how-it-works" className="py-24 bg-[#F2F4F7]">
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               Seamless Process
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
               How UK Shoppers Africa Works
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
@@ -576,18 +638,18 @@ export default function Landing() {
               <div
                 key={idx}
                 className="bg-white rounded-3xl p-8 shadow-xl border border-border/60 relative overflow-hidden flex flex-col justify-between">
-                <div className="absolute top-6 right-6 text-4xl font-black text-[#0A3622]/10">
+                <div className="absolute top-6 right-6 text-4xl font-black text-[#111418]/10">
                   {s.num}
                 </div>
                 <div>
-                  <div className="w-14 h-14 rounded-2xl bg-[#0A3622] text-[#F6E05E] flex items-center justify-center mb-6 shadow-md">
+                  <div className="w-14 h-14 rounded-2xl bg-[#111418] text-[#D4AF37] flex items-center justify-center mb-6 shadow-md">
                     <s.icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-[#0A3622] mb-3">{s.title}</h3>
+                  <h3 className="text-xl font-bold text-[#111418] mb-3">{s.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{s.body}</p>
                 </div>
-                <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-2 text-xs font-semibold text-[#0A3622]">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Fully Insured & Tracked
+                <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-2 text-xs font-semibold text-[#111418]">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600" /> Fully Insured & Tracked
                 </div>
               </div>
             ))}
@@ -602,7 +664,7 @@ export default function Landing() {
             <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               Track Every Mile
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
               Your Parcel's Journey, Step by Step
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
@@ -612,17 +674,17 @@ export default function Landing() {
 
           <div className="relative">
             {/* Connection line (desktop) */}
-            <div className="hidden lg:block absolute top-10 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-[#0A3622]/20 via-[#C9A227]/60 to-[#0A3622]/20" aria-hidden />
+            <div className="hidden lg:block absolute top-10 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-[#111418]/20 via-[#C9A227]/60 to-[#111418]/20" aria-hidden />
             <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-6">
               {journeyStops.map((stop, idx) => (
                 <div key={idx} className="relative flex flex-col items-center text-center">
-                  <div className="relative z-10 w-20 h-20 rounded-full bg-white border-2 border-[#0A3622] shadow-lg flex items-center justify-center mb-5">
-                    <div className="w-14 h-14 rounded-full bg-[#0A3622] text-[#F6E05E] flex items-center justify-center">
+                  <div className="relative z-10 w-20 h-20 rounded-full bg-white border-2 border-[#111418] shadow-lg flex items-center justify-center mb-5">
+                    <div className="w-14 h-14 rounded-full bg-[#111418] text-[#D4AF37] flex items-center justify-center">
                       <stop.icon className="w-6 h-6" />
                     </div>
                   </div>
                   <span className="text-[10px] font-bold text-[#C9A227] uppercase tracking-wider mb-1.5">{stop.time}</span>
-                  <h3 className="font-bold text-[#0A3622] text-sm leading-tight">{stop.title}</h3>
+                  <h3 className="font-bold text-[#111418] text-sm leading-tight">{stop.title}</h3>
                   <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed max-w-[180px]">{stop.body}</p>
                 </div>
               ))}
@@ -632,25 +694,25 @@ export default function Landing() {
       </section>
 
       {/* ============ FAQ SECTION ============ */}
-      <section id="faq" className="py-24 bg-[#F4F7F6]">
+      <section id="faq" className="py-24 bg-[#F2F4F7]">
         <div className="container">
           <div className="grid lg:grid-cols-12 gap-12">
             <div className="lg:col-span-4">
               <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
                 Questions & Answers
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3 leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3 leading-tight">
                 Everything You Need to Know
               </h2>
               <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
                 Can't find your answer? Our team is on WhatsApp 24/7 — tap the chat button or call +255 763 173 629.
               </p>
               <div className="mt-6 bg-white rounded-2xl border border-border/80 p-5 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                   <Recycle className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-sm text-[#0A3622]">Still have questions?</p>
+                  <p className="font-bold text-sm text-[#111418]">Still have questions?</p>
                   <p className="text-xs text-muted-foreground mt-0.5">We reply on WhatsApp in minutes, not days.</p>
                 </div>
               </div>
@@ -671,7 +733,7 @@ export default function Landing() {
             <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               Trust & Credibility
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
               Built on Transparency, Backed by Guarantees
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
@@ -681,11 +743,11 @@ export default function Landing() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
             {trustIndicators.map((t, idx) => (
-              <div key={idx} className="bg-[#F4F7F6] rounded-3xl p-7 border border-border/80 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#0A3622] text-[#F6E05E] flex items-center justify-center mb-5 shadow-md">
+              <div key={idx} className="bg-[#F2F4F7] rounded-3xl p-7 border border-border/80 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#111418] text-[#D4AF37] flex items-center justify-center mb-5 shadow-md">
                   <t.icon className="w-6 h-6" />
                 </div>
-                <h3 className="font-bold text-[#0A3622] mb-2">{t.title}</h3>
+                <h3 className="font-bold text-[#111418] mb-2">{t.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">{t.body}</p>
               </div>
             ))}
@@ -693,15 +755,15 @@ export default function Landing() {
 
           {/* Review cards — structure awaiting real customer content */}
           <div className="text-center">
-            <h3 className="text-xl sm:text-2xl font-bold text-[#0A3622]">What Our Customers Say</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#111418]">What Our Customers Say</h3>
             <p className="text-xs text-muted-foreground mt-2 mb-10 max-w-lg mx-auto">
               Real reviews from verified customers will appear here once collected — we never publish fabricated testimonials.
             </p>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
             {reviewStructure.map((_, idx) => (
-              <div key={idx} className="relative bg-background rounded-3xl border-2 border-dashed border-[#0A3622]/30 p-7 flex flex-col items-center justify-center text-center min-h-[220px]">
-                <Quote className="w-8 h-8 text-[#0A3622]/20 mb-4" />
+              <div key={idx} className="relative bg-background rounded-3xl border-2 border-dashed border-[#111418]/30 p-7 flex flex-col items-center justify-center text-center min-h-[220px]">
+                <Quote className="w-8 h-8 text-[#111418]/20 mb-4" />
                 <p className="text-sm text-muted-foreground font-medium">
                   Verified customer review<br />#{idx + 1} — coming soon
                 </p>
@@ -722,7 +784,7 @@ export default function Landing() {
               <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
                 Regional Hubs
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] tracking-tight">
                 Dedicated Express Routes Across East Africa
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
@@ -731,20 +793,20 @@ export default function Landing() {
 
               <div className="space-y-4 pt-2">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
+                  <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
                     ✓
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#0A3622]">Consolidation & Volumetric Savings</h4>
+                    <h4 className="font-bold text-sm text-[#111418]">Consolidation & Volumetric Savings</h4>
                     <p className="text-xs text-muted-foreground">Combine parcels from 5 different UK stores into one shipment and save up to 25% on shipping.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
+                  <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
                     ✓
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#0A3622]">Local Currency & Mobile Money Payments</h4>
+                    <h4 className="font-bold text-sm text-[#111418]">Local Currency & Mobile Money Payments</h4>
                     <p className="text-xs text-muted-foreground">Pay conveniently using M-Pesa, Tigo Pesa, Airtel Money, bank transfer, or debit/credit cards.</p>
                   </div>
                 </div>
@@ -753,12 +815,12 @@ export default function Landing() {
               <div className="pt-4 flex gap-4">
                 <Link
                   href="/portal"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#0A3622] text-[#F6E05E] px-6 py-3 text-sm font-semibold shadow-md hover:bg-[#0A3622]/90">
+                  className="inline-flex items-center gap-2 rounded-full bg-[#111418] text-[#D4AF37] px-6 py-3 text-sm font-semibold shadow-md hover:bg-[#111418]/90">
                   Access Client Dashboard <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/admin"
-                  className="inline-flex items-center gap-2 rounded-full border border-[#0A3622]/30 text-[#0A3622] px-6 py-3 text-sm font-semibold hover:bg-muted">
+                  className="inline-flex items-center gap-2 rounded-full border border-[#111418]/30 text-[#111418] px-6 py-3 text-sm font-semibold hover:bg-muted">
                   Team Operations Admin
                 </Link>
               </div>
@@ -767,7 +829,7 @@ export default function Landing() {
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-6">
                 <img src={WAREHOUSE_IMG} alt="UK Shoppers Africa London warehouse fulfillment operations" className="w-full h-64 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#111418]/80 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 p-6">
                   <h4 className="text-white font-bold text-lg">London Heathrow Fulfillment Hub</h4>
                   <p className="text-white/80 text-xs mt-1">Inspection · Consolidation · Express Dispatch</p>
@@ -775,20 +837,20 @@ export default function Landing() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {destinations.map((d, i) => (
-                  <div key={i} className="bg-[#F4F7F6] rounded-3xl p-6 border border-border/80 space-y-3">
+                  <div key={i} className="bg-[#F2F4F7] rounded-3xl p-6 border border-border/80 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-3xl">{d.flag}</span>
-                      <span className="text-xs font-bold bg-[#0A3622] text-[#F6E05E] px-2.5 py-1 rounded-full">
+                      <span className="text-xs font-bold bg-[#111418] text-[#D4AF37] px-2.5 py-1 rounded-full">
                         {d.days}
                       </span>
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#0A3622] text-base">{d.name}</h4>
+                      <h4 className="font-bold text-[#111418] text-base">{d.name}</h4>
                       <p className="text-xs text-muted-foreground mt-1">Air Express Cargo</p>
                     </div>
                     <div className="pt-3 border-t border-border flex justify-between items-center text-xs">
                       <span className="text-muted-foreground">Rate from:</span>
-                      <span className="font-bold text-[#0A3622]">£11 / kg</span>
+                      <span className="font-bold text-[#111418]">£11 / kg</span>
                     </div>
                   </div>
                 ))}
@@ -799,52 +861,52 @@ export default function Landing() {
       </section>
 
       {/* ============ FOOTER ============ */}
-      <footer className="bg-[#0A3622] text-white pt-16 pb-12 border-t border-[#0A3622]/20">
+      <footer className="bg-[#111418] text-white pt-16 pb-12 border-t border-[#111418]/20">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
             <div className="space-y-4 md:col-span-1">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#F6E05E] flex items-center justify-center text-[#0A3622] font-bold text-lg">
+                <div className="w-9 h-9 rounded-xl bg-[#D4AF37] flex items-center justify-center text-[#111418] font-bold text-lg">
                   UK
                 </div>
                 <span className="font-bold text-lg tracking-tight">
-                  UK Shoppers <span className="text-[#F6E05E]">Africa</span>
+                  UK Shoppers <span className="text-[#D4AF37]">Africa</span>
                 </span>
               </div>
               <p className="text-xs text-white/70 leading-relaxed">
                 Your premier UK personal shopping and parcel forwarding partner for East Africa. Powered by INM LTD.
               </p>
-              <div className="text-xs text-[#F6E05E] font-semibold">
+              <div className="text-xs text-[#D4AF37] font-semibold">
                 Dar es Salaam • Nairobi • Kampala • Kigali
               </div>
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#F6E05E]">Quick Links</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Quick Links</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
-                <li><Link href="/" className="hover:text-[#F6E05E]">Home</Link></li>
-                <li><Link href="/portal" className="hover:text-[#F6E05E]">Customer Dashboard</Link></li>
-                <li><Link href="/add" className="hover:text-[#F6E05E]">Instant Quote & Link</Link></li>
-                <li><Link href="/admin" className="text-[#F6E05E] font-semibold hover:underline">Operations Staff Admin</Link></li>
+                <li><Link href="/" className="hover:text-[#D4AF37]">Home</Link></li>
+                <li><Link href="/portal" className="hover:text-[#D4AF37]">Customer Dashboard</Link></li>
+                <li><Link href="/add" className="hover:text-[#D4AF37]">Instant Quote & Link</Link></li>
+                <li><Link href="/admin" className="text-[#D4AF37] font-semibold hover:underline">Operations Staff Admin</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#F6E05E]">Services</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Services</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
-                <li><span className="hover:text-[#F6E05E] cursor-pointer">UK Warehouse Address</span></li>
-                <li><span className="hover:text-[#F6E05E] cursor-pointer">Personal Shopping Assistance</span></li>
-                <li><span className="hover:text-[#F6E05E] cursor-pointer">Parcel Consolidation</span></li>
-                <li><span className="hover:text-[#F6E05E] cursor-pointer">Customs & Duty Clearance</span></li>
+                <li><span className="hover:text-[#D4AF37] cursor-pointer">UK Warehouse Address</span></li>
+                <li><span className="hover:text-[#D4AF37] cursor-pointer">Personal Shopping Assistance</span></li>
+                <li><span className="hover:text-[#D4AF37] cursor-pointer">Parcel Consolidation</span></li>
+                <li><span className="hover:text-[#D4AF37] cursor-pointer">Customs & Duty Clearance</span></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#F6E05E]">Contact & Support</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Contact & Support</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
-                <li className="flex items-center gap-2"><PhoneCall className="w-4 h-4 text-[#F6E05E]" /> +255 763 173 629</li>
-                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#F6E05E]" /> info@ukshoppersafrica.com</li>
-                <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#F6E05E]" /> London Heathrow Hub & East Africa Offices</li>
+                <li className="flex items-center gap-2"><PhoneCall className="w-4 h-4 text-[#D4AF37]" /> +255 763 173 629</li>
+                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#D4AF37]" /> info@ukshoppersafrica.com</li>
+                <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#D4AF37]" /> London Heathrow Hub & East Africa Offices</li>
               </ul>
             </div>
           </div>
