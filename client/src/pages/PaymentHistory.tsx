@@ -202,7 +202,7 @@ export default function PaymentHistory() {
 }
 
 /** Parse a DB amount value (number or "£92.00 (TZS 231,840)" style string) into a GBP number. */
-function parseGbp(value: number | string | null | undefined): number {
+export function parseGbp(value: number | string | null | undefined): number {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (!value) return 0;
   const match = String(value).match(/\d+(?:[.,]\d+)*/);

@@ -70,7 +70,7 @@ function toAdmin(o: DbOrder): AdminOrder {
     destination: o.destination,
     store: o.store,
     item: o.item,
-    amountGBP: Number(o.amountGbp),
+    amountGBP: (typeof o.amountGbp === "number" ? o.amountGbp : parseFloat(String(o.amountGbp).replace(/[^0-9.\-]/g, ""))) || 0,
     status: STATUS_LABEL[o.status] ?? o.status,
     date: new Date(o.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
   };

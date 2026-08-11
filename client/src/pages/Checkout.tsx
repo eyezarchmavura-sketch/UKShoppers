@@ -101,6 +101,7 @@ export default function Checkout() {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
   const createPayment = trpc.payments.create.useMutation();
+  const createOrder = trpc.orders.create.useMutation();
   const [step, setStep] = useState(0);
   const [gateway, setGateway] = useState<GatewayId>("paystack");
   const [destCode, setDestCode] = useState("TZ");
@@ -188,6 +189,15 @@ export default function Checkout() {
     };
     saveLastPayment({ tx });
     if (isAuthenticated) {
+      // Create a real order record so the purchase shows in My Orders and Tracking.
+      createOrder.mutate({
+        store: "Cart checkout",
+        item: "Nike sneakers + ASOS dress + Boots skincare bundle",
+        destination: DESTINATION_LABELS[destCode] ?? destCode,
+        amountGbp: String(TOTAL_GBP),
+        amountLocal: local,
+        currencyCode: "GBP",
+      });
       createPayment.mutate({
         gateway,
         amount: String(TOTAL_GBP),
