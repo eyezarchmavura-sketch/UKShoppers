@@ -41,7 +41,7 @@ function scrollToCalculator() {
 }
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
-const HERO_DELIVERY_IMG = "/manus-storage/hero-delivery-dar_77b8be1d.png";
+const HERO_DELIVERY_IMG = "/manus-storage/hero-premium-uk-africa_2b38b877.png";
 const WAREHOUSE_IMG = "/manus-storage/warehouse-london_64a80d77.png";
 const LIFESTYLE_FASHION_IMG = "/manus-storage/lifestyle-fashion_e2409cf2.png";
 const LIFESTYLE_ELECTRONICS_IMG = "/manus-storage/lifestyle-electronics_ba252c3d.png";
@@ -153,6 +153,34 @@ const faqs = [
   {
     q: "Are there size or weight limits for shipments?",
     a: "We handle parcels up to 30kg per shipment. For larger items (furniture, gym equipment), contact our team for a custom freight quote — we arrange sea freight for bulky orders at lower per-kg rates.",
+  },
+  {
+    q: "Is my payment secure? How do I know my money is safe?",
+    a: "Completely. We process card payments through encrypted, PCI-compliant gateways, and mobile money deposits are verified instantly. You can also load funds into your UK Shoppers Africa wallet and pay orders from your balance — with a full transaction history visible in your portal. We never ask for your card PIN or mobile money codes.",
+  },
+  {
+    q: "What happens if the item is out of stock or discontinued?",
+    a: "Our team checks availability before purchasing. If your item goes out of stock, we contact you immediately with options: a substitute in the same store, a refund of that item to your wallet, or waiting for restock. You are never charged for an item we couldn't source without your approval.",
+  },
+  {
+    q: "Can I return an item I'm not happy with?",
+    a: "Yes. UK stores' return policies apply during the 14–30 day UK return window. Because we inspect and photograph every item at our London warehouse before it ships, most issues are caught early. If you still want a return, our team re-ships the item back to the UK store and refunds you to your wallet or original payment method, minus a small return shipping fee.",
+  },
+  {
+    q: "Do you deliver outside major cities — rural areas or pickup points?",
+    a: "Yes. We deliver door-to-door across Tanzania, Kenya, Uganda, and Rwanda. For towns and rural areas, we work with trusted local courier partners, and you can also choose a pickup point in your city to avoid courier fees. Every location is covered — just enter your address and we'll confirm the delivery method.",
+  },
+  {
+    q: "Is there a minimum order amount?",
+    a: "No minimum. Order a single lipstick or a full furniture haul — the same process applies. That said, consolidation is where you save: combining multiple items into one shipment cuts your per-item shipping cost significantly, so ordering a few things together typically gets you the best rate.",
+  },
+  {
+    q: "Do you handle business or bulk orders?",
+    a: "Absolutely — many boutique owners, resellers, and offices use UK Shoppers Africa as their UK supply channel. For recurring bulk orders we offer business accounts with negotiated shipping rates, a dedicated account manager, monthly invoicing, and priority warehouse handling. WhatsApp our team to set up a business account.",
+  },
+  {
+    q: "How do I track my parcel, and will I be updated?",
+    a: "Every shipment gets a UKSA tracking number visible in your portal with six checkpoints from warehouse to doorstep. We also send automatic WhatsApp updates at each stage — you never have to ask. If a flight is delayed or customs takes longer, we notify you proactively with the new date.",
   },
 ];
 
@@ -451,7 +479,7 @@ export default function Landing() {
         <div className="absolute inset-0 pointer-events-none hero-kenburns" aria-hidden>
           <div
             className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 30%" }}
+            style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 40%" }}
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background pointer-events-none dark:from-[#1a1d23]/95 dark:via-[#1a1d23]/85 dark:to-[#1a1d23]" aria-hidden />

@@ -172,7 +172,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
                   WhatsApp support for Dar es Salaam, Nairobi & Kampala.
                 </p>
                 <a
-                  href="https://wa.me/255763173629"
+                  href={`https://wa.me/255763173629?text=${encodeURIComponent("Hi UK Shoppers Africa! I need help with an order. My destination is ")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="block text-center text-xs font-semibold bg-[#111418] text-[#D4AF37] rounded-xl py-2 hover:bg-[#111418]/90 transition-all">

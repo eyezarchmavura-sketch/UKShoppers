@@ -5,7 +5,19 @@ import { toast } from "sonner";
 
 export default function WhatsAppWidget() {
   const [open, setOpen] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState(
+    "Hi UK Shoppers Africa! I'd like a quote for an order from a UK store. My destination is "
+  );
+
+  const quickQuestions = [
+    "Get a quote for my order",
+    "What are your shipping rates?",
+    "How long does delivery take?",
+  ];
+
+  const askQuick = (q: string) => {
+    setMsg(q);
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +62,17 @@ export default function WhatsAppWidget() {
                 Need help with a UK shopping link, customs clearance in Tanzania, Kenya, Uganda or Rwanda? Ask us anything here!
               </p>
               <span className="text-[10px] text-muted-foreground/60 mt-1 block">Just now</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {quickQuestions.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => askQuick(q)}
+                  className="bg-white border border-[#0A3622]/20 text-[#0A3622] rounded-full px-3 py-1.5 text-[11px] font-medium hover:bg-[#F6E05E]/40 transition-colors active:scale-[0.97]">
+                  {q}
+                </button>
+              ))}
             </div>
           </div>
 
