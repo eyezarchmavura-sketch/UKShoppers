@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const navItems = [
   { path: "/portal", label: "Dashboard", icon: LayoutDashboard },
@@ -85,6 +86,8 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:bg-muted rounded-full px-3 py-1.5 transition-colors">
             £ GBP / TSh / KSh <ChevronDown className="w-3 h-3" />
           </div>
+
+          <LanguageSwitcher compact />
 
           {/* Dark mode toggle */}
           <button

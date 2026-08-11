@@ -35,13 +35,16 @@ import { toast } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 import { useReveal } from "@/hooks/useReveal";
+import { tr, Lang } from "@/lib/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
 }
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
-const HERO_DELIVERY_IMG = "/manus-storage/hero-premium-uk-africa_2b38b877.png";
+const HERO_CITIES_IMG = "/manus-storage/hero-cities-skyline_75ee4947.png";
 const WAREHOUSE_IMG = "/manus-storage/warehouse-london_64a80d77.png";
 const LIFESTYLE_FASHION_IMG = "/manus-storage/lifestyle-fashion_e2409cf2.png";
 const LIFESTYLE_ELECTRONICS_IMG = "/manus-storage/lifestyle-electronics_ba252c3d.png";
@@ -89,37 +92,37 @@ const storeCategories = [
 const journeyStops = [
   {
     icon: Warehouse,
-    title: "UK Warehouse Received",
+    title: "journey.warehouse",
     body: "Your items arrive at our London Heathrow fulfillment hub where each parcel is weighed, measured, and photographed.",
     time: "Day 1–2",
   },
   {
     icon: FileCheck2,
-    title: "Quality Inspection",
+    title: "journey.inspection",
     body: "Our team inspects every item for quality, photos it to your portal, and repacks it to reduce shipping volume.",
     time: "Day 2–3",
   },
   {
     icon: Plane,
-    title: "Express Air Freight",
+    title: "journey.consolidation",
     body: "Your consolidated shipment flies direct to East Africa on dedicated cargo routes with full insurance coverage.",
     time: "Day 3–5",
   },
   {
     icon: ClipboardCheck,
-    title: "Customs Cleared",
+    title: "journey.customs",
     body: "We handle all customs documentation and duties on your behalf — no surprise fees at the border. 100% prepaid.",
     time: "Day 5–6",
   },
   {
     icon: Truck,
-    title: "Last-Mile Delivery",
+    title: "journey.dispatch",
     body: "Your parcel clears the destination hub and heads to your city with our vetted local delivery partners.",
     time: "Day 6–7",
   },
   {
     icon: HomeIcon,
-    title: "Doorstep Delivery",
+    title: "journey.delivery",
     body: "Delivered safely to your door in Dar es Salaam, Nairobi, Kampala, or Kigali — with a WhatsApp photo confirmation.",
     time: "Day 7–8",
   },
@@ -185,10 +188,10 @@ const faqs = [
 ];
 
 const trustIndicators = [
-  { icon: BadgeCheck, title: "Verified Parcels", body: "Every item inspected, photographed & confirmed before it ships from the UK" },
-  { icon: Shield, title: "Fully Insured", body: "All shipments covered end-to-end — London warehouse to your doorstep" },
-  { icon: CreditCard, title: "Local Payments", body: "M-Pesa, Tigo Pesa, Airtel Money, bank transfer & cards accepted" },
-  { icon: Lock, title: "Duties Prepaid", body: "No surprise border fees — customs handled and included in your quote" },
+  { icon: BadgeCheck, title: "trust.verified", body: "Every item inspected, photographed & confirmed before it ships from the UK" },
+  { icon: Shield, title: "trust.insured", body: "All shipments covered end-to-end — London warehouse to your doorstep" },
+  { icon: CreditCard, title: "trust.local", body: "M-Pesa, Tigo Pesa, Airtel Money, bank transfer & cards accepted" },
+  { icon: Lock, title: "trust.duties", body: "No surprise border fees — customs handled and included in your quote" },
 ];
 
 const reviewStructure = [
@@ -222,19 +225,19 @@ const steps = [
   {
     num: "01",
     icon: Link2,
-    title: "Send us a UK product link or cart screenshot",
+    title: "steps.link",
     body: "Paste any link from Amazon UK, ASOS, Zara, or upload a cart screenshot. Prefer full control? Use your personal UK warehouse address at checkout.",
   },
   {
     num: "02",
     icon: Search,
-    title: "We buy, inspect & consolidate",
+    title: "steps.consolidate",
     body: "Our London Heathrow team buys your items, inspects them for quality, and combines multiple parcels into one box to slash your shipping fees.",
   },
   {
     num: "03",
     icon: Truck,
-    title: "Express Air Delivery to East Africa",
+    title: "steps.delivery",
     body: "Fly your items directly to Tanzania, Kenya, Uganda, or Rwanda with customs cleared and doorstep delivery included.",
   },
 ];
@@ -320,7 +323,7 @@ function StoreCard({ store, delay }: { store: Store; delay?: number }) {
   );
 }
 
-function StoreWall() {
+function StoreWall({ lang }: { lang: Lang }) {
   const [activeCategory, setActiveCategory] = useState("All");
 
   const filtered =
@@ -335,7 +338,7 @@ function StoreWall() {
           100+ Supported Stores
         </span>
         <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
-          Shop From Any UK Retailer
+              {tr("sec.storesTitle", lang)}
         </h2>
         <p className="text-sm text-muted-foreground mt-2">
           If they sell it in the UK, we can buy it and deliver it to your doorstep in East Africa — pasting a single link is all it takes.
@@ -374,6 +377,7 @@ function StoreWall() {
 
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
+  const { lang } = useLanguage();
   const revealRef = useReveal<HTMLDivElement>();
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
   const [productUrl, setProductUrl] = useState("");
@@ -416,7 +420,7 @@ export default function Landing() {
         <span className="bg-[#D4AF37] text-[#111418] text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
           East Africa Express
         </span>
-        Direct UK Personal Shopping & Parcel Forwarding for Tanzania, Kenya, Uganda & Rwanda
+        {tr("hero.badge", lang)}
       </div>
 
       {/* ============ NAV ============ */}
@@ -437,13 +441,16 @@ export default function Landing() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
-            <a href="#how-it-works" className="hover:text-[#111418] transition-colors">How It Works</a>
-            <a href="#calculator" className="hover:text-[#111418] transition-colors">Instant Quote</a>
-            <a href="#stores" className="hover:text-[#111418] transition-colors">Popular Stores</a>
-            <Link href="/admin" className="text-[#111418] font-semibold hover:underline">Staff Admin</Link>
+            <a href="#how-it-works" className="hover:text-[#111418] transition-colors">{tr("nav.howItWorks", lang)}</a>
+            <a href="#calculator" className="hover:text-[#111418] transition-colors">{tr("nav.instantQuote", lang)}</a>
+            <a href="#stores" className="hover:text-[#111418] transition-colors">{tr("nav.stores", lang)}</a>
+            <Link href="/admin" className="text-[#111418] font-semibold hover:underline">{tr("nav.staffAdmin", lang)}</Link>
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* Language switcher */}
+            <LanguageSwitcher compact />
+
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
@@ -479,7 +486,7 @@ export default function Landing() {
         <div className="absolute inset-0 pointer-events-none hero-kenburns" aria-hidden>
           <div
             className="absolute inset-0 bg-cover bg-center scale-105"
-            style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 40%" }}
+            style={{ backgroundImage: `url(${HERO_CITIES_IMG})`, backgroundPosition: "center 38%" }}
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background pointer-events-none dark:from-[#1a1d23]/95 dark:via-[#1a1d23]/85 dark:to-[#1a1d23]" aria-hidden />
@@ -496,38 +503,38 @@ export default function Landing() {
                 London Warehouse to Dar es Salaam, Nairobi, Kampala & Kigali
               </div>
               <h1 className="hero-rise hero-rise-d1 text-4xl sm:text-6xl font-bold tracking-tight text-[#111418] dark:text-foreground leading-[1.1]">
-                Shop the UK. <br />
-                <span className="hero-shimmer font-display italic">Delivered to East Africa.</span>
+                {tr("hero.title1", lang)} <br />
+                <span className="hero-shimmer font-display italic">{tr("hero.title2", lang)}</span>
               </h1>
               <p className="hero-rise hero-rise-d2 text-lg text-muted-foreground leading-relaxed max-w-xl bg-white/60 dark:bg-card/70 backdrop-blur-sm rounded-xl px-4 py-3">
-                Get your favorite items from Amazon UK, ASOS, Zara, and top British stores. Paste any product link, upload a cart screenshot, or use your free UK address. We handle purchase, consolidation, and express air freight with customs cleared.
+                {tr("hero.body", lang)}
               </p>
 
               <div className="hero-rise hero-rise-d3 flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/add"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#111418] dark:bg-[#D4AF37] text-white dark:text-[#111418] px-8 py-4 text-base font-semibold shadow-lg hover:bg-[#111418]/90 dark:hover:brightness-95 transition-all active:scale-[0.97]">
-                  <Link2 className="w-5 h-5 text-[#D4AF37] dark:text-[#111418]" /> Paste Link or Upload Cart
+                  <Link2 className="w-5 h-5 text-[#D4AF37] dark:text-[#111418]" /> {tr("hero.ctaLink", lang)}
                 </Link>
                 <Link
                   href="/portal"
                   className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-[#111418]/20 dark:border-[#D4AF37]/50 bg-white/80 dark:bg-card/80 text-[#111418] dark:text-foreground px-8 py-4 text-base font-semibold hover:border-[#111418] dark:hover:border-[#D4AF37] transition-all active:scale-[0.97]">
-                  Open Customer Portal
+                  {tr("hero.ctaPortal", lang)}
                 </Link>
               </div>
 
               <div className="hero-rise hero-rise-d4 grid grid-cols-3 gap-6 pt-6 border-t border-border/60">
                 <div>
                   <div className="text-2xl font-bold text-[#111418] dark:text-foreground">4–8 Days</div>
-                  <div className="text-xs text-muted-foreground font-medium">Fast Air Transit</div>
+                  <div className="text-xs text-muted-foreground font-medium">{tr("hero.fast", lang)}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-[#C9A227] dark:text-[#D4AF37]">100%</div>
-                  <div className="text-xs text-muted-foreground font-medium">Duties Prepaid</div>
+                  <div className="text-xs text-muted-foreground font-medium">{tr("hero.duties", lang)}</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-[#111418] dark:text-foreground">24/7</div>
-                  <div className="text-xs text-muted-foreground font-medium">WhatsApp & Portal Updates</div>
+                  <div className="text-xs text-muted-foreground font-medium">{tr("hero.whatsapp", lang)}</div>
                 </div>
               </div>
             </div>
@@ -539,16 +546,16 @@ export default function Landing() {
                   Instant Calculator
                 </div>
                 <h3 className="text-xl font-bold text-[#111418] mb-1 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-[#C9A227]" /> Estimate Your Order
+                  <Calculator className="w-5 h-5 text-[#C9A227]" /> {tr("calc.title", lang)}
                 </h3>
                 <p className="text-xs text-muted-foreground mb-6">
-                  Select your East African destination and item details for instant pricing.
+                  {tr("calc.subtitle", lang)}
                 </p>
 
                 <form onSubmit={handleQuoteSubmit} className="space-y-4">
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                      Destination Country
+                      {tr("calc.destination", lang)}
                     </label>
                     <select
                       value={selectedDest.code}
@@ -567,7 +574,7 @@ export default function Landing() {
 
                   <div>
                     <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                      Paste UK Product Link (Optional)
+                      {tr("calc.link", lang)}
                     </label>
                     <input
                       type="text"
@@ -581,7 +588,7 @@ export default function Landing() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                        Item Price (£ GBP)
+                        {tr("calc.price", lang)}
                       </label>
                       <input
                         type="number"
@@ -593,7 +600,7 @@ export default function Landing() {
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                        Approx. Weight (kg)
+                        {tr("calc.weight", lang)}
                       </label>
                       <input
                         type="number"
@@ -608,15 +615,15 @@ export default function Landing() {
 
                   <div className="bg-[#111418]/5 rounded-2xl p-4 border border-[#111418]/10 space-y-2 mt-4">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Estimated UK Shipping ({weightKg}kg):</span>
+                      <span>{tr("calc.shipping", lang)} ({weightKg}kg):</span>
                       <span>£{shippingCostGBP.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Service & Inspection Fee:</span>
+                      <span>{tr("calc.fee", lang)}:</span>
                       <span>£{serviceFeeGBP.toFixed(2)}</span>
                     </div>
                     <div className="border-t border-border pt-2 flex justify-between items-center">
-                      <span className="text-sm font-bold text-[#111418]">Total Est. Cost:</span>
+                      <span className="text-sm font-bold text-[#111418]">{tr("calc.total", lang)}:</span>
                       <div className="text-right">
                         <div className="text-base font-bold text-[#111418]">£{totalGBP.toFixed(2)}</div>
                         <div className="text-xs font-semibold text-[#C9A227]">{localTotal}</div>
@@ -627,7 +634,7 @@ export default function Landing() {
                   <button
                     type="submit"
                     className="w-full rounded-xl bg-[#111418] text-[#D4AF37] py-3.5 text-sm font-bold shadow-lg hover:bg-[#111418]/90 transition-all flex items-center justify-center gap-2">
-                    Proceed with Order <ArrowRight className="w-4 h-4" />
+                    {tr("calc.proceed", lang)} <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
               </div>
@@ -644,7 +651,7 @@ export default function Landing() {
               Shop by Category
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
-              Everything You Love, One Link Away
+              {tr("sec.categories", lang)}
             </h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -678,21 +685,21 @@ export default function Landing() {
 
       {/* ============ POPULAR UK STORES ============ */}
       <section id="stores" className="py-16 sm:py-20 bg-white border-y border-border">
-        <StoreWall />
+        <StoreWall lang={lang} />
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how-it-works" className="py-24 bg-[#F2F4F7]">
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
-              Seamless Process
+              <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+              {tr("sec.howBadge", lang)}
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
-              How UK Shoppers Africa Works
+              {tr("sec.howTitle", lang)}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-              Designed specifically to make UK online shopping effortless, transparent, and reliable for East Africa.
+              {tr("sec.howSub", lang)}
             </p>
           </div>
 
@@ -709,11 +716,11 @@ export default function Landing() {
                   <div className="w-14 h-14 rounded-2xl bg-[#111418] text-[#D4AF37] flex items-center justify-center mb-6 shadow-md">
                     <s.icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-[#111418] mb-3">{s.title}</h3>
+                  <h3 className="text-xl font-bold text-[#111418] mb-3">{tr(s.title, lang)}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{s.body}</p>
                 </div>
                 <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-2 text-xs font-semibold text-[#111418]">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600" /> Fully Insured & Tracked
+                  <CheckCircle2 className="w-4 h-4 text-amber-600" /> {tr("sec.insured", lang)}
                 </div>
               </div>
             ))}
@@ -729,10 +736,10 @@ export default function Landing() {
               Track Every Mile
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
-              Your Parcel's Journey, Step by Step
+              {tr("sec.journeyTitle", lang)}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-              From our London warehouse to your doorstep — six checkpoints, fully tracked and updated on WhatsApp.
+                {tr("sec.journeySub", lang)}
             </p>
           </div>
 
@@ -748,7 +755,7 @@ export default function Landing() {
                     </div>
                   </div>
                   <span className="text-[10px] font-bold text-[#C9A227] uppercase tracking-wider mb-1.5">{stop.time}</span>
-                  <h3 className="font-bold text-[#111418] text-sm leading-tight">{stop.title}</h3>
+                  <h3 className="font-bold text-[#111418] text-sm leading-tight">{tr(stop.title, lang)}</h3>
                   <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed max-w-[180px]">{stop.body}</p>
                 </div>
               ))}
@@ -766,18 +773,18 @@ export default function Landing() {
                 Questions & Answers
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3 leading-tight">
-                Everything You Need to Know
+                {tr("sec.faqTitle", lang)}
               </h2>
               <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-                Can't find your answer? Our team is on WhatsApp 24/7 — tap the chat button or call +255 763 173 629.
+                {tr("sec.faqSub", lang)}
               </p>
               <div className="mt-6 bg-white rounded-2xl border border-border/80 p-5 flex items-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                   <Recycle className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-sm text-[#111418]">Still have questions?</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">We reply on WhatsApp in minutes, not days.</p>
+                  <p className="font-bold text-sm text-[#111418]">{tr("faq.stillQuestion", lang)}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{tr("faq.stillAnswer", lang)}</p>
                 </div>
               </div>
             </div>
@@ -800,10 +807,10 @@ export default function Landing() {
               Trust & Credibility
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3">
-              Built on Transparency, Backed by Guarantees
+              {tr("sec.trustTitle", lang)}
             </h2>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-              Four promises that define every shipment we handle — because trust is earned one parcel at a time.
+              {tr("sec.trustSub", lang)}
             </p>
           </div>
 
@@ -821,7 +828,7 @@ export default function Landing() {
 
           {/* Review cards — structure awaiting real customer content */}
           <div className="text-center">
-            <h3 className="text-xl sm:text-2xl font-bold text-[#111418]">What Our Customers Say</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-[#111418]">{tr("trust.reviews", lang)}</h3>
             <p className="text-xs text-muted-foreground mt-2 mb-10 max-w-lg mx-auto">
               Real reviews from verified customers will appear here once collected — we never publish fabricated testimonials.
             </p>
@@ -848,10 +855,10 @@ export default function Landing() {
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
-                Regional Hubs
+                {tr("sec.hubsBadge", lang)}
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] tracking-tight">
-                Dedicated Express Routes Across East Africa
+                {tr("sec.hubsTitle", lang)}
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
                 We maintain direct cargo partnerships connecting our London Heathrow hub with major economic centers in Tanzania, Kenya, Uganda, and Rwanda. Whether you are ordering personal fashion, electronics, or business equipment, we ensure safe arrival.
@@ -863,8 +870,8 @@ export default function Landing() {
                     ✓
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#111418]">Consolidation & Volumetric Savings</h4>
-                    <p className="text-xs text-muted-foreground">Combine parcels from 5 different UK stores into one shipment and save up to 25% on shipping.</p>
+                    <h4 className="font-bold text-sm text-[#111418]">{tr("sec.consolidation", lang)}</h4>
+                    <p className="text-xs text-muted-foreground">{tr("sec.consolidationBody", lang)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -872,8 +879,8 @@ export default function Landing() {
                     ✓
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-[#111418]">Local Currency & Mobile Money Payments</h4>
-                    <p className="text-xs text-muted-foreground">Pay conveniently using M-Pesa, Tigo Pesa, Airtel Money, bank transfer, or debit/credit cards.</p>
+                    <h4 className="font-bold text-sm text-[#111418]">{tr("sec.mobileMoney", lang)}</h4>
+                    <p className="text-xs text-muted-foreground">{tr("sec.mobileMoneyBody", lang)}</p>
                   </div>
                 </div>
               </div>
@@ -882,12 +889,12 @@ export default function Landing() {
                 <Link
                   href="/portal"
                   className="inline-flex items-center gap-2 rounded-full bg-[#111418] text-[#D4AF37] px-6 py-3 text-sm font-semibold shadow-md hover:bg-[#111418]/90">
-                  Access Client Dashboard <ArrowRight className="w-4 h-4" />
+                  {tr("sec.accessDashboard", lang)} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/admin"
                   className="inline-flex items-center gap-2 rounded-full border border-[#111418]/30 text-[#111418] px-6 py-3 text-sm font-semibold hover:bg-muted">
-                  Team Operations Admin
+                  {tr("sec.teamAdmin", lang)}
                 </Link>
               </div>
             </div>
@@ -948,17 +955,17 @@ export default function Landing() {
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Quick Links</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">{tr("foot.quickLinks", lang)}</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
-                <li><Link href="/" className="hover:text-[#D4AF37]">Home</Link></li>
-                <li><Link href="/portal" className="hover:text-[#D4AF37]">Customer Dashboard</Link></li>
-                <li><Link href="/add" className="hover:text-[#D4AF37]">Instant Quote & Link</Link></li>
-                <li><Link href="/admin" className="text-[#D4AF37] font-semibold hover:underline">Operations Staff Admin</Link></li>
+                <li><Link href="/" className="hover:text-[#D4AF37]">{tr("foot.home", lang)}</Link></li>
+                <li><Link href="/portal" className="hover:text-[#D4AF37]">{tr("foot.dashboard", lang)}</Link></li>
+                <li><Link href="/add" className="hover:text-[#D4AF37]">{tr("foot.quote", lang)}</Link></li>
+                <li><Link href="/admin" className="text-[#D4AF37] font-semibold hover:underline">{tr("foot.admin", lang)}</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Services</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">{tr("foot.services", lang)}</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
                 <li><span className="hover:text-[#D4AF37] cursor-pointer">UK Warehouse Address</span></li>
                 <li><span className="hover:text-[#D4AF37] cursor-pointer">Personal Shopping Assistance</span></li>
@@ -968,7 +975,7 @@ export default function Landing() {
             </div>
 
             <div>
-              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">Contact & Support</h4>
+              <h4 className="font-bold text-sm mb-4 text-[#D4AF37]">{tr("foot.contact", lang)}</h4>
               <ul className="space-y-2.5 text-xs text-white/80">
                 <li className="flex items-center gap-2"><PhoneCall className="w-4 h-4 text-[#D4AF37]" /> +255 763 173 629</li>
                 <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#D4AF37]" /> info@ukshoppersafrica.com</li>
@@ -978,11 +985,11 @@ export default function Landing() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/60">
-            <p>© 2026 UK Shoppers Africa (INM LTD). All rights reserved.</p>
+            <p>© 2026 UK Shoppers Africa (INM LTD). {tr("foot.rights", lang)}</p>
             <div className="flex gap-6 mt-4 sm:mt-0">
-              <span className="hover:text-white cursor-pointer">Privacy Policy</span>
-              <span className="hover:text-white cursor-pointer">Terms of Service</span>
-              <span className="hover:text-white cursor-pointer">Shipping Guidelines</span>
+              <span className="hover:text-white cursor-pointer">{tr("foot.privacy", lang)}</span>
+              <span className="hover:text-white cursor-pointer">{tr("foot.terms", lang)}</span>
+              <span className="hover:text-white cursor-pointer">{tr("foot.shipping", lang)}</span>
             </div>
           </div>
         </div>
