@@ -1,8 +1,9 @@
-# Store Wall Upgrade — Todo
+# Add Visuals — Todo
 
-- [ ] Review latest synced code (Landing.tsx, App.tsx, PortalShell) to understand current store display
-- [ ] Compile full list of major UK/international stores (30+)
-- [ ] Build premium store wall section on landing page (categorized, branded cards, best-in-market UI)
-- [ ] Keep consistency with the existing green/yellow brand and East-Africa storefront direction
+- [ ] Generate hero lifestyle imagery (East Africa customer receiving parcel, London warehouse)
+- [ ] Generate category icons/images (Fashion, Electronics, Beauty, Sport, Home)
+- [ ] Generate visual store brand marks (initial badges are fine; focus on lifestyle imagery)
+- [ ] Integrate hero images into landing page (right column visual + warehouse section)
+- [ ] Add visual category headers to store wall or how-it-works imagery
 - [ ] Screenshot verification desktop + mobile
 - [ ] Checkpoint and deliver

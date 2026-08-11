@@ -22,6 +22,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
+const HERO_DELIVERY_IMG = "/manus-storage/hero-delivery-dar_77b8be1d.png";
+const WAREHOUSE_IMG = "/manus-storage/warehouse-london_64a80d77.png";
+const LIFESTYLE_FASHION_IMG = "/manus-storage/lifestyle-fashion_e2409cf2.png";
+const LIFESTYLE_ELECTRONICS_IMG = "/manus-storage/lifestyle-electronics_ba252c3d.png";
+const LIFESTYLE_BEAUTY_IMG = "/manus-storage/lifestyle-beauty_28758d01.png";
 
 interface Store {
   name: string;
@@ -240,6 +245,8 @@ export default function Landing() {
 
       {/* ============ HERO SECTION ============ */}
       <section className="relative pt-16 pb-24 overflow-hidden bg-gradient-to-b from-[#0A3622]/5 via-background to-background">
+        <div className="absolute inset-0 opacity-[0.35] bg-cover bg-center pointer-events-none" style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 30%" }} aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/85 to-white/70 pointer-events-none" aria-hidden />
         <div className="container relative z-10">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-8">
@@ -247,11 +254,11 @@ export default function Landing() {
                 <Globe className="w-4 h-4 text-[#C9A227]" />
                 London Warehouse to Dar es Salaam, Nairobi, Kampala & Kigali
               </div>
-              <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#0A3622] leading-[1.1]">
+              <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[#0A3622] leading-[1.1]" style={{ textShadow: "0 2px 20px rgba(255,255,255,0.7)" }}>
                 Shop the UK. <br />
                 <span className="text-[#C9A227]">Delivered to East Africa.</span>
               </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-xl bg-white/60 backdrop-blur-sm rounded-xl px-4 py-3">
                 Get your favorite items from Amazon UK, ASOS, Zara, and top British stores. Paste any product link, upload a cart screenshot, or use your free UK address. We handle purchase, consolidation, and express air freight with customs cleared.
               </p>
 
@@ -388,6 +395,46 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ============ SHOP BY CATEGORY VISUALS ============ */}
+      <section className="py-16 sm:py-20 bg-[#F4F7F6]">
+        <div className="container">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+              Shop by Category
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0A3622] mt-3">
+              Everything You Love, One Link Away
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6">
+            <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
+              <img src={LIFESTYLE_FASHION_IMG} alt="Fashion and accessories shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-6">
+                <h3 className="text-white font-bold text-xl">Fashion & Accessories</h3>
+                <p className="text-white/80 text-xs mt-1">Nike · ASOS · Zara · Next · H&M · Primark</p>
+              </div>
+            </div>
+            <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
+              <img src={LIFESTYLE_ELECTRONICS_IMG} alt="Electronics and gadgets shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-6">
+                <h3 className="text-white font-bold text-xl">Electronics & Tech</h3>
+                <p className="text-white/80 text-xs mt-1">Apple · Currys · Argos · John Lewis · Back Market</p>
+              </div>
+            </div>
+            <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
+              <img src={LIFESTYLE_BEAUTY_IMG} alt="Beauty and skincare shopping haul" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/90 via-[#0A3622]/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-6">
+                <h3 className="text-white font-bold text-xl">Beauty & Health</h3>
+                <p className="text-white/80 text-xs mt-1">Boots · Superdrug · Sephora · The Body Shop</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ============ POPULAR UK STORES ============ */}
       <section id="stores" className="py-16 sm:py-20 bg-white border-y border-border">
         <StoreWall />
@@ -483,6 +530,14 @@ export default function Landing() {
             </div>
 
             <div className="lg:col-span-6">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl mb-6">
+                <img src={WAREHOUSE_IMG} alt="UK Shoppers Africa London warehouse fulfillment operations" className="w-full h-64 object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A3622]/80 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6">
+                  <h4 className="text-white font-bold text-lg">London Heathrow Fulfillment Hub</h4>
+                  <p className="text-white/80 text-xs mt-1">Inspection · Consolidation · Express Dispatch</p>
+                </div>
+              </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 {destinations.map((d, i) => (
                   <div key={i} className="bg-[#F4F7F6] rounded-3xl p-6 border border-border/80 space-y-3">
