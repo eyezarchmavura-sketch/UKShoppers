@@ -34,6 +34,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
+import { useReveal } from "@/hooks/useReveal";
+
+function scrollToCalculator() {
+  document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
+}
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
 const HERO_DELIVERY_IMG = "/manus-storage/hero-delivery-dar_77b8be1d.png";
@@ -241,6 +246,52 @@ const storeLogos: Record<string, string> = {
   HMV: "/manus-storage/hmv_de33faf9.png",
 };
 
+function StoreCard({ store, delay }: { store: Store; delay?: number }) {
+  const handleStoreClick = () => {
+    // Prefill the calculator with the store's URL pattern and scroll to it
+    const input = document.querySelector<HTMLInputElement>(
+      '#calculator input[type="text"]'
+    );
+    if (input) {
+      input.value = `https://www.${store.domain}/`;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    }
+    scrollToCalculator();
+    toast.success(`${store.name} selected — estimate your order below`, {
+      duration: 2500,
+    });
+  };
+
+  return (
+    <button
+      onClick={handleStoreClick}
+      title={`Estimate an order from ${store.name}`}
+      className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start text-left w-full reveal-up" data-reveal-delay={String(delay)}>
+      <div className="w-10 h-10 rounded-xl bg-white dark:bg-background border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
+        {storeLogos[store.name] ? (
+          <img
+            src={storeLogos[store.name]}
+            alt={`${store.name} brand logo`}
+            className="w-8 h-8 object-contain"
+            loading="lazy"
+          />
+        ) : (
+          <span className="text-[#111418] dark:text-[#D4AF37] font-black text-sm">{store.name.charAt(0)}</span>
+        )}
+      </div>
+      <h3 className="font-bold text-[#111418] text-sm mt-3 leading-tight">
+        {store.name}
+      </h3>
+      <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
+      <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
+      <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 w-full">
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified UK Store
+      </div>
+    </button>
+  );
+}
+
 function StoreWall() {
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -280,32 +331,9 @@ function StoreWall() {
       </div>
 
       {/* Store grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {filtered.map((store) => (
-          <div
-            key={store.name}
-            className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start">
-            <div className="w-10 h-10 rounded-xl bg-white dark:bg-background border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
-              {storeLogos[store.name] ? (
-                <img
-                  src={storeLogos[store.name]}
-                  alt={`${store.name} brand logo`}
-                  className="w-8 h-8 object-contain"
-                  loading="lazy"
-                />
-              ) : (
-                <span className="text-[#111418] dark:text-[#D4AF37] font-black text-sm">{store.name.charAt(0)}</span>
-              )}
-            </div>
-            <h3 className="font-bold text-[#111418] text-sm mt-3 leading-tight">
-              {store.name}
-            </h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
-            <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
-            <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 w-full">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified UK Store
-            </div>
-          </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {filtered.map((store, idx) => (
+          <StoreCard key={store.name} store={store} delay={(idx % 6) + 1} />
         ))}
       </div>
 
@@ -318,6 +346,7 @@ function StoreWall() {
 
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
+  const revealRef = useReveal<HTMLDivElement>();
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
   const [productUrl, setProductUrl] = useState("");
   const [itemPriceGBP, setItemPriceGBP] = useState(75);
@@ -351,7 +380,9 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-[#111418] selection:text-[#D4AF37]">
+    <div
+      ref={revealRef}
+      className="min-h-screen bg-background font-sans text-foreground selection:bg-[#111418] selection:text-[#D4AF37]">
       {/* ============ ANNOUNCE BAR ============ */}
       <div className="bg-[#111418] text-[#D4AF37] px-4 py-2 text-xs sm:text-sm font-medium text-center flex items-center justify-center gap-2">
         <span className="bg-[#D4AF37] text-[#111418] text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
@@ -413,8 +444,8 @@ export default function Landing() {
       {/* ============ HERO SECTION (cinematic) ============ */}
       <section className="relative pt-20 pb-28 overflow-hidden">
         {/* drifting faint-blue accent blobs */}
-        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] rounded-full bg-[#9db8dd]/25 dark:bg-[#3d5a8a]/30 blur-3xl pointer-events-none drift-slow" aria-hidden />
-        <div className="absolute -bottom-32 right-0 w-[560px] h-[560px] rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none drift-slow" style={{ animationDelay: "-8s" }} aria-hidden />
+        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] rounded-full bg-[#9db8dd]/25 dark:bg-[#3d5a8a]/20 blur-3xl pointer-events-none drift-slow" aria-hidden />
+        <div className="absolute -bottom-32 right-0 w-[560px] h-[560px] rounded-full bg-[#D4AF37]/15 dark:bg-[#D4AF37]/10 blur-3xl pointer-events-none drift-slow" style={{ animationDelay: "-8s" }} aria-hidden />
 
         {/* Ken Burns backdrop */}
         <div className="absolute inset-0 pointer-events-none hero-kenburns" aria-hidden>
@@ -423,7 +454,11 @@ export default function Landing() {
             style={{ backgroundImage: `url(${HERO_DELIVERY_IMG})`, backgroundPosition: "center 30%" }}
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background pointer-events-none" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background pointer-events-none dark:from-[#1a1d23]/95 dark:via-[#1a1d23]/85 dark:to-[#1a1d23]" aria-hidden />
+
+        {/* Dark-mode glowing accent lights */}
+        <div className="hero-glow-gold dark:block hidden absolute top-10 right-[15%] w-[420px] h-[420px] rounded-full blur-3xl pointer-events-none drift-slow" style={{ animationDelay: "-4s" }} aria-hidden />
+        <div className="hero-glow-blue dark:block hidden absolute bottom-[-80px] left-[10%] w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none drift-slow" style={{ animationDelay: "-12s" }} aria-hidden />
 
         <div className="container relative z-10">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
@@ -637,7 +672,8 @@ export default function Landing() {
             {steps.map((s, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-3xl p-8 shadow-xl border border-border/60 relative overflow-hidden flex flex-col justify-between">
+                data-reveal-delay={String(idx + 1)}
+                className="reveal-up bg-white rounded-3xl p-8 shadow-xl border border-border/60 relative overflow-hidden flex flex-col justify-between">
                 <div className="absolute top-6 right-6 text-4xl font-black text-[#111418]/10">
                   {s.num}
                 </div>
@@ -677,7 +713,7 @@ export default function Landing() {
             <div className="hidden lg:block absolute top-10 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-[#111418]/20 via-[#C9A227]/60 to-[#111418]/20" aria-hidden />
             <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-6">
               {journeyStops.map((stop, idx) => (
-                <div key={idx} className="relative flex flex-col items-center text-center">
+                <div key={idx} data-reveal-delay={String((idx % 6) + 1)} className="reveal-up relative flex flex-col items-center text-center">
                   <div className="relative z-10 w-20 h-20 rounded-full bg-white border-2 border-[#111418] shadow-lg flex items-center justify-center mb-5">
                     <div className="w-14 h-14 rounded-full bg-[#111418] text-[#D4AF37] flex items-center justify-center">
                       <stop.icon className="w-6 h-6" />
@@ -719,7 +755,9 @@ export default function Landing() {
             </div>
             <div className="lg:col-span-8 space-y-3">
               {faqs.map((faq, idx) => (
-                <FaqItem key={idx} faq={faq} />
+                <div key={idx} data-reveal-delay={String((idx % 4) + 1)} className="reveal-up">
+                  <FaqItem faq={faq} />
+                </div>
               ))}
             </div>
           </div>
@@ -743,7 +781,7 @@ export default function Landing() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
             {trustIndicators.map((t, idx) => (
-              <div key={idx} className="bg-[#F2F4F7] rounded-3xl p-7 border border-border/80 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
+              <div key={idx} data-reveal-delay={String(idx + 1)} className="reveal-up bg-[#F2F4F7] rounded-3xl p-7 border border-border/80 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-[#111418] text-[#D4AF37] flex items-center justify-center mb-5 shadow-md">
                   <t.icon className="w-6 h-6" />
                 </div>

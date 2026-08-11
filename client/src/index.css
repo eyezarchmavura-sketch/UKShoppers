@@ -254,9 +254,49 @@
     100% { transform: translateY(-10px); }
   }
 
-  /* Section entrance on scroll (used with IntersectionObserver via fade-in-up) */
+  
   .reveal {
     animation: heroRise 0.7s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  /* Scroll-reveal: hidden until .revealed is added by useReveal (IntersectionObserver) */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+      transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: opacity, transform;
+  }
+  .reveal-up.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-up[data-reveal-delay="1"] { transition-delay: 0.06s; }
+  .reveal-up[data-reveal-delay="2"] { transition-delay: 0.12s; }
+  .reveal-up[data-reveal-delay="3"] { transition-delay: 0.18s; }
+  .reveal-up[data-reveal-delay="4"] { transition-delay: 0.24s; }
+  .reveal-up[data-reveal-delay="5"] { transition-delay: 0.3s; }
+  .reveal-up[data-reveal-delay="6"] { transition-delay: 0.36s; }
+
+  /* Dark-mode cinematic hero: glowing gold blobs and richer shimmer */
+  .dark .hero-glow-gold {
+    opacity: 0.28;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.85 0.14 90 / 0.9),
+      oklch(0.8 0.13 86 / 0.35),
+      transparent 72%
+    );
+  }
+  .dark .hero-glow-blue {
+    opacity: 0.24;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.72 0.06 250 / 0.9),
+      oklch(0.68 0.05 250 / 0.3),
+      transparent 72%
+    );
   }
 
   /* Slow drift for floating accent blobs */
