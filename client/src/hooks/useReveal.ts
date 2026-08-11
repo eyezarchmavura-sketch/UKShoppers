@@ -27,9 +27,19 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
       return;
     }
 
-    const targets = Array.from(
-      root.querySelectorAll<HTMLElement>(".reveal-up")
-    );
+    const scan = () => {
+      const hidden = Array.from(
+        root.querySelectorAll<HTMLElement>(".reveal-up:not(.revealed)")
+      );
+      for (const el of hidden) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.92 && rect.bottom > -40) {
+          el.classList.add("revealed");
+        } else {
+          observer.observe(el);
+        }
+      }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -43,8 +53,17 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
 
-    targets.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    // Re-scan whenever DOM children change (filter chips, dynamic lists),
+    // so newly mounted reveal-up elements are never stuck at opacity 0.
+    const mo = new MutationObserver(() => {
+      requestAnimationFrame(scan);
+    });
+    mo.observe(root, { childList: true, subtree: true });
+    scan();
+    return () => {
+      observer.disconnect();
+      mo.disconnect();
+    };
   }, []);
 
   return ref;

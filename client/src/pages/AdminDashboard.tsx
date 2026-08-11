@@ -172,7 +172,7 @@ export default function AdminDashboard() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="py-3 px-4">Order ID</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Order ID</th>
                   <th className="py-3 px-4">Client & Destination</th>
                   <th className="py-3 px-4">Store & Item</th>
                   <th className="py-3 px-4">Amount</th>
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-border text-sm">
                 {filteredOrders.map((o) => (
                   <tr key={o.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="py-4 px-4 font-mono font-bold text-[#111418]">{o.id}</td>
+                    <td className="py-4 px-4 font-mono font-bold text-[#111418] whitespace-nowrap">{o.id}</td>
                     <td className="py-4 px-4">
                       <div className="font-semibold text-foreground">{o.client}</div>
                       <div className="text-xs text-muted-foreground">{o.destination}</div>

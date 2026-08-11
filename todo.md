@@ -1,3 +1,8 @@
+# TASK — Bug sweep 2026-08-11 (reported)
+- [ ] FIX: store wall category filter — all stores disappear when selecting a category chip (category value mismatch in filter logic)
+- [ ] Full bug sweep: all routes, console errors, dark mode, i18n
+- [ ] tsc clean, live verify, checkpoint, deliver
+
 # TASK — Queen v3 upgrade 2026-08-11 (ALL DONE)
 - [x] Notification badge on chat icon when Queen has new order-status updates (simulate proactive updates + unread count)
 - [x] Queen suggests related products & special offers based on order history (store-affinity logic in system prompt + suggestion chips)
@@ -59,6 +64,27 @@
 - tsc: 0 errors; HMR applied AssistantChat.tsx, routers.ts, Landing.tsx
 - Store logo fix applied: white pill (always bg-white, removed dark:bg-background) so logos visible in dark mode
 - Remaining: scroll to store wall in dark mode to confirm logos, quick suggestions question test, checkpoint, deliver
+
+## Bug sweep findings (21:20)
+- Store filter test: clicked "Beauty & Health" chip (idx 21, though I intended Fashion — chips list shifted since Swahili mode). Result: only 4 Beauty stores shown (Boots, Superdrug, The Body Shop, Sephora) — filter WORKS in this browser test.
+- BUT user reports stores "disappear": likely the reveal animation — StoreCard uses delay-based scroll-reveal opacity 0 + IntersectionObserver; filtered cards re-render with new delay indexes but observer may not re-fire → cards stuck at opacity:0 → appear empty. The screenshot at 21:20:19 shows 4 visible cards — animation issue could be intermittent when filter changes while scrolled or in viewport center.
+- Root cause hypothesis: scroll-reveal CSS class (.reveal-hidden / opacity-0 translate-y) applied on mount; on filter change cards remount with same class; observer only triggers when they enter viewport — fine when in view. Actually 21:20:19 screenshot shows visible. Another hypothesis: in dark mode, the chip active state text contrast — user may have meant dark mode. Or: click on non-Chip store filter via category section buttons "Fashion & Accessories" chips scroll to calculator but maybe user clicked the category chips in SHOP BY CATEGORY section which are navigation anchors, not filters.
+## FIX APPLIED (21:21)
+- useReveal.ts rewritten: single useEffect with scan() that checks each .reveal-up:not(.revealed) rect; visible ones get .revealed immediately, off-screen ones observed via IntersectionObserver; MutationObserver on subtree rescans via rAF when DOM changes (filter chips). This ensures filtered store cards never stuck at opacity 0. Duplicate effect removed. tsc 0 errors.
+- VERIFIED (21:21:36): Fashion chip clicked — all 8 Fashion stores now display (ASOS, Nike, Adidas, Zara, Next, M&S, Primark, H&M) in dark mode with visible white-pill logos. Filter bug FIXED. Now run full bug sweep on other pages.
+
+## Full-page sweep results (21:22)
+- / (landing): all sections render fine, store wall chips present, testimonials empty-state shows placeholder cards (as designed — real reviews pending)
+- /portal: dashboard renders fine
+- /add, /checkout, /payments, /orders (success route shows orders), /admin, /privacy: all render cleanly
+- One cosmetic note: /admin table ORDER ID column wraps awkwardly (UKS-84177 on two lines) — minor, not breaking
+- tsc 0 errors, tests 1/1 pass, no new console errors since 19:38 stale entries (pre-existing AssistantChat JSX error from earlier, now resolved)
+- Filter bug fixed & verified. Sweep complete.
+
+## BUG (original)
+- CONFIRMED (21:20:32): clicked Fashion chip (idx 20) → grid becomes EMPTY (zero cards rendered in DOM area, "Not on the list?" text still shows). Beauty & Health chip earlier DID show 4 cards. So bug is intermittent/category-specific? Both categories exist in stores list (Fashion has 8 stores). Fashion cards not rendering → scroll-reveal stuck at opacity 0 is plausible since 8 cards would be in a grid but area is completely empty.
+- Suspect StoreCard's reveal: on filter change the cards remount with key=store.name, reveal-hidden class stuck. But Beauty showed... maybe observer re-fired for those. Better fix: make reveal not depend on observer remount — give StoreCard a per-filter key (store.name + activeCategory) won't fix. Cleanest: remove reveal-hidden default OR reset via key rebuild.
+- Decision: replace opacity-0/translate-y + observer with Framer-motion-free approach: use key={store.name + ':' + activeCategory} on grid items won't retrigger either. Simplest robust fix: remove animation on the card grid (instant display) OR use CSS transition with a short timeout. Going with: give filtered container key based on activeCategory so whole grid remounts, and cards render instantly (drop reveal-hidden from StoreCard grid cells).
 
 ## Dark-mode store wall verified (20:54)
 Store wall in dark mode: cards are dark (bg-background), but each logo now sits in a white 10x10 rounded pill — Amazon and eBay logos clearly visible on the dark cards. Fix confirmed working. All three v3 items verified. Next: test a suggestions question, then checkpoint + deliver.
