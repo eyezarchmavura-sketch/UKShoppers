@@ -17,6 +17,18 @@ import {
   PhoneCall,
   Mail,
   ChevronRight,
+  ChevronDown,
+  Warehouse,
+  FileCheck2,
+  Plane,
+  ClipboardCheck,
+  Home as HomeIcon,
+  Shield,
+  BadgeCheck,
+  CreditCard,
+  Lock,
+  Recycle,
+  Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -66,6 +78,110 @@ const storeCategories = [
   "All",
   ...Array.from(new Set(stores.map((s) => s.category))),
 ];
+
+const journeyStops = [
+  {
+    icon: Warehouse,
+    title: "UK Warehouse Received",
+    body: "Your items arrive at our London Heathrow fulfillment hub where each parcel is weighed, measured, and photographed.",
+    time: "Day 1–2",
+  },
+  {
+    icon: FileCheck2,
+    title: "Quality Inspection",
+    body: "Our team inspects every item for quality, photos it to your portal, and repacks it to reduce shipping volume.",
+    time: "Day 2–3",
+  },
+  {
+    icon: Plane,
+    title: "Express Air Freight",
+    body: "Your consolidated shipment flies direct to East Africa on dedicated cargo routes with full insurance coverage.",
+    time: "Day 3–5",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Customs Cleared",
+    body: "We handle all customs documentation and duties on your behalf — no surprise fees at the border. 100% prepaid.",
+    time: "Day 5–6",
+  },
+  {
+    icon: Truck,
+    title: "Last-Mile Delivery",
+    body: "Your parcel clears the destination hub and heads to your city with our vetted local delivery partners.",
+    time: "Day 6–7",
+  },
+  {
+    icon: HomeIcon,
+    title: "Doorstep Delivery",
+    body: "Delivered safely to your door in Dar es Salaam, Nairobi, Kampala, or Kigali — with a WhatsApp photo confirmation.",
+    time: "Day 7–8",
+  },
+];
+
+const faqs = [
+  {
+    q: "How do customs duties work? Will I pay extra fees at the border?",
+    a: "No — duties are 100% prepaid. When we give you a quote, it already includes estimated import duties and taxes for Tanzania, Kenya, Uganda, and Rwanda. You never pay anything extra at the border, and any duty difference is covered by us up to our declared estimate.",
+  },
+  {
+    q: "How long does delivery take?",
+    a: "Express air delivery takes 4–8 business days from the date your items arrive at our London warehouse: Tanzania 5–8 days, Kenya 4–7 days, Uganda 5–8 days, and Rwanda 6–9 days. You can follow every checkpoint in your portal, and we send WhatsApp updates at each stage.",
+  },
+  {
+    q: "What payment methods do you accept?",
+    a: "We accept M-Pesa, Tigo Pesa, Airtel Money, mobile money, direct bank transfer, and debit/credit cards. All payments can be made in local currency — you never need a UK bank account or a card that works internationally.",
+  },
+  {
+    q: "What is parcel consolidation and how does it save me money?",
+    a: "If you order from multiple UK stores, we hold your items at our warehouse and repack them together into one box before shipping. Since shipping is charged by weight, combining 3–5 parcels into one shipment typically saves 20–30% compared to shipping each box separately.",
+  },
+  {
+    q: "What happens if my item is damaged or wrong?",
+    a: "Every parcel is inspected and photographed at our London warehouse before shipping, so issues are caught before your items leave the UK. If an item arrives damaged, our shipping insurance covers replacement or refund — contact support within 48 hours of delivery with a photo.",
+  },
+  {
+    q: "Can I use my own UK delivery address instead of the link service?",
+    a: "Yes. Sign up for your free personal UK warehouse address with a unique UNIT ID. Shop on any UK store as normal and use our address at checkout — we receive, consolidate, and forward your parcels to East Africa. This is perfect for stores we don't automatically parse.",
+  },
+  {
+    q: "Are there size or weight limits for shipments?",
+    a: "We handle parcels up to 30kg per shipment. For larger items (furniture, gym equipment), contact our team for a custom freight quote — we arrange sea freight for bulky orders at lower per-kg rates.",
+  },
+];
+
+const trustIndicators = [
+  { icon: BadgeCheck, title: "Verified Parcels", body: "Every item inspected, photographed & confirmed before it ships from the UK" },
+  { icon: Shield, title: "Fully Insured", body: "All shipments covered end-to-end — London warehouse to your doorstep" },
+  { icon: CreditCard, title: "Local Payments", body: "M-Pesa, Tigo Pesa, Airtel Money, bank transfer & cards accepted" },
+  { icon: Lock, title: "Duties Prepaid", body: "No surprise border fees — customs handled and included in your quote" },
+];
+
+const reviewStructure = [
+  { name: "", city: "", cityCode: "", rating: 5, quote: "" },
+  { name: "", city: "", cityCode: "", rating: 5, quote: "" },
+  { name: "", city: "", cityCode: "", rating: 5, quote: "" },
+];
+
+function FaqItem({ faq }: { faq: { q: string; a: string } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white rounded-2xl border border-border/80 overflow-hidden transition-shadow hover:shadow-md">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
+        <span className="font-bold text-[#0A3622] text-sm sm:text-base">{faq.q}</span>
+        <ChevronDown
+          className={`w-5 h-5 shrink-0 text-[#C9A227] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <div
+        className={`grid transition-all duration-300 ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+        <div className="overflow-hidden">
+          <p className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const steps = [
   {
@@ -473,6 +589,125 @@ export default function Landing() {
                 <div className="mt-8 pt-4 border-t border-border/40 flex items-center gap-2 text-xs font-semibold text-[#0A3622]">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Fully Insured & Tracked
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PARCEL JOURNEY TIMELINE ============ */}
+      <section id="journey" className="py-24 bg-white">
+        <div className="container">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+              Track Every Mile
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3">
+              Your Parcel's Journey, Step by Step
+            </h2>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+              From our London warehouse to your doorstep — six checkpoints, fully tracked and updated on WhatsApp.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Connection line (desktop) */}
+            <div className="hidden lg:block absolute top-10 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-[#0A3622]/20 via-[#C9A227]/60 to-[#0A3622]/20" aria-hidden />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-6">
+              {journeyStops.map((stop, idx) => (
+                <div key={idx} className="relative flex flex-col items-center text-center">
+                  <div className="relative z-10 w-20 h-20 rounded-full bg-white border-2 border-[#0A3622] shadow-lg flex items-center justify-center mb-5">
+                    <div className="w-14 h-14 rounded-full bg-[#0A3622] text-[#F6E05E] flex items-center justify-center">
+                      <stop.icon className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#C9A227] uppercase tracking-wider mb-1.5">{stop.time}</span>
+                  <h3 className="font-bold text-[#0A3622] text-sm leading-tight">{stop.title}</h3>
+                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed max-w-[180px]">{stop.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FAQ SECTION ============ */}
+      <section id="faq" className="py-24 bg-[#F4F7F6]">
+        <div className="container">
+          <div className="grid lg:grid-cols-12 gap-12">
+            <div className="lg:col-span-4">
+              <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+                Questions & Answers
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3 leading-tight">
+                Everything You Need to Know
+              </h2>
+              <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
+                Can't find your answer? Our team is on WhatsApp 24/7 — tap the chat button or call +255 763 173 629.
+              </p>
+              <div className="mt-6 bg-white rounded-2xl border border-border/80 p-5 flex items-center gap-3 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <Recycle className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-[#0A3622]">Still have questions?</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">We reply on WhatsApp in minutes, not days.</p>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-8 space-y-3">
+              {faqs.map((faq, idx) => (
+                <FaqItem key={idx} faq={faq} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ TRUST SECTION ============ */}
+      <section className="py-24 bg-white border-t border-border">
+        <div className="container">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+              Trust & Credibility
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A3622] mt-3">
+              Built on Transparency, Backed by Guarantees
+            </h2>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+              Four promises that define every shipment we handle — because trust is earned one parcel at a time.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+            {trustIndicators.map((t, idx) => (
+              <div key={idx} className="bg-[#F4F7F6] rounded-3xl p-7 border border-border/80 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#0A3622] text-[#F6E05E] flex items-center justify-center mb-5 shadow-md">
+                  <t.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-[#0A3622] mb-2">{t.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t.body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Review cards — structure awaiting real customer content */}
+          <div className="text-center">
+            <h3 className="text-xl sm:text-2xl font-bold text-[#0A3622]">What Our Customers Say</h3>
+            <p className="text-xs text-muted-foreground mt-2 mb-10 max-w-lg mx-auto">
+              Real reviews from verified customers will appear here once collected — we never publish fabricated testimonials.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {reviewStructure.map((_, idx) => (
+              <div key={idx} className="relative bg-background rounded-3xl border-2 border-dashed border-[#0A3622]/30 p-7 flex flex-col items-center justify-center text-center min-h-[220px]">
+                <Quote className="w-8 h-8 text-[#0A3622]/20 mb-4" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  Verified customer review<br />#{idx + 1} — coming soon
+                </p>
+                <p className="text-[11px] text-muted-foreground/70 mt-3 max-w-[240px]">
+                  Add your first real review card with customer name, city, photo, and quote.
+                </p>
               </div>
             ))}
           </div>

@@ -1,9 +1,14 @@
-# Add Visuals — Todo
+# Skill + Landing Sections — Todo
 
-- [ ] Generate hero lifestyle imagery (East Africa customer receiving parcel, London warehouse)
-- [ ] Generate category icons/images (Fashion, Electronics, Beauty, Sport, Home)
-- [ ] Generate visual store brand marks (initial badges are fine; focus on lifestyle imagery)
-- [ ] Integrate hero images into landing page (right column visual + warehouse section)
-- [ ] Add visual category headers to store wall or how-it-works imagery
+## Skill creation
+- [ ] Read skill-creator SKILL.md (done)
+- [ ] Check existing competitor-platform-builder skill state
+- [ ] Update skill to reflect full workflow: competitor analysis → strategy docs → wireframes/journey maps → webdev build → visuals → trust sections
+- [ ] Validate and deliver SKILL.md
+
+## Landing page sections
+- [ ] Parcel journey timeline section: London warehouse → customs → air freight → destination customs → last-mile → doorstep (visual stepper with icons/images)
+- [ ] FAQ accordion: customs & duties, delivery times, payment methods, consolidation, returns
+- [ ] Trust/testimonials section: compliant design (trust indicators: verified orders, money-back guarantee, secure payments, insurance) + clearly-labeled review card structure for real reviews (no fabricated testimonials)
 - [ ] Screenshot verification desktop + mobile
 - [ ] Checkpoint and deliver
