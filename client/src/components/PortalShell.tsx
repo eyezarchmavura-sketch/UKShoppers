@@ -51,7 +51,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
       {/* Top header */}
       <header className="sticky top-0 z-40 bg-white border-b border-border shadow-[0_1px_8px_rgba(10,54,34,0.06)]">
         <div className="flex items-center gap-3 px-4 lg:px-6 h-16">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/portal" className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Package className="w-4 h-4 text-primary-foreground" />
             </div>

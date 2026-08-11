@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import PortalShell from "./components/PortalShell";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Address from "./pages/Address";
 import Orders from "./pages/Orders";
@@ -19,7 +20,8 @@ import Settings from "./pages/Settings";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"}>
+      <Route path={"/"} component={Landing} />
+      <Route path={"/portal"}>
         <PortalShell><Dashboard /></PortalShell>
       </Route>
       <Route path={"/add"}>
