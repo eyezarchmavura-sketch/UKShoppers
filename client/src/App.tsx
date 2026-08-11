@@ -19,6 +19,9 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Referrals from "./pages/Referrals";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import ReturnsPolicy from "./pages/ReturnsPolicy";
 import WhatsAppWidget from "./components/WhatsAppWidget";
 
 
@@ -60,6 +63,15 @@ function Router() {
         </Route>
         <Route path={"/settings"}>
           <PortalShell><Settings /></PortalShell>
+        </Route>
+        <Route path={"/privacy"}>
+          <PortalShell><PrivacyPolicy /></PortalShell>
+        </Route>
+        <Route path={"/terms"}>
+          <PortalShell><TermsOfService /></PortalShell>
+        </Route>
+        <Route path={"/returns"}>
+          <PortalShell><ReturnsPolicy /></PortalShell>
         </Route>
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}

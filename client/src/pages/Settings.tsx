@@ -1,7 +1,8 @@
 /* GlobalCart Settings — profile, notification channels, security per wireframe 2.7. */
 import { useState } from "react";
-import { ShieldCheck, Bell, Mail, Smartphone, MessageCircle } from "lucide-react";
+import { ShieldCheck, Bell, Mail, Smartphone, MessageCircle, FileText, Scale, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -85,6 +86,28 @@ export default function Settings() {
             setTwofa(v);
             toast.success(v ? "2FA enabled (prototype)" : "2FA disabled (prototype)");
           }} />
+        </div>
+      </div>
+
+      {/* Legal */}
+      <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2 mb-3">
+          <FileText className="w-4 h-4" /> Legal documents
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { icon: ShieldCheck, label: "Privacy Policy", path: "/privacy" },
+            { icon: Scale, label: "Terms of Service", path: "/terms" },
+            { icon: RotateCcw, label: "Returns & Refunds", path: "/returns" },
+          ].map(({ icon: Icon, label, path }) => (
+            <Link
+              key={path}
+              href={path}
+              className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground hover:border-primary hover:bg-primary/5 transition-colors">
+              <Icon className="w-4 h-4 text-primary" />
+              {label}
+            </Link>
+          ))}
         </div>
       </div>
     </div>

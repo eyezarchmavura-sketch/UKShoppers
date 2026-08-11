@@ -44,3 +44,10 @@ REMAINING: screenshots checkout /payments /success (desktop); checkpoint; delive
 - [ ] Image URL audit
 - [ ] Route smoke test all pages
 - [ ] Checkpoint + deliver
+
+# CURRENT TASK — 2026-08-11 (skill update + translations + legal pages)
+
+1. [x] Update competitor-platform-builder skill (SKILL.md + references/payments-localization.md + references/audit-and-delivery.md + build-workflow.md); validated OK.
+2. [ ] Translations for payment pages (sw/rw/lg): PaymentHistory.tsx (title, subtitle, stats Total Paid/Transactions/Completed/Pending, search placeholder, filter All, empty state, status labels Paid/Pending/Refunded, receipt tooltip), PaymentSuccess.tsx, Checkout.tsx, any English-only new pages. Use t() via tr(key, lang); add keys to lib/i18n.ts matching in all 4 languages.
+3. [ ] Legal pages: /privacy, /terms, /returns (static, PortalShell layout, i18n keys), footer links (foot.privacy/foot.terms already exist + foot.shipping→/returns) and settings page link. Placeholder company details, no fabricated registrations.
+4. [ ] Verify (tsc, screenshots, dark mode), checkpoint, deliver.

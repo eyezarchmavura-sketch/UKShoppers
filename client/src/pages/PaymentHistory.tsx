@@ -1,9 +1,12 @@
 /* UK Shoppers Africa — Payment History
-   Brand: black ink + gold. Shows past transactions: date, gateway, amount (GBP + local), status, receipt download. */
+   Brand: black ink + gold. Shows past transactions: date, gateway, amount (GBP + local), status, receipt download.
+   Style note: gold/black/faint-blue tokens from index.css; fully localized via t() (en/sw/rw/lg). */
 import { useEffect, useState } from "react";
 import { CreditCard, Smartphone, Landmark, Wallet, Download, Search } from "lucide-react";
 import { loadTransactions, ensureDemoHistory, downloadReceipt, type PaymentTransaction } from "@/lib/receipts";
 import { DESTINATION_LABELS } from "@/lib/currency";
+import { tr } from "@/lib/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const GATEWAY_ICON: Record<string, typeof CreditCard> = {
   paystack: CreditCard,
@@ -13,19 +16,8 @@ const GATEWAY_ICON: Record<string, typeof CreditCard> = {
   wallet: Wallet,
 };
 
-const STATUS_STYLE: Record<PaymentTransaction["status"], string> = {
-  completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  pending: "bg-amber-50 text-amber-700 border-amber-200",
-  refunded: "bg-rose-50 text-rose-700 border-rose-200",
-};
-
-const STATUS_LABEL: Record<PaymentTransaction["status"], string> = {
-  completed: "Paid",
-  pending: "Pending",
-  refunded: "Refunded",
-};
-
 export default function PaymentHistory() {
+  const { lang } = useLanguage();
   const [txs, setTxs] = useState<PaymentTransaction[]>([]);
   const [filter, setFilter] = useState<"all" | PaymentTransaction["status"]>("all");
   const [query, setQuery] = useState("");
@@ -42,31 +34,41 @@ export default function PaymentHistory() {
 
   const totalPaid = txs.filter((t) => t.status === "completed").reduce((s, t) => s + t.amountGbp, 0);
 
+  const STATUS_STYLE: Record<PaymentTransaction["status"], string> = {
+    completed: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
+    pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+    refunded: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800",
+  };
+
+  const STATUS_LABEL: Record<PaymentTransaction["status"], string> = {
+    completed: tr("pay.paid", lang),
+    pending: tr("pay.pendingStatus", lang),
+    refunded: tr("pay.refunded", lang),
+  };
+
   return (
     <div className="p-4 lg:p-8 max-w-[1000px] mx-auto space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-primary">Payment History</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Every payment you have made through UK Shoppers Africa — with receipts you can download anytime.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-primary">{tr("pay.title", lang)}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{tr("pay.sub", lang)}</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total Paid</p>
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tr("pay.totalPaid", lang)}</p>
           <p className="text-xl font-bold text-primary mt-1">£{totalPaid.toLocaleString("en-GB", { minimumFractionDigits: 2 })}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Transactions</p>
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tr("pay.txCount", lang)}</p>
           <p className="text-xl font-bold text-primary mt-1">{txs.length}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Completed</p>
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tr("pay.completed", lang)}</p>
           <p className="text-xl font-bold text-emerald-600 mt-1">{txs.filter((t) => t.status === "completed").length}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pending</p>
+        <div className="bg-white dark:bg-card rounded-xl shadow-sm p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tr("pay.pending", lang)}</p>
           <p className="text-xl font-bold text-amber-600 mt-1">{txs.filter((t) => t.status === "pending").length}</p>
         </div>
       </div>
@@ -78,8 +80,8 @@ export default function PaymentHistory() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by reference or gateway…"
-            className="w-full rounded-lg border border-border pl-9 pr-3 py-2 text-sm bg-white outline-none focus:border-primary"
+            placeholder={tr("pay.searchPh", lang)}
+            className="w-full rounded-lg border border-border pl-9 pr-3 py-2 text-sm bg-white dark:bg-card outline-none focus:border-primary"
           />
         </div>
         <div className="flex gap-2">
@@ -88,9 +90,11 @@ export default function PaymentHistory() {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-full text-xs font-semibold capitalize transition-colors ${
-                filter === f ? "bg-primary text-primary-foreground" : "bg-white border border-border text-muted-foreground hover:bg-muted"
+                filter === f
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-white dark:bg-card border border-border text-muted-foreground hover:bg-muted"
               }`}>
-              {f === "all" ? "All" : f}
+              {f === "all" ? tr("pay.all", lang) : tr(`pay.${f}`, lang)}
             </button>
           ))}
         </div>
@@ -99,15 +103,15 @@ export default function PaymentHistory() {
       {/* Transaction list */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="bg-white rounded-xl p-10 text-center">
+          <div className="bg-white dark:bg-card rounded-xl p-10 text-center">
             <Wallet className="w-10 h-10 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground mt-3">No transactions found.</p>
+            <p className="text-sm text-muted-foreground mt-3">{tr("pay.none", lang)}</p>
           </div>
         )}
         {filtered.map((t) => {
           const Icon = GATEWAY_ICON[t.gateway] ?? CreditCard;
           return (
-            <div key={t.ref} className="bg-white rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div key={t.ref} className="bg-white dark:bg-card rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Icon className="w-5 h-5 text-primary" />
               </div>
@@ -131,7 +135,8 @@ export default function PaymentHistory() {
                   <button
                     onClick={() => downloadReceipt(t)}
                     className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                    title="Download PDF receipt">
+                    aria-label={tr("pay.receiptTooltip", lang)}
+                    title={tr("pay.receiptTooltip", lang)}>
                     <Download className="w-4 h-4 text-primary" />
                   </button>
                 )}

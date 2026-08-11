@@ -21,22 +21,25 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { tr } from "@/lib/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const navItems = [
-  { path: "/portal", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/address", label: "UK Warehouse", icon: MapPin },
-  { path: "/orders", label: "Orders", icon: Package },
-  { path: "/tracking", label: "Tracking", icon: Truck },
-  { path: "/wallet", label: "Wallet & Pay", icon: Wallet },
-  { path: "/payments", label: "Payments", icon: Wallet },
-  { path: "/referrals", label: "Referrals", icon: Gift },
-  { path: "/settings", label: "Settings", icon: Settings },
+const NAV_KEYS: { path: string; icon: typeof LayoutDashboard; key: string }[] = [
+  { path: "/portal", icon: LayoutDashboard, key: "nav.dashboard" },
+  { path: "/address", icon: MapPin, key: "nav.ukWarehouse" },
+  { path: "/orders", icon: Package, key: "nav.orders" },
+  { path: "/tracking", icon: Truck, key: "nav.tracking" },
+  { path: "/wallet", icon: Wallet, key: "nav.walletPay" },
+  { path: "/payments", icon: Wallet, key: "nav.payments" },
+  { path: "/referrals", icon: Gift, key: "nav.referrals" },
+  { path: "/settings", icon: Settings, key: "nav.settings" },
 ];
 
 export default function PortalShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const mobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
+  const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
@@ -70,7 +73,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <div className="hidden md:flex items-center gap-2 ml-6 bg-muted/60 rounded-full px-3 py-2 w-72 border border-border/60">
             <Search className="w-4 h-4 text-muted-foreground" />
             <input
-              placeholder="Search orders, items, tracking…"
+              placeholder={tr("portal.searchPh", lang)}
               className="bg-transparent text-sm w-full outline-none placeholder:text-muted-foreground"
             />
           </div>
@@ -78,7 +81,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <div className="flex-1" />
 
           <Link href="/" className="hidden lg:inline-flex text-xs font-semibold text-[#111418] hover:underline px-3 py-1">
-            Back to Home
+            {tr("portal.backHome", lang)}
           </Link>
 
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:bg-muted rounded-full px-3 py-1.5 transition-colors">
@@ -121,7 +124,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
             {notifOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1a1d23] border border-border rounded-xl shadow-xl p-3 z-50">
                 <p className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Notifications
+                  {tr("portal.notifications", lang)}
                 </p>
                 <div className="p-3 hover:bg-muted/60 rounded-lg transition-colors">
                   <p className="text-sm font-medium">Parcel arrived at London Heathrow</p>
@@ -151,19 +154,22 @@ export default function PortalShell({ children }: { children: React.ReactNode })
         {!mobile && (
           <aside className="w-64 bg-white dark:bg-[#1a1d23] border-r border-border p-4 flex flex-col shrink-0">
             <nav className="space-y-1.5">
-              {navItems.map((item) => {
-                const active = location === item.path;
+              {NAV_KEYS.map(({ path, icon, key }) => {
+                const active = location === path;
                 return (
                   <Link
-                    key={item.path}
-                    href={item.path}
+                    key={path}
+                    href={path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       active
                         ? "bg-[#111418] text-[#D4AF37] shadow-sm font-semibold"
                         : "text-foreground/75 hover:bg-muted hover:text-foreground"
                     }`}>
-                    <item.icon className={`w-4.5 h-4.5 ${active ? "text-[#D4AF37]" : "text-muted-foreground"}`} />
-                    {item.label}
+                    {(() => {
+                      const Icon = icon;
+                      return <Icon className={`w-4.5 h-4.5 ${active ? "text-[#D4AF37]" : "text-muted-foreground"}`} />;
+                    })()}
+                    {tr(key, lang)}
                   </Link>
                 );
               })}
@@ -180,7 +186,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
                   target="_blank"
                   rel="noreferrer"
                   className="block text-center text-xs font-semibold bg-[#111418] text-[#D4AF37] rounded-xl py-2 hover:bg-[#111418]/90 transition-all">
-                  Chat on WhatsApp
+                  {tr("portal.chatWhatsApp", lang)}
                 </a>
               </div>
             </div>
@@ -196,17 +202,18 @@ export default function PortalShell({ children }: { children: React.ReactNode })
       {/* Mobile bottom bar */}
       {mobile && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1d23] border-t border-border flex items-center justify-around py-2 shadow-lg">
-          {[...navItems.slice(0, 4), navItems[5]].map((item) => {
-            const active = location === item.path;
+          {[...NAV_KEYS.slice(0, 4), NAV_KEYS[5]].map(({ path, icon, key }) => {
+            const active = location === path;
+            const Icon = icon;
             return (
               <Link
-                key={item.path}
-                href={item.path}
+                key={path}
+                href={path}
                 className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium ${
                   active ? "text-[#111418] font-bold" : "text-muted-foreground"
                 }`}>
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
+                <Icon className="w-5 h-5" />
+                <span>{tr(key, lang)}</span>
               </Link>
             );
           })}

@@ -987,9 +987,9 @@ export default function Landing() {
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/60">
             <p>© 2026 UK Shoppers Africa (INM LTD). {tr("foot.rights", lang)}</p>
             <div className="flex gap-6 mt-4 sm:mt-0">
-              <span className="hover:text-white cursor-pointer">{tr("foot.privacy", lang)}</span>
-              <span className="hover:text-white cursor-pointer">{tr("foot.terms", lang)}</span>
-              <span className="hover:text-white cursor-pointer">{tr("foot.shipping", lang)}</span>
+              <Link href="/privacy" className="hover:text-white cursor-pointer">{tr("foot.privacy", lang)}</Link>
+              <Link href="/terms" className="hover:text-white cursor-pointer">{tr("foot.terms", lang)}</Link>
+              <Link href="/returns" className="hover:text-white cursor-pointer">{tr("foot.shipping", lang)}</Link>
             </div>
           </div>
         </div>
