@@ -64,6 +64,17 @@ export const appRouter = router({
                 )
                 .max(30)
                 .optional(),
+              suggestions: z
+                .array(
+                  z.object({
+                    store: z.string(),
+                    category: z.string(),
+                    why: z.string(),
+                    offer: z.string().optional(),
+                  }),
+                )
+                .max(10)
+                .optional(),
             })
             .optional(),
         }),
@@ -76,12 +87,14 @@ export const appRouter = router({
           lg: "Oluganda",
         };
         const personalContext = buildPersonalContext(input.personal);
+        const suggestionsContext = buildSuggestionsContext(input.personal?.suggestions);
         const systemPrompt = `${ASSISTANT_KNOWLEDGE}${personalContext}\n\nYou are named Queen. Respond warmly and briefly in ${languageLabel[input.language].toUpperCase()}. If the customer asks about their own orders or payments and personal context was provided, reference the actual data (status, reference, amounts, dates). If personal context was not provided or empty, explain that the customer can check their dashboard or share details so you can help.`;
         const messages = [
           { role: "system" as const, content: systemPrompt },
           ...input.history.map(m => ({ role: m.role, content: m.content })),
           { role: "user" as const, content: input.message },
         ];
+        if (suggestionsContext) messages[0] = { ...messages[0], content: systemPrompt + suggestionsContext };
         try {
           const res = await invokeLLM({
             model: "gpt-5-mini",
@@ -117,6 +130,12 @@ function buildPersonalContext(personal: { orders?: unknown[]; payments?: unknown
   if (paymentLines.length > 0) sections.push("CUSTOMER PAYMENTS:\n" + paymentLines.map(l => `- ${l}`).join("\n"));
   if (sections.length === 0) return "\n\nCUSTOMER CONTEXT: none provided (no orders or payments yet).";
   return "\n\n" + sections.join("\n\n") + "\nUse this real customer data when answering questions about their orders or payments.";
+}
+
+function buildSuggestionsContext(suggestions: Array<{ store: string; category: string; why: string; offer?: string }> | undefined): string {
+  if (!suggestions || suggestions.length === 0) return "";
+  const lines = suggestions.map(s => `- ${s.store} (${s.category}): ${s.why}${s.offer ? " · CURRENT OFFER: " + s.offer : ""}`);
+  return "\n\nPERSONALIZED STORE SUGGESTIONS (derived from this customer's order history — suggest these when relevant):\n" + lines.join("\n") + "\nWhen the customer asks for recommendations, deals, or what to shop next, suggest from this list and mention the current offer if one is listed.";
 }
 
 export type AppRouter = typeof appRouter;

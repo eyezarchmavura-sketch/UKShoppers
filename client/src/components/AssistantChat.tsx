@@ -8,6 +8,131 @@ import { demoOrders, demoTransactions } from "@/lib/demoData";
 import type { Lang } from "@/lib/i18n";
 
 const STORAGE_KEY = "queen-chat-conversation";
+const UPDATES_KEY = "queen-order-updates";
+
+/** Catalog of stores on the platform with categories, for affinity suggestions. */
+const STORE_CATALOG: { name: string; category: string; offers: string }[] = [
+  { name: "Nike UK", category: "Fashion", offers: "Seasonal sneaker drops and up-to-30% outlet discounts" },
+  { name: "Adidas UK", category: "Fashion", offers: "End-of-season sportswear clearance" },
+  { name: "JD Sports", category: "Sport & Outdoors", offers: "Trainer bundles and club discounts" },
+  { name: "Foot Locker", category: "Sport & Outdoors", offers: "Member-exclusive trainer releases" },
+  { name: "Zara UK", category: "Fashion", offers: "Mid-season sale on selected styles" },
+  { name: "ASOS", category: "Fashion", offers: "Up-to-50% off sale styles, student discount" },
+  { name: "H&M UK", category: "Fashion", offers: "Member price cuts and seasonal offers" },
+  { name: "Marks & Spencer", category: "Fashion", offers: "Food & fashion seasonal promotions" },
+  { name: "Next UK", category: "Fashion", offers: "Multi-buy discounts on family fashion" },
+  { name: "Primark Online", category: "Fashion", offers: "Budget basics below £10" },
+  { name: "Boots", category: "Beauty & Health", offers: "Advantage Card triple points events" },
+  { name: "Superdrug", category: "Beauty & Health", offers: "Health & Beauty card 3-for-2 deals" },
+  { name: "Sephora UK", category: "Beauty & Health", offers: "Beauty Insider reward offers" },
+  { name: "The Body Shop", category: "Beauty & Health", offers: "Seasonal gift set bundles" },
+  { name: "Apple UK", category: "Electronics", offers: "Trade-in value and student pricing" },
+  { name: "John Lewis", category: "Electronics", offers: "Extended warranty on tech, seasonal tech sales" },
+  { name: "Argos", category: "Electronics", offers: "Clearance events on home tech" },
+  { name: "Currys", category: "Electronics", offers: "Member price-match and open-box deals" },
+  { name: "Sports Direct", category: "Sport & Outdoors", offers: "Heavy discounts on branded sportswear" },
+  { name: "Decathlon UK", category: "Sport & Outdoors", offers: "Own-brand gear below market price" },
+  { name: "IKEA UK", category: "Home & Kitchen", offers: "Family Room deals and As-Is bargains" },
+  { name: "Lakeland", category: "Home & Kitchen", offers: "Kitchen bundle offers" },
+  { name: "Amazon UK", category: "Marketplace", offers: "Daily lightning deals across all categories" },
+  { name: "eBay UK", category: "Marketplace", offers: "Auction bargains and refurbished tech" },
+  { name: "HMV", category: "Entertainment", offers: "Collectibles and vinyl sales" },
+];
+
+/** Stores whose customers typically buy from each other (same category affinity). */
+const AFFINITY: Record<string, string[]> = {
+  "Nike UK": ["JD Sports", "Adidas UK", "Sports Direct", "Foot Locker", "Decathlon UK"],
+  "Adidas UK": ["Nike UK", "JD Sports", "Sports Direct", "Foot Locker", "Decathlon UK"],
+  "JD Sports": ["Nike UK", "Adidas UK", "Foot Locker", "Sports Direct", "Decathlon UK"],
+  "Foot Locker": ["Nike UK", "JD Sports", "Adidas UK", "Sports Direct"],
+  "Sports Direct": ["Nike UK", "Adidas UK", "JD Sports", "Decathlon UK"],
+  "Decathlon UK": ["Nike UK", "Adidas UK", "JD Sports", "Sports Direct"],
+  "Zara UK": ["ASOS", "H&M UK", "Marks & Spencer", "Next UK"],
+  "ASOS": ["Zara UK", "H&M UK", "Primark Online", "Next UK"],
+  "H&M UK": ["ASOS", "Zara UK", "Primark Online", "Next UK"],
+  "Marks & Spencer": ["Zara UK", "Next UK", "ASOS", "John Lewis"],
+  "Next UK": ["Marks & Spencer", "Zara UK", "ASOS", "H&M UK"],
+  "Primark Online": ["ASOS", "H&M UK", "Zara UK"],
+  "Boots": ["Superdrug", "The Body Shop", "Sephora UK", "Marks & Spencer"],
+  "Superdrug": ["Boots", "The Body Shop", "Sephora UK"],
+  "Sephora UK": ["Boots", "Superdrug", "The Body Shop"],
+  "The Body Shop": ["Boots", "Superdrug", "Sephora UK"],
+  "Apple UK": ["John Lewis", "Currys", "Argos", "Amazon UK"],
+  "John Lewis": ["Apple UK", "Currys", "Argos", "Marks & Spencer"],
+  "Argos": ["Currys", "John Lewis", "Amazon UK", "IKEA UK"],
+  "Currys": ["John Lewis", "Argos", "Apple UK", "Amazon UK"],
+  "Amazon UK": ["eBay UK", "Argos", "Currys", "Boots"],
+  "eBay UK": ["Amazon UK", "Argos", "HMV", "Currys"],
+  "HMV": ["eBay UK", "Amazon UK"],
+  "IKEA UK": ["Lakeland", "Argos", "John Lewis"],
+  "Lakeland": ["IKEA UK", "Argos", "John Lewis"],
+};
+
+function buildSuggestions(orderedStores: string[]): Array<{ store: string; category: string; why: string; offer: string }> {
+  const catalogByName = new Map(STORE_CATALOG.map(s => [s.name, s]));
+  const seen = new Set<string>();
+  const result: Array<{ store: string; category: string; why: string; offer: string }> = [];
+  for (const store of orderedStores) {
+    const related = (AFFINITY[store] ?? []).filter(r => !seen.has(r));
+    for (const r of related) {
+      if (seen.has(r) || result.length >= 5) break;
+      const cat = catalogByName.get(r);
+      if (!cat) continue;
+      seen.add(r);
+      result.push({
+        store: cat.name,
+        category: cat.category,
+        why: `customers who shop at ${store} often order from here too`,
+        offer: cat.offers,
+      });
+    }
+  }
+  return result;
+}
+
+/** Simulated proactive order-status updates Queen would push to a customer. */
+const ORDER_UPDATES: { key: string; label: Partial<Record<Lang, string>>; prompt: string }[] = [
+  {
+    key: "nike-shipped",
+    label: {
+      en: "Nike order shipped",
+      sw: "Agizo la Nike limetumwa",
+      rw: "Ibicuruzwa bya Nike byoherejwe",
+      lg: "Ekiragala kya Nike kitutumiddwa",
+    },
+    prompt: "My Nike order was just shipped to Dar es Salaam. When will it arrive and how do I track it?",
+  },
+  {
+    key: "zara-warehouse",
+    label: {
+      en: "Zara items at warehouse",
+      sw: "Bidhaa za Zara ziko ghala",
+      rw: "Ibicuruzwa bya Zara biri mu kigega",
+      lg: "Ebintu bya Zara biri mu ggwaani",
+    },
+    prompt: "My Zara order has arrived at the London warehouse. Can I consolidate it with my other items to save shipping?",
+  },
+  {
+    key: "payment-received",
+    label: {
+      en: "Payment confirmed",
+      sw: "Malipo yamepokelewa",
+      rw: "Ubwishyu bwakiriwe",
+      lg: "Okusasula kukakasiddwa",
+    },
+    prompt: "I just made a payment. Can you confirm it went through and show me my updated balance?",
+  },
+  {
+    key: "delivery-today",
+    label: {
+      en: "Delivery arriving today",
+      sw: "Ufunguzi uko leo",
+      rw: "Ibicuruzwa bizagera uyu munsi",
+      lg: "Ebintu byo bijja leero",
+    },
+    prompt: "My parcel is arriving today in Kampala. What do I need to have ready for the courier?",
+  },
+];
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -75,6 +200,18 @@ const GREETING: Record<Lang, string> = {
   lg: "Oli otya! 👑 Nze Queen, mubuuza wo ow'okugula. Manyi ebintu byonna ku kugula mu Bungereza n'okutuusa ebintu byo mu Tanzania, Kenya, Uganda, ne Rwanda — era mmanyi ebiragala n'emissolo gyo ndage okukyabulirako ku giti kyekyeka. Mbuuza kintu kyonna — ssente, engeri bwe bikola, okusasula, okutuusa, oba endagiriro yo eya UK. Nkusobola okuyamba ki leero?",
 };
 
+function loadSavedUpdates(): { key: string }[] {
+  try {
+    const raw = localStorage.getItem(UPDATES_KEY);
+    if (!raw) return ORDER_UPDATES.map(u => ({ key: u.key }));
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Corrupted — show all updates.
+  }
+  return ORDER_UPDATES.map(u => ({ key: u.key }));
+}
+
 function loadSaved(): { messages: ChatMessage[]; language: Lang } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -100,6 +237,7 @@ export default function AssistantChat() {
   const [language, setLanguage] = useState<Lang>("en");
   const [initialized, setInitialized] = useState(false);
   const [pending, setPending] = useState(false);
+  const [unread, setUnread] = useState(loadSavedUpdates().length);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatMutation = trpc.assistant.chat.useMutation({
     mutationKey: ["queen-chat", language],
@@ -122,11 +260,22 @@ export default function AssistantChat() {
       setLanguage(saved.language);
     }
     setInitialized(true);
+    // Fresh badge count on every page load — any update not yet opened counts.
+    setUnread(loadSavedUpdates().length);
   }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, open, pending]);
+
+  const dismissUpdates = () => {
+    setUnread(0);
+    try {
+      localStorage.setItem(UPDATES_KEY, JSON.stringify([]));
+    } catch {
+      // Storage unavailable — degrade gracefully.
+    }
+  };
 
   const greet = (lang: Lang) => {
     setLanguage(lang);
@@ -152,11 +301,13 @@ export default function AssistantChat() {
         status: o.status,
         date: o.updatedAt ?? o.edd ?? "",
       }));
+      const orderedStores = Array.from(new Set(orders.map(o => o.store).filter(Boolean))) as string[];
+      const suggestions = buildSuggestions(orderedStores);
       const res = await chatMutation.mutateAsync({
         message: trimmed,
         language,
         history,
-        personal: { orders, payments },
+        personal: { orders, payments, suggestions },
       });
       setMessages(prev => [
         ...prev,
@@ -174,10 +325,15 @@ export default function AssistantChat() {
       {/* Floating trigger */}
       <button
         aria-label="Queen AI Assistant"
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen(v => { if (!v) dismissUpdates(); return !v; })}
         className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-[#C9A24B] to-[#A07C28] text-white shadow-lg shadow-black/25 transition-transform duration-150 hover:scale-105 active:scale-95"
       >
         {open ? <X className="mx-auto h-6 w-6" /> : <MessageCircle className="mx-auto h-6 w-6" />}
+        {!open && unread > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm">
+            {unread}
+          </span>
+        )}
       </button>
 
       {/* Panel */}
@@ -223,6 +379,22 @@ export default function AssistantChat() {
 
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-muted/30 px-4 py-3">
+            {unread > 0 && messages.length === 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[#A07C28] dark:text-[#E0C06E]">New updates from Queen</p>
+                {ORDER_UPDATES.map(u => (
+                  <button
+                    key={u.key}
+                    onClick={() => send(u.prompt)}
+                    className="flex w-full items-center gap-2 rounded-xl border border-[#C9A24B]/30 bg-[#C9A24B]/10 px-3 py-2 text-left transition-colors hover:bg-[#C9A24B]/20"
+                  >
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C9A24B] text-[10px] font-bold text-black">!</span>
+                    <span className="text-[12px] font-medium text-foreground">{u.label[language] ?? u.label.en}</span>
+                    <Send className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            )}
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div

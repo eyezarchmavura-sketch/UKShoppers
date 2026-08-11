@@ -1,11 +1,26 @@
-# TASK — Queen assistant upgrade 2026-08-11 (CURRENT)
+# TASK — Queen v3 upgrade 2026-08-11 (ALL DONE)
+- [x] Notification badge on chat icon when Queen has new order-status updates (simulate proactive updates + unread count)
+- [x] Queen suggests related products & special offers based on order history (store-affinity logic in system prompt + suggestion chips)
+- [x] Dark mode: store logo icons visible (always-white pill behind logos)
+- [x] tsc clean, live tested: badge=4, dark-mode logos confirmed, suggestions answer rendered (Sports Direct/Foot Locker/Decathlon offers), checkpoint, deliver
+
+# TASK — Queen assistant upgrade 2026-08-11 (DONE) (CURRENT)
 
 - [x] Rename assistant to "Queen" (button label, panel header, greeting) — DONE in AssistantChat.tsx edits
 - [x] Quick-action chips NAV_ACTIONS: Track Orders (/orders), Payment History (/payments), Add Items (/add) — added as component const (still need to render in JSX below)
 - [x] Persist conversation in localStorage key "queen-chat-conversation"; restore on refresh; TODO: clear-chat button in header
-- [ ] Pass user's orders + payment history into assistant.chat prompt for personalized answers (server side)
-- [ ] Finish JSX: render NAV_ACTIONS bar above QUICK_ACTIONS (only when messages<=1, no pending); add clear button (Trash2) in header that clears localStorage + messages
-- [ ] tsc clean, live test, checkpoint, deliver
+- [x] Pass user's orders + payment history into assistant.chat prompt for personalized answers (server side)
+- [x] Finish JSX: NAV_ACTIONS bar rendered; clear button (Trash2) in header clears localStorage + messages
+- [x] tsc clean, live test, checkpoint (e2c20dcf), deliver
+
+## V3 progress (Phase 1 DONE, Phase 2 in progress)
+- DONE Phase 1: ORDER_UPDATES constant (4 updates w/ en/sw/rw/lg labels + prompts), UPDATES_KEY localStorage, loadSavedUpdates(), unread state, red badge on trigger (absolute -top-1 -right-1), dismissUpdates() clears count + storage, update cards render in panel when unread>0 && messages.length===0.
+- NOTE: there is an unused handleOpen const + unused savedMessages const — remove before checkpoint (tsc may warn).
+- TODO Phase 2: suggestions. Plan: add storeAffinity logic in send() computing user's stores from demoOrders (store names, category from stores list in lib/stores or hardcode affinity table: Nike→JD Sports/Adidas/Foot Locker; Zara→ASOS/H&M/Mango; Amazon→eBay UK/Boots/John Lewis; Boots→ASOS/Superdrug), feed as SUGGESTIONS block into assistant.chat personal prompt so Queen can proactively suggest related stores/products and current offers (e.g. 'Zara is running a seasonal sale', 'JD Sports often has trainer bundles').
+- stores data lives in client/src/lib/stores.ts (24 stores w/ category). Server knows store name only; add category map in server file to enrich affinity.
+- TODO Phase 3: dark mode store logos — in StoreWall/landing, logo images likely use img with white bg card; in dark mode they may be invisible. Fix: wrap logo img in white rounded card (bg-white) always, regardless of theme.
+- assistantKnowledge.ts lines 1-60 read: knowledge base is server-side; RULES section ends line 60; suggestions instruction to add after line 59 (before closing backtick).
+- GREETING in AssistantChat.tsx mentions personal orders/payments; optionally add "and I can suggest stores and deals for you" after all edits.
 
 ## Progress notes
 - Server DONE: routers.ts assistant.chat accepts optional `personal { orders, payments }` and buildPersonalContext() injects CUSTOMER ORDERS/PAYMENTS into the system prompt; Queen identity in prompt.
@@ -38,3 +53,12 @@
 - Gateways: Paystack, Flutterwave, M-Pesa STK, bank transfer, wallet. WhatsApp +255 763 173 629. hello@ukshoppersafrica.com. UK Shoppers Africa, powered by INM LTD.
 - Portal routes: / portal, /address, /orders, /tracking, /wallet, /payments, /referrals, /settings, /checkout, /success, /admin. Landing: /
 - Languages: en, sw, rw, lg (lib/i18n.ts). Brand: gold #C9A24B / #A07C28, black, dark mode.
+
+## V3 verification (20:53)
+- Dark mode toggled on landing: page is dark, Queen gold button visible with red badge "4" — unread order-status updates WORK
+- tsc: 0 errors; HMR applied AssistantChat.tsx, routers.ts, Landing.tsx
+- Store logo fix applied: white pill (always bg-white, removed dark:bg-background) so logos visible in dark mode
+- Remaining: scroll to store wall in dark mode to confirm logos, quick suggestions question test, checkpoint, deliver
+
+## Dark-mode store wall verified (20:54)
+Store wall in dark mode: cards are dark (bg-background), but each logo now sits in a white 10x10 rounded pill — Amazon and eBay logos clearly visible on the dark cards. Fix confirmed working. All three v3 items verified. Next: test a suggestions question, then checkpoint + deliver.

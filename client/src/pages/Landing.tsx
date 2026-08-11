@@ -300,7 +300,7 @@ function StoreCard({ store, delay }: { store: Store; delay?: number }) {
       onClick={handleStoreClick}
       title={`Estimate an order from ${store.name}`}
       className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start text-left w-full reveal-up" data-reveal-delay={String(delay)}>
-      <div className="w-10 h-10 rounded-xl bg-white dark:bg-background border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
+      <div className="w-10 h-10 rounded-xl bg-white border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
         {storeLogos[store.name] ? (
           <img
             src={storeLogos[store.name]}
@@ -309,7 +309,7 @@ function StoreCard({ store, delay }: { store: Store; delay?: number }) {
             loading="lazy"
           />
         ) : (
-          <span className="text-[#111418] dark:text-[#D4AF37] font-black text-sm">{store.name.charAt(0)}</span>
+          <span className="text-[#111418] font-black text-sm">{store.name.charAt(0)}</span>
         )}
       </div>
       <h3 className="font-bold text-[#111418] text-sm mt-3 leading-tight">
