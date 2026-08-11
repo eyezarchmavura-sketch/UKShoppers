@@ -26,3 +26,21 @@ Checkout route currently /checkout inside PortalShell; success link = /success?r
 ## UPDATE 2 — verification
 DONE: PaymentSuccess.tsx (dark gold header, animated check, summary rows, PDF download button, next steps, orders/dashboard CTAs); wired in App.tsx routes /payments + /success; PortalShell nav updated (Payments link added, mobile bar swapped referrals in). Checkout: dest currency selector on step 0, totals gbpWithLocal, Paystack minor-units dynamic, M-Pesa dialog dynamic, onSuccess records tx to localStorage + navigates to /success?ref=...; bank flow pending status. TSC: no errors.
 REMAINING: screenshots checkout /payments /success (desktop); checkpoint; deliver.
+
+# FULL AUDIT — 2026-08-11 (final quality sweep)
+
+## Findings
+1. **Checkout runtime crash**: browser console shows "Cannot access 'fwConfigMemo' before initialization" at Checkout.tsx — `useFlutterwave(fwConfigMemo)` called before the memo is defined (TDZ). Currently the memo IS defined above (line 114 vs call at line 130) — but the crash log is from earlier session; re-verify checkout actually renders without error boundary fallback. Fix properly: define fwConfig memo before hook call and never mutate it; compute tx_ref at payment time via state.
+2. **fwConfigMemo.tx_ref = ref() mutation** (Checkout line 154) — mutate a useMemo'd object; replace with stable txRef state updated when pay button is clicked.
+3. **PaystackButton reference instability** — paystackConfig uses ref() at render; keep (demo OK) but make reference stable via useMemo keyed on dest.
+4. **M-Pesa dialog Account uses Date.now().slice(-6) on each render** — minor cosmetic; cache at dialog open time.
+5. Check dark mode on /payments, /success, checkout step rendering.
+6. Verify all hero/section image URLs load (Landing + portal pages).
+7. Verify all routes reachable: /portal, /orders, /add-items, /tracking, /address, /wallet, /referrals, /settings, /checkout, /payments, /success, /, /admin.
+
+## Fixes
+- [ ] Fix TDZ + mutation in Checkout (fwConfig)
+- [ ] Dark mode pass on payment pages
+- [ ] Image URL audit
+- [ ] Route smoke test all pages
+- [ ] Checkpoint + deliver

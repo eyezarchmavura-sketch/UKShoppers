@@ -108,15 +108,15 @@ export default function Checkout() {
   const [phone, setPhone] = useState("");
 
   const ref = useCallback(() => `UKSA-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, []);
+  const [fwTxRef, setFwTxRef] = useState("");
 
-  // Flutterwave config must exist before useFlutterwave is called (TDZ-safe, declared below via fwConfigMemo).
-  // We build it here with a stable function that reads the latest phone.
+  // Flutterwave config is built BEFORE the hook call (TDZ-safe) and never mutated afterward.
   const fwConfigMemo = useMemo(
     () => ({
       public_key: "FLWPUBK_TEST-demo-placeholder-X",
-      tx_ref: "",
-      amount: 132.49,
-      currency: "USD",
+      tx_ref: fwTxRef || ref(),
+      amount: TOTAL_GBP,
+      currency: "GBP",
       payment_options: "card, mobilemoneyke, mpesa, mobilemoneyuganda, mobilemoneyrwanda, ussd",
       customer: { email: "customer@ukshoppersafrica.com", name: "Amina M.", phone_number: phone || "+255763173629" },
       customizations: {
@@ -125,7 +125,8 @@ export default function Checkout() {
         logo: "https://placehold.co/120x40/111418/D4AF37?text=UKSA",
       },
     }),
-    [phone]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fwTxRef, phone]
   );
   const payWithFlutterwave = useFlutterwave(fwConfigMemo);
   const openFlutterwave = (cb: (data: { status: string; tx_ref?: string }) => void) => {
@@ -151,7 +152,7 @@ export default function Checkout() {
       <button
         onClick={() => {
           setPaying(true);
-          fwConfigMemo.tx_ref = ref();
+          setFwTxRef(ref());
           openFlutterwave(() => {});
         }}
         className="w-full rounded-full px-8 py-3 bg-[#F5A623] text-black font-semibold text-sm hover:brightness-95 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
@@ -191,21 +192,26 @@ export default function Checkout() {
   };
 
   /* ---------- Paystack config — amount in minor units of the selected destination's currency ---------- */
-  const paystackConfig = {
-    reference: ref(),
-    email: "customer@ukshoppersafrica.com",
-    amount: Math.round(TOTAL_GBP * destCurrency(destCode).rate * 100),
-    currency: destCurrency(destCode).code,
-    publicKey: "pk_test_demo_placeholder",
-    onSuccess: () => onSuccess(paystackConfig.reference),
-    onClose,
-    metadata: {
-      custom_fields: [
-        { display_name: "Customer", variable_name: "customer", value: "Amina M." },
-        { display_name: "Destination", variable_name: "destination", value: "Dar es Salaam, TZ" },
-      ],
-    },
-  };
+  const paystackReference = useMemo(() => ref(), [ref]);
+  const paystackConfig = useMemo(
+    () => ({
+      reference: paystackReference,
+      email: "customer@ukshoppersafrica.com",
+      amount: Math.round(TOTAL_GBP * destCurrency(destCode).rate * 100),
+      currency: destCurrency(destCode).code,
+      publicKey: "pk_test_demo_placeholder",
+      onSuccess: () => onSuccess(paystackReference),
+      onClose,
+      metadata: {
+        custom_fields: [
+          { display_name: "Customer", variable_name: "customer", value: "Amina M." },
+          { display_name: "Destination", variable_name: "destination", value: "Dar es Salaam, TZ" },
+        ],
+      },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [paystackReference, destCode]
+  );
 
   /* ---------- Flutterwave config (fwConfigMemo above) ---------- */
 
@@ -498,7 +504,7 @@ export default function Checkout() {
             </DialogDescription>
           </DialogHeader>
           <div className="p-4 bg-[#39B54A]/10 rounded-lg text-center space-y-2">
-            <p className="text-sm font-semibold">Paybill: 247247 · Account: UKSA-{Date.now().toString().slice(-6)}</p>
+            <p className="text-sm font-semibold">Paybill: 247247 · Account: UKSA-{paystackReference.slice(-6).toUpperCase()}</p>
             <p className="text-xs text-muted-foreground">Demo prototype — tap confirm to simulate completion</p>
           </div>
           <Button onClick={confirmMpesa} className="rounded-full bg-[#39B54A] text-white font-semibold">
