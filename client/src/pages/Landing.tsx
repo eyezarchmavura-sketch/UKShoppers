@@ -19,7 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-  import { toast } from "sonner";
+import { toast } from "sonner";
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
 
@@ -42,8 +42,8 @@ const steps = [
   {
     num: "01",
     icon: Link2,
-    title: "Send us a UK product link",
-    body: "Paste any link from Amazon UK, ASOS, Zara, or any UK store into our quote tool, or ship directly to your personal London warehouse address.",
+    title: "Send us a UK product link or cart screenshot",
+    body: "Paste any link from Amazon UK, ASOS, Zara, or upload a cart screenshot. Prefer full control? Use your personal UK warehouse address at checkout.",
   },
   {
     num: "02",
@@ -72,18 +72,16 @@ export default function Landing() {
   const [itemPriceGBP, setItemPriceGBP] = useState(75);
   const [weightKg, setWeightKg] = useState(1.5);
 
-  // Estimate calculation
   const shippingCostGBP = weightKg * 11;
   const serviceFeeGBP = Math.max(5, itemPriceGBP * 0.08);
   const totalGBP = itemPriceGBP + shippingCostGBP + serviceFeeGBP;
 
-  // Local currency conversion approximation
   let localTotal = "";
   if (selectedDest.code === "TZ") {
     localTotal = `TSh ${(totalGBP * 3400).toLocaleString()}`;
   } else if (selectedDest.code === "KE") {
     localTotal = `KSh ${(totalGBP * 168).toLocaleString()}`;
-  } else if (selectedDest.code === "UGX" || selectedDest.code === "UG") {
+  } else if (selectedDest.code === "UG") {
     localTotal = `USh ${(totalGBP * 4900).toLocaleString()}`;
   } else {
     localTotal = `RF ${(totalGBP * 1700).toLocaleString()}`;
@@ -132,7 +130,7 @@ export default function Landing() {
             <a href="#how-it-works" className="hover:text-[#0A3622] transition-colors">How It Works</a>
             <a href="#calculator" className="hover:text-[#0A3622] transition-colors">Instant Quote</a>
             <a href="#stores" className="hover:text-[#0A3622] transition-colors">Popular Stores</a>
-            <a href="#features" className="hover:text-[#0A3622] transition-colors">Why Choose Us</a>
+            <Link href="/admin" className="text-[#0A3622] font-semibold hover:underline">Staff Admin</Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -164,14 +162,14 @@ export default function Landing() {
                 <span className="text-[#C9A227]">Delivered to East Africa.</span>
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
-                Get your favorite items from Amazon UK, ASOS, Zara, and top British stores. Paste any product link or use your free UK address. We handle purchase, consolidation, and express air freight with customs cleared.
+                Get your favorite items from Amazon UK, ASOS, Zara, and top British stores. Paste any product link, upload a cart screenshot, or use your free UK address. We handle purchase, consolidation, and express air freight with customs cleared.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/add"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#0A3622] text-white px-8 py-4 text-base font-semibold shadow-lg hover:bg-[#0A3622]/90 transition-all">
-                  <Link2 className="w-5 h-5 text-[#F6E05E]" /> Paste Product Link & Quote
+                  <Link2 className="w-5 h-5 text-[#F6E05E]" /> Paste Link or Upload Cart
                 </Link>
                 <Link
                   href="/portal"
@@ -197,7 +195,7 @@ export default function Landing() {
             </div>
 
             {/* Quick Quote Widget in Hero */}
-            <div className="lg:col-span-5">
+            <div id="calculator" className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 bg-[#C9A227]/20 text-[#0A3622] text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
                   Instant Calculator
@@ -399,11 +397,16 @@ export default function Landing() {
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 flex gap-4">
                 <Link
                   href="/portal"
                   className="inline-flex items-center gap-2 rounded-full bg-[#0A3622] text-[#F6E05E] px-6 py-3 text-sm font-semibold shadow-md hover:bg-[#0A3622]/90">
                   Access Client Dashboard <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#0A3622]/30 text-[#0A3622] px-6 py-3 text-sm font-semibold hover:bg-muted">
+                  Team Operations Admin
                 </Link>
               </div>
             </div>
@@ -461,7 +464,7 @@ export default function Landing() {
                 <li><Link href="/" className="hover:text-[#F6E05E]">Home</Link></li>
                 <li><Link href="/portal" className="hover:text-[#F6E05E]">Customer Dashboard</Link></li>
                 <li><Link href="/add" className="hover:text-[#F6E05E]">Instant Quote & Link</Link></li>
-                <li><Link href="/tracking" className="hover:text-[#F6E05E]">Parcel Tracking</Link></li>
+                <li><Link href="/admin" className="text-[#F6E05E] font-semibold hover:underline">Operations Staff Admin</Link></li>
               </ul>
             </div>
 
