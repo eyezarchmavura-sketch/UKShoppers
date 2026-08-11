@@ -1,12 +1,8 @@
-# Landing Page Build — Todo
+# Store Wall Upgrade — Todo
 
-- [ ] Generate hero image + supporting visuals (premium, brand-aligned, no text)
-- [ ] Generate brand logo icon if not already present
-- [ ] Build Landing page: premium hero with headline, CTA, trust indicators
-- [ ] How-it-works section (3 steps with illustrations)
-- [ ] Supported stores showcase (logo-style store chips, text-based since no trademarked logos)
-- [ ] Live pricing calculator (weight × destination, transparent breakdown)
-- [ ] Trust/comparison section vs manual WhatsApp shopping
-- [ ] Footer with navigation to portal
-- [ ] Wire /landing as default route with CTA into portal
-- [ ] Screenshot verification (desktop + mobile), checkpoint, deliver
+- [ ] Review latest synced code (Landing.tsx, App.tsx, PortalShell) to understand current store display
+- [ ] Compile full list of major UK/international stores (30+)
+- [ ] Build premium store wall section on landing page (categorized, branded cards, best-in-market UI)
+- [ ] Keep consistency with the existing green/yellow brand and East-Africa storefront direction
+- [ ] Screenshot verification desktop + mobile
+- [ ] Checkpoint and deliver

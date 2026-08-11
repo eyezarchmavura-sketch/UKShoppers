@@ -23,19 +23,43 @@ import { toast } from "sonner";
 
 const LOGO_IMG = "/manus-storage/logo-mark_edee000e.png";
 
-const stores = [
-  "Amazon UK",
-  "ASOS",
-  "Zara",
-  "Next",
-  "John Lewis",
-  "Marks & Spencer",
-  "Nike UK",
-  "Boots",
-  "eBay UK",
-  "Sports Direct",
-  "Superdrug",
-  "Apple UK",
+interface Store {
+  name: string;
+  category: string;
+  domain: string;
+  note: string;
+}
+
+const stores: Store[] = [
+  { name: "Amazon UK", category: "Marketplace", domain: "amazon.co.uk", note: "Everything under one roof" },
+  { name: "eBay UK", category: "Marketplace", domain: "ebay.co.uk", note: "Auctions & direct buys" },
+  { name: "ASOS", category: "Fashion", domain: "asos.com", note: "Trend-led fashion & beauty" },
+  { name: "Nike UK", category: "Fashion", domain: "nike.com/gb", note: "Sneakers & sportswear" },
+  { name: "Adidas UK", category: "Fashion", domain: "adidas.co.uk", note: "Sportswear & originals" },
+  { name: "Zara UK", category: "Fashion", domain: "zara.com/uk", note: "Contemporary fashion" },
+  { name: "Next UK", category: "Fashion", domain: "next.co.uk", note: "Family fashion & home" },
+  { name: "Marks & Spencer", category: "Fashion", domain: "marksandspencer.com", note: "British quality classics" },
+  { name: "Primark Online", category: "Fashion", domain: "primark.com", note: "Budget-friendly fashion" },
+  { name: "Boots", category: "Beauty & Health", domain: "boots.com", note: "Pharmacy & skincare" },
+  { name: "Superdrug", category: "Beauty & Health", domain: "superdrug.com", note: "Health & beauty deals" },
+  { name: "Apple UK", category: "Electronics", domain: "apple.com/uk", note: "iPhone, Mac & more" },
+  { name: "Argos", category: "Electronics", domain: "argos.co.uk", note: "Home, tech & toys" },
+  { name: "Currys", category: "Electronics", domain: "currys.co.uk", note: "Electronics & appliances" },
+  { name: "John Lewis", category: "Electronics", domain: "johnlewis.com", note: "Premium home & tech" },
+  { name: "Sports Direct", category: "Sport & Outdoors", domain: "sportsdirect.com", note: "Big sports brands" },
+  { name: "JD Sports", category: "Sport & Outdoors", domain: "jdsports.co.uk", note: "Trainers & kit" },
+  { name: "Decathlon UK", category: "Sport & Outdoors", domain: "decathlon.co.uk", note: "Outdoor & fitness gear" },
+  { name: "Lakeland", category: "Home & Kitchen", domain: "lakeland.co.uk", note: "Kitchen & home essentials" },
+  { name: "IKEA UK", category: "Home & Kitchen", domain: "ikea.com/gb", note: "Furniture & homeware" },
+  { name: "H&M UK", category: "Fashion", domain: "hm.com/gb", note: "Affordable everyday style" },
+  { name: "The Body Shop", category: "Beauty & Health", domain: "thebodyshop.com", note: "Natural skincare" },
+  { name: "Sephora UK", category: "Beauty & Health", domain: "sephora.co.uk", note: "Luxury cosmetics" },
+  { name: "HMV", category: "Entertainment", domain: "hmv.com", note: "Music, games & collectibles" },
+];
+
+const storeCategories = [
+  "All",
+  ...Array.from(new Set(stores.map((s) => s.category))),
 ];
 
 const steps = [
@@ -65,6 +89,72 @@ const destinations = [
   { code: "UG", name: "Uganda (Kampala / Entebbe)", flag: "🇺🇬", currency: "UGX", perKg: 42000, handling: 18000, days: "5–8 Days" },
   { code: "RW", name: "Rwanda (Kigali)", flag: "🇷🇼", currency: "RWF", perKg: 15000, handling: 6000, days: "6–9 Days" },
 ];
+
+function StoreWall() {
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const filtered =
+    activeCategory === "All"
+      ? stores
+      : stores.filter((s) => s.category === activeCategory);
+
+  return (
+    <div className="container">
+      <div className="text-center max-w-2xl mx-auto mb-10">
+        <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
+          100+ Supported Stores
+        </span>
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#0A3622] mt-3">
+          Shop From Any UK Retailer
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          If they sell it in the UK, we can buy it and deliver it to your doorstep in East Africa — pasting a single link is all it takes.
+        </p>
+      </div>
+
+      {/* Category filter chips */}
+      <div className="flex flex-wrap justify-center gap-2 mb-10">
+        {storeCategories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`rounded-full px-4.5 py-2 text-sm font-semibold transition-all active:scale-[0.97] ${
+              activeCategory === cat
+                ? "bg-[#0A3622] text-[#F6E05E] shadow-md"
+                : "bg-background text-foreground/70 border border-border hover:border-[#0A3622]/50 hover:text-[#0A3622]"
+            }`}>
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Store grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {filtered.map((store) => (
+          <div
+            key={store.name}
+            className="group bg-background rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A3622] to-[#124a30] text-[#F6E05E] flex items-center justify-center font-black text-sm shadow-sm">
+              {store.name.charAt(0)}
+            </div>
+            <h3 className="font-bold text-[#0A3622] text-sm mt-3 leading-tight">
+              {store.name}
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
+            <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
+            <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 w-full">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified UK Store
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-center text-xs text-muted-foreground mt-8">
+        Not on the list? We support virtually every UK retailer — paste any product link and we'll confirm instantly.
+      </p>
+    </div>
+  );
+}
 
 export default function Landing() {
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
@@ -299,27 +389,8 @@ export default function Landing() {
       </section>
 
       {/* ============ POPULAR UK STORES ============ */}
-      <section id="stores" className="py-16 bg-white border-y border-border">
-        <div className="container">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0A3622]">
-              Shop From Any UK Retailer
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              If they sell it in the UK, we can buy it and deliver it to your doorstep in East Africa.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {stores.map((store, idx) => (
-              <div
-                key={idx}
-                className="bg-background rounded-2xl p-4 text-center border border-border/80 hover:border-[#0A3622] transition-all hover:shadow-md flex flex-col items-center justify-center h-24">
-                <span className="font-bold text-[#0A3622] text-sm">{store}</span>
-                <span className="text-[10px] text-muted-foreground mt-1">Direct UK Delivery</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section id="stores" className="py-16 sm:py-20 bg-white border-y border-border">
+        <StoreWall />
       </section>
 
       {/* ============ HOW IT WORKS ============ */}
