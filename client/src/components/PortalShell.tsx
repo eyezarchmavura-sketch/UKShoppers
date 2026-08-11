@@ -21,6 +21,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import AssistantChat from "@/components/AssistantChat";
 import { tr } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -198,6 +199,9 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
+
+      {/* AI shopping assistant */}
+      <AssistantChat />
 
       {/* Mobile bottom bar */}
       {mobile && (

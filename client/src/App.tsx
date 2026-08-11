@@ -24,8 +24,8 @@ import TermsOfService from "./pages/TermsOfService";
 import ReturnsPolicy from "./pages/ReturnsPolicy";
 import WhatsAppWidget from "./components/WhatsAppWidget";
 
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <>
       <Switch>

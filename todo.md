@@ -1,59 +1,30 @@
-# Currency + Payment History + PDF Receipt — Todo
+# TASK — AI shopping assistant 2026-08-11 (current)
 
-## Phase 1: currency engine + PDF
-- [ ] Create client/src/lib/currency.ts: rates for TZS/KSh/UGX/RWF with symbol, name, flag, minor units
-- [ ] Add jspdf dependency for PDF receipt generation
+- [x] Upgrade project to web-db-user (backend + LLM access) — done, jose installed, tsc clean, server running
+- [x] Read builtin-llm-models skill (DONE — notes below)
+- [x] Create assistant knowledge base: server/assistantKnowledge.ts (business model, site functionality, pricing, gateways, markets, FAQ)
+- [x] Backend: assistant.chat tRPC procedure (publicProcedure) using invokeLLM, gpt-5-mini, knowledge system prompt + history + language-enforced, maxTokens 1200, failure fallback
+- [x] Chat widget UI: AssistantChat.tsx — gold floating button (bottom-24 right-6, above WhatsApp widget), dark header panel, messages, input, en/sw/rw/lg toggles, Streamdown markdown, quick action chips, per-language greeting
+- [x] Mount widget in PortalShell.tsx and Landing.tsx
+- [x] Verified live: English pricing+payment answer and Kiswahili parcel-journey answer render correctly; tsc clean; pnpm test passes (1/1); old 18:47 vite HMR errors are stale from the full-stack upgrade, no new errors since — checkpoint & deliver
 
-## Phase 2: wire into pages
-- [ ] Checkout currency-aware totals: derive destination from address selection or portal currency header; show local total + GBP side-by-side on confirm step and in order review
-- [ ] Create PaymentHistory page (/portal/payments): table of transactions (date, gateway, amount GBP + local, status chips, ref, receipt download)
-- [ ] Create PaymentSuccess page (/portal/success?ref=...): order summary, PDF receipt download button (jspdf), back to orders
-- [ ] Update Checkout onSuccess to navigate to success page with ref + last tx details stored in localStorage
-- [ ] Add Wallet & Pay nav link to Payment History
-- [ ] Persist payment transactions in localStorage for demo consistency across pages
+## LLM invocation notes (from builtin-llm-models skill)
+- Webdev server: import { invokeLLM, listLLMModels } from "./_core/llm" (in server code)
+- invokeLLM({ model, messages, maxTokens }) — OpenAI chat completions shape, auto retries; NO streaming
+- Models snapshot: gpt-5-mini (default cheap/fast workhorse — USE THIS), gpt-5-nano, gpt-5, claude-haiku-4-5, claude-sonnet-4-6, gemini-3-flash-preview
+- For GPT use max_completion_tokens to cap output; for Claude max_tokens > budget_tokens; for Gemini use max_tokens (NOT max_completion_tokens)
+- Credentials BUILT_IN_FORGE_API_URL/BUILT_IN_FORGE_API_KEY injected to env; never call from client
 
-## Phase 3: verify
-- [ ] Screenshot checkout, payments, success pages desktop + mobile
-- [ ] Checkpoint and deliver
+## Prior completed work in project
+- Payment history export (PDF report + CSV) DONE checkpoint b69c526a: PaymentHistory.tsx buttons Export PDF Report (pay.exportPdf) / Export CSV (pay.exportCsv), functions downloadTransactionsPdf/downloadTransactionsCsv in lib/receipts.ts, columns [16,46,88,124,140,162,182]
+- Translations+legal pages checkpoint 2f67bab9; export checkpoint b69c526a
+- Skill updated: /home/ubuntu/skills/competitor-platform-builder (payments-localization.md, audit-and-delivery.md references)
 
-## PROGRESS UPDATE
-DONE: currency.ts (lib/currency.ts: DESTINATIONS TZ/KE/UG/RW rates 3390/1780/6150/1840, gbpToLocal, gbpWithLocal); receipts.ts (lib/receipts.ts: PaymentTransaction, loadTransactions/addTransaction/saveLastPayment/getLastPayment, ensureDemoHistory seeds 3 demo txs, downloadReceipt(tsx) builds A4 jsPDF receipt with dark header + gold accent).
-DONE: PaymentHistory.tsx page (grid stats, filter chips, search, tx rows with gateway icon/status/receipt download).
-jspdf installed.
-REMAINING: PaymentSuccess.tsx page (/portal/success?ref=...); wire Checkout onSuccess to saveLastPayment + navigate to /portal/success?ref=...; update Checkout totals to use gbpWithLocal + destination selection (add dest select on step 0/2); add Payments nav link to PortalShell (Wallet & Pay -> /payments); wire routes in App.tsx; verify screenshots; checkpoint; deliver.
-Checkout route currently /checkout inside PortalShell; success link = /success?ref=UKSA-...
-
-## UPDATE 2 — verification
-DONE: PaymentSuccess.tsx (dark gold header, animated check, summary rows, PDF download button, next steps, orders/dashboard CTAs); wired in App.tsx routes /payments + /success; PortalShell nav updated (Payments link added, mobile bar swapped referrals in). Checkout: dest currency selector on step 0, totals gbpWithLocal, Paystack minor-units dynamic, M-Pesa dialog dynamic, onSuccess records tx to localStorage + navigates to /success?ref=...; bank flow pending status. TSC: no errors.
-REMAINING: screenshots checkout /payments /success (desktop); checkpoint; deliver.
-
-# FULL AUDIT — 2026-08-11 (final quality sweep)
-
-## Findings
-1. **Checkout runtime crash**: browser console shows "Cannot access 'fwConfigMemo' before initialization" at Checkout.tsx — `useFlutterwave(fwConfigMemo)` called before the memo is defined (TDZ). Currently the memo IS defined above (line 114 vs call at line 130) — but the crash log is from earlier session; re-verify checkout actually renders without error boundary fallback. Fix properly: define fwConfig memo before hook call and never mutate it; compute tx_ref at payment time via state.
-2. **fwConfigMemo.tx_ref = ref() mutation** (Checkout line 154) — mutate a useMemo'd object; replace with stable txRef state updated when pay button is clicked.
-3. **PaystackButton reference instability** — paystackConfig uses ref() at render; keep (demo OK) but make reference stable via useMemo keyed on dest.
-4. **M-Pesa dialog Account uses Date.now().slice(-6) on each render** — minor cosmetic; cache at dialog open time.
-5. Check dark mode on /payments, /success, checkout step rendering.
-6. Verify all hero/section image URLs load (Landing + portal pages).
-7. Verify all routes reachable: /portal, /orders, /add-items, /tracking, /address, /wallet, /referrals, /settings, /checkout, /payments, /success, /, /admin.
-
-## Fixes
-- [ ] Fix TDZ + mutation in Checkout (fwConfig)
-- [ ] Dark mode pass on payment pages
-- [ ] Image URL audit
-- [ ] Route smoke test all pages
-- [ ] Checkpoint + deliver
-
-# CURRENT TASK — 2026-08-11 (skill update + translations + legal pages)
-
-1. [x] Update competitor-platform-builder skill (SKILL.md + references/payments-localization.md + references/audit-and-delivery.md + build-workflow.md); validated OK.
-2. [ ] Translations for payment pages (sw/rw/lg): PaymentHistory.tsx (title, subtitle, stats Total Paid/Transactions/Completed/Pending, search placeholder, filter All, empty state, status labels Paid/Pending/Refunded, receipt tooltip), PaymentSuccess.tsx, Checkout.tsx, any English-only new pages. Use t() via tr(key, lang); add keys to lib/i18n.ts matching in all 4 languages.
-3. [ ] Legal pages: /privacy, /terms, /returns (static, PortalShell layout, i18n keys), footer links (foot.privacy/foot.terms already exist + foot.shipping→/returns) and settings page link. Placeholder company details, no fabricated registrations.
-4. [ ] Verify (tsc, screenshots, dark mode), checkpoint, deliver.
-
-# TASK — Payment history export (PDF/CSV) 2026-08-11
-- [ ] Add export buttons (PDF report + CSV) on Payments page exporting the currently filtered transactions
-- [ ] Expose filtered transactions from PaymentHistory state for export functions
-- [ ] i18n keys for export labels in en/sw/rw/lg
-- [ ] tsc clean, browser verify (both downloads), checkpoint, deliver
+## Key facts about the site (for assistant knowledge base)
+- Business: UK personal shopping + parcel forwarding to East Africa (Tanzania, Kenya, Uganda, Rwanda). Free UK warehouse address, paste product links or upload cart screenshot, consolidation, customs-cleared express air freight 4-8 days. London warehouse.
+- Pricing: shipping £11/kg (min 0.5kg bands) + service & inspection fee £6 flat. Destinations TZS/KSh/UGX/RWF conversion via lib/currency.ts rates.
+- Gateways: Paystack, Flutterwave, M-Pesa STK, bank transfer, wallet. Receipts PDF via lib/receipts.ts. Payment history /payments, success page /success with receipt download.
+- Languages: English, Kiswahili, Kinyarwanda, Luganda (lib/i18n.ts, tr() via LanguageContext).
+- Brand: gold/black/faint-blue, dark mode toggle. WhatsApp support +255 763 173 629. hello@ukshoppersafrica.com. UK Shoppers Africa, powered by INM LTD.
+- Portal routes: / portal(dashboard), /address (UK warehouse), /orders, /tracking, /wallet, /payments, /referrals, /settings, /checkout, /success, /admin
+- Landing: / instant calculator (destination × weight), 24 real UK stores wall, how-it-works 3-step, parcel journey 6 stops, 14-question FAQ, language switcher, WhatsApp widget

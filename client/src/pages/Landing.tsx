@@ -38,6 +38,7 @@ import { useReveal } from "@/hooks/useReveal";
 import { tr, Lang } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import AssistantChat from "@/components/AssistantChat";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
@@ -994,6 +995,9 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* AI shopping assistant */}
+      <AssistantChat />
     </div>
   );
 }
