@@ -1,5 +1,3 @@
-/* GlobalCart Dashboard — asymmetric grid per wireframe:
-   3 summary cards + paste-link demo + recent orders + loyalty/referral widgets. */
 import { useState } from "react";
 import { Link } from "wouter";
 import {
@@ -28,14 +26,14 @@ export default function Dashboard() {
       {/* Welcome row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Welcome back, Ada</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">Welcome back, Amina</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            You have 3 items in warehouse · 1 shipment in transit
+            You have 3 items in London warehouse · 1 shipment in air transit to East Africa
           </p>
         </div>
         <Button asChild className="rounded-full px-5 active:scale-[0.97]">
           <Link href="/add">
-            <Sparkles className="w-4 h-4" /> New Purchase
+            <Sparkles className="w-4 h-4" /> New Purchase Request
           </Link>
         </Button>
       </div>
@@ -44,15 +42,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-            <MapPin className="w-4 h-4" /> My UK Address
+            <MapPin className="w-4 h-4" /> My UK Warehouse Address
           </div>
           <p className="mt-3 font-mono text-sm text-foreground/80 leading-relaxed">
-            Ada E. · UNIT-7X2
+            Amina M. · UKSA-7X2
             <br />
-            12 Fulfillment Road, London N17 6AB
+            12 Heathrow Cargo Way, London TW6 2GE
           </p>
           <button
-            onClick={() => toast.success("Address copied — paste it at any store checkout")}
+            onClick={() => toast.success("Address copied — paste it at any UK store checkout")}
             className="mt-3 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/70 flex items-center gap-1">
             <Copy className="w-3 h-3" /> Copy address
           </button>
@@ -60,10 +58,10 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-            <Package className="w-4 h-4" /> In Warehouse
+            <Package className="w-4 h-4" /> In London Warehouse
           </div>
           <p className="mt-3 text-2xl font-bold text-foreground">3 items · 12 kg</p>
-          <p className="text-xs text-muted-foreground mt-1">Awaiting consolidation</p>
+          <p className="text-xs text-muted-foreground mt-1">Awaiting free consolidation</p>
           <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
             <Link href="/orders">
               Consolidate <ArrowRight className="w-3.5 h-3.5" />
@@ -73,10 +71,10 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-            <Truck className="w-4 h-4" /> Active Shipment
+            <Truck className="w-4 h-4" /> Active Air Shipment
           </div>
-          <p className="mt-3 text-lg font-bold text-foreground">GC-48201 → Lagos</p>
-          <p className="text-xs text-muted-foreground mt-1">EDD Jul 22 · DHL Express</p>
+          <p className="mt-3 text-lg font-bold text-foreground">UKS-84201 → Dar es Salaam</p>
+          <p className="text-xs text-muted-foreground mt-1">EDD Aug 18 · Express Air Cargo</p>
           <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
             <Link href="/tracking">
               Track on map <ArrowRight className="w-3.5 h-3.5" />
@@ -94,17 +92,17 @@ export default function Dashboard() {
         </div>
         <div className="relative">
           <h2 className="font-display text-xl font-bold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#F6E05E]" /> Paste a link, get a quote
+            <Zap className="w-5 h-5 text-[#F6E05E]" /> Paste a link, get an instant quote
           </h2>
           <p className="text-sm text-primary-foreground/70 mt-1">
-            Works on any supported UK store — see your all-in price instantly.
+            Works on Amazon UK, ASOS, Zara, Next, and all UK retail stores.
           </p>
           <form
             className="mt-4 flex flex-col sm:flex-row gap-2"
             onSubmit={(e) => {
               e.preventDefault();
               if (link.trim()) {
-                toast.success("Opening quote flow — this is a prototype, demo result loads next");
+                toast.success("Opening quote flow — demo item loaded");
               } else {
                 toast.error("Paste a product URL first");
               }
@@ -112,7 +110,7 @@ export default function Dashboard() {
             <Input
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="https://www.nike.com/gb/t/air-max-90-shoe-…"
+              placeholder="https://www.amazon.co.uk/dp/..."
               className="h-11 rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#F6E05E]"
             />
             <Button
@@ -122,7 +120,7 @@ export default function Dashboard() {
             </Button>
           </form>
           <p className="text-xs text-primary-foreground/50 mt-3">
-            Supported: Amazon UK · ASOS · Zara · Nike · Adidas · Boots · eBay UK · Next · and more
+            Supported: Amazon UK · ASOS · Zara · Next · John Lewis · Boots · eBay UK · Sports Direct
           </p>
         </div>
       </div>
@@ -174,7 +172,7 @@ export default function Dashboard() {
             </h3>
             <p className="mt-2 text-2xl font-bold text-primary">2,840 pts</p>
             <p className="text-xs text-muted-foreground mt-1">
-              160 pts to Standard tier — free consolidation included
+              160 pts to Gold Tier — free UK warehouse storage included
             </p>
             <Progress value={88} className="mt-3 h-2" />
           </div>
@@ -183,7 +181,7 @@ export default function Dashboard() {
             <Gift className="w-8 h-8 text-[#F6E05E] absolute -right-2 -bottom-2 opacity-25" />
             <p className="text-sm font-semibold text-[#F6E05E]">Refer a friend</p>
             <p className="text-xs text-primary-foreground/70 mt-1">
-              Earn ₦3,000 per friend who completes their first order.
+              Earn £6.00 credit for every friend who completes their first order to East Africa.
             </p>
             <Link
               href="/referrals"

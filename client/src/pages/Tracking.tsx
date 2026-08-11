@@ -1,4 +1,3 @@
-/* GlobalCart Tracking — vertical stepper + simplified route visual per wireframe 2.5. */
 import { useState } from "react";
 import { Check, MapPin, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +13,7 @@ export default function Tracking() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-primary">Shipment Tracking</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-mono">{demoOrders[0].trackingNumber} · Nike UK → Lagos</p>
+          <p className="text-sm text-muted-foreground mt-1 font-mono">{demoOrders[0].trackingNumber} · Nike UK → Dar es Salaam</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground uppercase tracking-wide">Estimated delivery</p>
@@ -22,22 +21,22 @@ export default function Tracking() {
         </div>
       </div>
 
-      {/* Route visual (stylized, not a real map) */}
+      {/* Route visual */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2 font-semibold">
-            <MapPin className="w-4 h-4 text-primary" /> London
+            <MapPin className="w-4 h-4 text-primary" /> London Heathrow Hub
           </div>
           <div className="flex-1 mx-3 relative h-px bg-border">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[65%] h-0.5 bg-primary rounded-full" />
             <span className="absolute left-[62%] -top-1.5 w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
           </div>
           <div className="flex items-center gap-2 font-semibold">
-            <MapPin className="w-4 h-4 text-[#C9A227]" /> Lagos
+            <MapPin className="w-4 h-4 text-[#C9A227]" /> Dar es Salaam / Nairobi
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3 text-center">
-          Stylized route for the prototype — the production app uses a live carrier map.
+          Express Air Freight from UK to East Africa.
         </p>
       </div>
 
@@ -78,7 +77,7 @@ export default function Tracking() {
           <div>
             <p className="text-sm font-semibold">Notify me on WhatsApp</p>
             <p className="text-xs text-primary-foreground/70">
-              Get a ping at every checkpoint — before you have to ask.
+              Get an instant update at every checkpoint across East Africa.
             </p>
           </div>
         </div>

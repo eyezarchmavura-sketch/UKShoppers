@@ -1,4 +1,3 @@
-/* GlobalCart Wallet — balance card, local deposit, transaction history per wireframe 2.7. */
 import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,9 +7,9 @@ export default function Wallet() {
   return (
     <div className="p-4 lg:p-8 max-w-[900px] mx-auto space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-primary">Wallet</h1>
+        <h1 className="font-display text-2xl font-bold text-primary">Wallet & Payments</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Deposit in your local currency, pay orders instantly, and receive referral rewards here.
+          Deposit via M-Pesa, Tigo Pesa, Airtel Money, or bank cards. Pay orders instantly and receive referral rewards.
         </p>
       </div>
 
@@ -27,10 +26,10 @@ export default function Wallet() {
               <WalletIcon className="w-3.5 h-3.5" /> Available balance
             </p>
             <p className="font-display text-4xl font-bold mt-1">£42.30</p>
-            <p className="text-sm text-primary-foreground/70 mt-1">≈ ₦53,800 at today's rate</p>
+            <p className="text-sm text-primary-foreground/70 mt-1">≈ TSh 143,800 / KSh 7,100 at today's rate</p>
           </div>
           <Button
-            onClick={() => toast("Deposit flow (Paystack / Flutterwave / M-Pesa) ships with payment integration")}
+            onClick={() => toast("Deposit via M-Pesa, Tigo Pesa, or Card")}
             className="rounded-full bg-[#F6E05E] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
             <Plus className="w-4 h-4" /> Deposit funds
           </Button>
@@ -39,17 +38,18 @@ export default function Wallet() {
 
       {/* Payment methods summary */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
-        <h2 className="font-semibold text-sm mb-3">Connected payment methods</h2>
+        <h2 className="font-semibold text-sm mb-3">Connected Payment Methods (East Africa & UK)</h2>
         <div className="flex flex-wrap gap-2 text-xs font-medium">
-          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">💳 Visa •• 4821</span>
-          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">📱 M-Pesa</span>
-          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">🏦 Flutterwave</span>
+          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">📱 M-Pesa (Kenya / Tanzania)</span>
+          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">📱 Tigo Pesa / Airtel Money</span>
+          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">💳 Visa / Mastercard</span>
+          <span className="rounded-full bg-muted px-3 py-1.5 flex items-center gap-1.5">🏦 Direct Bank Transfer</span>
         </div>
       </div>
 
       {/* Transactions */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
-        <h2 className="font-semibold mb-1">Transaction history</h2>
+        <h2 className="font-semibold mb-1">Transaction History</h2>
         <p className="text-xs text-muted-foreground mb-3">All movements of your balance and credits.</p>
         <div className="divide-y divide-border">
           {demoTransactions.map((t) => (

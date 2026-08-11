@@ -1,4 +1,3 @@
-/* GlobalCart Referrals — link, share-to-WhatsApp, rewards meter, referred users per wireframe 2.7. */
 import { useState } from "react";
 import { Gift, Copy, Check, MessageCircle, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -8,17 +7,17 @@ import { demoReferred } from "@/lib/demoData";
 
 export default function Referrals() {
   const [copied, setCopied] = useState(false);
-  const code = "GCL-ADA7X";
-  const link = `https://globalcart.com/join/${code}`;
-  const earned = 6000;
-  const goal = 15000;
+  const code = "UKS-AMINA7";
+  const link = `https://ukshoppersafrica.com/join/${code}`;
+  const earned = 18; // GBP
+  const goal = 45; // GBP
 
   return (
     <div className="p-4 lg:p-8 max-w-[900px] mx-auto space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-primary">Refer & Earn</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Earn ₦3,000 shipping credit for every friend who completes their first order.
+          Earn £6.00 shipping credit for every friend who completes their first order to East Africa.
         </p>
       </div>
 
@@ -34,7 +33,7 @@ export default function Referrals() {
             <Gift className="w-6 h-6 text-[#F6E05E]" />
             <div>
               <p className="font-display text-xl font-bold">Your referral link</p>
-              <p className="text-xs text-primary-foreground/70">Share it anywhere — WhatsApp works best.</p>
+              <p className="text-xs text-primary-foreground/70">Share it anywhere — WhatsApp works best across East Africa.</p>
             </div>
           </div>
           <p className="font-mono text-sm bg-white/10 rounded-lg px-4 py-3 break-all">{link}</p>
@@ -44,7 +43,7 @@ export default function Referrals() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
-                navigator.clipboard?.writeText(`${link} — Use my code ${code} for ₦3,000 credit`);
+                navigator.clipboard?.writeText(`${link} — Use my code ${code} for £6.00 UK shopping credit`);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 1500);
                 toast.success("Link + code copied to clipboard");
@@ -54,7 +53,7 @@ export default function Referrals() {
               {copied ? "Copied!" : "Copy link"}
             </button>
             <a
-              href={"https://wa.me/?text=" + encodeURIComponent(`Shop the UK with GlobalCart — use my code ${code} for ₦3,000 credit: ${link}`)}
+              href={"https://wa.me/?text=" + encodeURIComponent(`Shop the UK and ship to East Africa with UK Shoppers Africa — use my code ${code} for £6.00 credit: ${link}`)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-[#F6E05E] text-primary px-4 py-2 text-sm font-semibold hover:brightness-95 transition-all active:scale-[0.97]">
@@ -71,12 +70,12 @@ export default function Referrals() {
             <Users className="w-4 h-4 text-primary" /> Referral rewards
           </p>
           <p className="text-sm text-muted-foreground">
-            ₦{earned.toLocaleString()} / ₦{goal.toLocaleString()}
+            £{earned} / £{goal}
           </p>
         </div>
         <Progress value={(earned / goal) * 100} className="mt-3 h-2.5" />
         <p className="text-xs text-muted-foreground mt-2">
-          Reach ₦15,000 to unlock VIP tier — priority support and 5% off every shipment.
+          Reach £45 to unlock VIP tier — priority London warehouse packaging and 5% off every shipment.
         </p>
       </div>
 
@@ -98,7 +97,9 @@ export default function Referrals() {
                   <p className="text-xs text-muted-foreground">{u.status}</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground">{u.date}</span>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                £6.00 Earned
+              </span>
             </div>
           ))}
         </div>

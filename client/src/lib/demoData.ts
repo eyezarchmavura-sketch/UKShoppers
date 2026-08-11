@@ -1,5 +1,6 @@
-/* GlobalCart prototype — demo data (mock, not real data).
-   Brand: deep green #0A3622 / yellow #F6E05E / canvas #F4F7F6. */
+/* UK Shoppers Africa — demo data.
+   Brand: deep green #0A3622 / warm yellow #F6E05E / canvas #F4F7F6.
+   Focus: East Africa (Tanzania, Kenya, Uganda, Rwanda) shopping from UK. */
 
 export type OrderStatus =
   | "pending_purchase"
@@ -26,19 +27,19 @@ export interface DemoOrder {
 
 export const demoOrders: DemoOrder[] = [
   {
-    id: "GC-48201",
+    id: "UKS-84201",
     store: "Nike UK",
     items: [{ name: "Nike Air Max 90 — White/Black, UK 9", qty: 1 }],
     status: "shipped",
     total: "£132.49",
-    totalLocal: "₦168,400",
+    totalLocal: "TSh 448,500 / KSh 22,400",
     updatedAt: "2h ago",
-    shippedTo: "Lagos, Nigeria",
-    edd: "Jul 22",
-    trackingNumber: "DHL-9938471026",
+    shippedTo: "Dar es Salaam, Tanzania",
+    edd: "Aug 18",
+    trackingNumber: "UKSA-TZ-99384",
   },
   {
-    id: "GC-48196",
+    id: "UKS-84196",
     store: "Zara UK",
     items: [
       { name: "Linen blend blazer — M", qty: 1 },
@@ -46,11 +47,11 @@ export const demoOrders: DemoOrder[] = [
     ],
     status: "in_warehouse",
     total: "£94.00",
-    totalLocal: "₦119,500",
+    totalLocal: "KSh 15,900 / USh 465,000",
     updatedAt: "Yesterday",
   },
   {
-    id: "GC-48190",
+    id: "UKS-84190",
     store: "Amazon UK",
     items: [
       { name: "Kindle Paperwhite (128GB)", qty: 1 },
@@ -58,18 +59,18 @@ export const demoOrders: DemoOrder[] = [
     ],
     status: "purchased",
     total: "£178.98",
-    totalLocal: "₦227,500",
+    totalLocal: "TSh 605,000 / KSh 30,200",
     updatedAt: "2 days ago",
   },
   {
-    id: "GC-48177",
+    id: "UKS-84177",
     store: "Boots UK",
     items: [{ name: "Skincare bundle (x3)", qty: 1 }],
     status: "delivered",
     total: "£61.50",
-    totalLocal: "₦78,200",
-    updatedAt: "Jul 4",
-    shippedTo: "Lagos, Nigeria",
+    totalLocal: "USh 305,000 / TSh 208,000",
+    updatedAt: "Aug 4",
+    shippedTo: "Kampala, Uganda",
   },
 ];
 
@@ -90,7 +91,7 @@ export const statusMeta: Record<
     dot: "bg-blue-500",
   },
   in_warehouse: {
-    label: "In warehouse",
+    label: "London Warehouse",
     tint: "bg-purple-100",
     text: "text-purple-800",
     dot: "bg-purple-500",
@@ -102,13 +103,13 @@ export const statusMeta: Record<
     dot: "bg-indigo-500",
   },
   shipped: {
-    label: "Shipped",
+    label: "Air Shipped to E.A.",
     tint: "bg-emerald-100",
     text: "text-emerald-800",
     dot: "bg-emerald-500",
   },
   customs: {
-    label: "In customs",
+    label: "E.A. Customs Cleared",
     tint: "bg-orange-100",
     text: "text-orange-800",
     dot: "bg-orange-500",
@@ -137,54 +138,53 @@ export interface TrackingStep {
 
 export const demoTracking: TrackingStep[] = [
   {
-    title: "Purchased",
-    time: "Jul 6, 10:12 AM",
-    detail: "Items purchased from Nike UK",
+    title: "Order Placed & Verified",
+    time: "Aug 10, 10:12 AM",
+    detail: "Items purchased from Nike UK by UK Shoppers Africa team",
     done: true,
   },
   {
-    title: "Received at London warehouse",
-    time: "Jul 8, 2:45 PM",
-    detail: "Parcel checked in — 0.9 kg",
+    title: "Received at London Heathrow Warehouse",
+    time: "Aug 11, 2:45 PM",
+    detail: "Parcel checked in & weighed — 0.9 kg",
     done: true,
   },
   {
-    title: "Customs cleared (UK export)",
-    time: "Jul 9, 11:30 AM",
-    detail: "Commercial invoice approved",
+    title: "UK Export & Flight Consolidation",
+    time: "Aug 12, 11:30 AM",
+    detail: "Direct cargo flight to East Africa scheduled",
     done: true,
   },
   {
-    title: "Shipped to Lagos",
-    time: "Jul 9, 6:20 PM",
-    detail: "DHL Express — tracking DHL-9938471026",
+    title: "Arrived at Regional Hub (Nairobi / Dar es Salaam)",
+    time: "Aug 14, 6:20 PM",
+    detail: "Customs clearance & duty processing",
     done: true,
     active: true,
   },
   {
-    title: "Cleared Nigerian customs",
-    time: "Est. Jul 14",
-    detail: "Duties prepaid — nothing to pay at delivery",
+    title: "Local Dispatch",
+    time: "Est. Aug 16",
+    detail: "Secured courier dispatch to doorstep",
     done: false,
   },
   {
     title: "Delivered",
-    time: "Est. Jul 22",
-    detail: "Doorstep delivery, Lagos",
+    time: "Est. Aug 18",
+    detail: "Handed over to recipient",
     done: false,
   },
 ];
 
 export const demoTransactions = [
-  { id: "T-8821", label: "Order GC-48201 — Nike UK", amount: "-£132.49", time: "Jul 6", type: "out" },
-  { id: "T-8819", label: "Referral reward — Tunde A.", amount: "+₦3,000", time: "Jul 5", type: "in" },
-  { id: "T-8812", label: "Wallet deposit — Flutterwave", amount: "+₦120,000", time: "Jul 3", type: "in" },
-  { id: "T-8807", label: "Order GC-48196 — Zara UK", amount: "-£94.00", time: "Jul 2", type: "out" },
-  { id: "T-8799", label: "Loyalty credit redeemed", amount: "+£5.00", time: "Jun 29", type: "in" },
+  { id: "T-8821", label: "Order UKS-84201 — Nike UK", amount: "-£132.49", time: "Aug 10", type: "out" },
+  { id: "T-8819", label: "Referral reward — Juma M.", amount: "+£6.00", time: "Aug 8", type: "in" },
+  { id: "T-8812", label: "Wallet deposit — M-Pesa / Tigo Pesa", amount: "+£150.00", time: "Aug 5", type: "in" },
+  { id: "T-8807", label: "Order UKS-84196 — Zara UK", amount: "-£94.00", time: "Aug 2", type: "out" },
 ];
 
 export const demoReferred = [
-  { name: "Tunde A.", status: "Active — earned £6.00", date: "Jun 22" },
-  { name: "Chioma N.", status: "First order completed", date: "Jul 1" },
-  { name: "Emeka O.", status: "Signed up", date: "Jul 5" },
+  { name: "Juma M. (Dar es Salaam)", status: "Active — earned £6.00", date: "Aug 1" },
+  { name: "Grace W. (Nairobi)", status: "First order completed", date: "Jul 28" },
+  { name: "Patrick K. (Kampala)", status: "Signed up", date: "Aug 4" },
 ];
