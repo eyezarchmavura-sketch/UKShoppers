@@ -2,8 +2,8 @@
    Brand: black ink + gold. Shows past transactions: date, gateway, amount (GBP + local), status, receipt download.
    Style note: gold/black/faint-blue tokens from index.css; fully localized via t() (en/sw/rw/lg). */
 import { useEffect, useState } from "react";
-import { CreditCard, Smartphone, Landmark, Wallet, Download, Search } from "lucide-react";
-import { loadTransactions, ensureDemoHistory, downloadReceipt, type PaymentTransaction } from "@/lib/receipts";
+import { CreditCard, Smartphone, Landmark, Wallet, Download, Search, FileSpreadsheet, FileText } from "lucide-react";
+import { ensureDemoHistory, downloadReceipt, downloadTransactionsCsv, downloadTransactionsPdf, type PaymentTransaction } from "@/lib/receipts";
 import { DESTINATION_LABELS } from "@/lib/currency";
 import { tr } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -73,8 +73,43 @@ export default function PaymentHistory() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters + export */}
       <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => {
+              if (filtered.length === 0) return;
+              downloadTransactionsPdf(filtered);
+            }}
+            title={tr("pay.exportPdf", lang)}
+            disabled={filtered.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
+              filtered.length === 0
+                ? "opacity-50 cursor-not-allowed bg-white dark:bg-card border-border text-muted-foreground"
+                : "bg-primary text-primary-foreground border-transparent hover:opacity-90 active:scale-[0.97]"
+            }`}>
+            <FileText className="w-4 h-4" /> {tr("pay.exportPdf", lang)}
+          </button>
+          <button
+            onClick={() => {
+              if (filtered.length === 0) return;
+              downloadTransactionsCsv(filtered);
+            }}
+            title={tr("pay.exportCsv", lang)}
+            disabled={filtered.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
+              filtered.length === 0
+                ? "opacity-50 cursor-not-allowed bg-white dark:bg-card border-border text-muted-foreground"
+                : "bg-emerald-700 text-white border-transparent hover:opacity-90 active:scale-[0.97]"
+            }`}>
+            <FileSpreadsheet className="w-4 h-4" /> {tr("pay.exportCsv", lang)}
+          </button>
+        </div>
+        {filtered.length === 0 && (query !== "" || filter !== "all") && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 self-center">
+            <Search className="w-3.5 h-3.5" /> {tr("pay.exportNone", lang)}
+          </p>
+        )}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input

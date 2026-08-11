@@ -51,3 +51,9 @@ REMAINING: screenshots checkout /payments /success (desktop); checkpoint; delive
 2. [ ] Translations for payment pages (sw/rw/lg): PaymentHistory.tsx (title, subtitle, stats Total Paid/Transactions/Completed/Pending, search placeholder, filter All, empty state, status labels Paid/Pending/Refunded, receipt tooltip), PaymentSuccess.tsx, Checkout.tsx, any English-only new pages. Use t() via tr(key, lang); add keys to lib/i18n.ts matching in all 4 languages.
 3. [ ] Legal pages: /privacy, /terms, /returns (static, PortalShell layout, i18n keys), footer links (foot.privacy/foot.terms already exist + foot.shipping→/returns) and settings page link. Placeholder company details, no fabricated registrations.
 4. [ ] Verify (tsc, screenshots, dark mode), checkpoint, deliver.
+
+# TASK — Payment history export (PDF/CSV) 2026-08-11
+- [ ] Add export buttons (PDF report + CSV) on Payments page exporting the currently filtered transactions
+- [ ] Expose filtered transactions from PaymentHistory state for export functions
+- [ ] i18n keys for export labels in en/sw/rw/lg
+- [ ] tsc clean, browser verify (both downloads), checkpoint, deliver

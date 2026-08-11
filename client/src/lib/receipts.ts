@@ -188,3 +188,116 @@ export function downloadReceipt(tx: PaymentTransaction) {
 
   doc.save(`UKSA-Receipt-${tx.ref}.pdf`);
 }
+
+/* ---------- Bulk export helpers ---------- */
+
+/** CSV-safely quote a cell (commas/quotes/newlines). */
+export function csvCell(v: string): string {
+  return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+}
+
+/** Download the visible (filtered) transaction list as a CSV file. */
+export function downloadTransactionsCsv(txs: PaymentTransaction[]) {
+  const header = ["Date", "Reference", "Gateway", "Status", "Amount (GBP)", "Local Amount", "Destination", "Customer", "Items"];
+  const rows = txs.map((t) => [
+    new Date(t.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+    t.ref,
+    t.gatewayLabel,
+    STATUS_LABEL[t.status],
+    t.amountGbp.toFixed(2),
+    t.localAmount,
+    DESTINATION_LABELS[t.destCode] ?? t.destCode,
+    t.customer,
+    t.items,
+  ]);
+  const lines = [header.map(csvCell).join(","), ...rows.map((r) => r.map(csvCell).join(","))];
+  const csv = "\uFEFF" + lines.join("\r\n"); // BOM so Excel opens UTF-8 cleanly
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `UKSA-PaymentHistory-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Download the visible (filtered) transaction list as an A4 PDF report. */
+export function downloadTransactionsPdf(txs: PaymentTransaction[]) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const dark = [17, 20, 24] as const;
+  const gold = [212, 175, 55] as const;
+  const gray = [110, 116, 125] as const;
+  const total = txs.reduce((s, t) => s + t.amountGbp, 0);
+
+  // Header band
+  doc.setFillColor(...dark);
+  doc.rect(0, 0, 210, 36, "F");
+  doc.setFillColor(...gold);
+  doc.rect(0, 36, 210, 1.5, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("UK Shoppers Africa", 18, 15);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...gold);
+  doc.text("Payment History Report — Powered by INM LTD", 18, 22);
+  doc.setFontSize(9);
+  doc.setTextColor(170, 176, 185);
+  const issued = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  doc.text(`Issued ${issued}`, 18, 28);
+  doc.text(`${txs.length} transaction${txs.length === 1 ? "" : "s"}  ·  Total £${total.toLocaleString("en-GB", { minimumFractionDigits: 2 })}`, 150, 22);
+  doc.setFontSize(8);
+  doc.text(`Scope: ${txs.length === 0 ? "—" : "matching your current filters"}`, 150, 28);
+
+  // Table header
+  let y = 46;
+  doc.setFillColor(250, 248, 238);
+  doc.rect(0, y - 5.5, 210, 9, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(...dark);
+  const colX = [16, 46, 88, 124, 140, 162, 182];
+  const headers = ["Date", "Gateway", "Reference", "Status", "GBP", "Local", "Dest."];
+  headers.forEach((h, i) => doc.text(h, colX[i], y));
+  y += 4;
+  doc.setDrawColor(212, 175, 55);
+  doc.line(18, y, 192, y);
+  y += 5;
+
+  // Table rows
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  txs.forEach((t, i) => {
+    if (y > 275) { doc.addPage(); y = 20; }
+    if (i % 2 === 0) {
+      doc.setFillColor(247, 247, 249);
+      doc.rect(0, y - 3.5, 210, 8, "F");
+    }
+    doc.setTextColor(110, 116, 125);
+    doc.text(new Date(t.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }), colX[0], y);
+    doc.setTextColor(...dark);
+    doc.text(t.gatewayLabel, colX[1], y);
+    const refTrunc = t.ref.length > 20 ? t.ref.slice(0, 18) + "…" : t.ref;
+    doc.text(refTrunc, colX[2], y);
+    const statusColor = t.status === "completed" ? [16, 120, 70] : t.status === "pending" ? [160, 100, 0] : [180, 40, 40];
+    doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+    doc.text(STATUS_LABEL[t.status], colX[3], y);
+    doc.setTextColor(...dark);
+    doc.setFont("helvetica", "bold");
+    doc.text(`£${t.amountGbp.toLocaleString("en-GB", { minimumFractionDigits: 2 })}`, colX[4], y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(110, 116, 125);
+    doc.text(t.localAmount, colX[5], y);
+    doc.text(DESTINATION_LABELS[t.destCode] ?? t.destCode, colX[6], y);
+    y += 8;
+  });
+
+  // Footer
+  y = 286;
+  doc.setFontSize(8);
+  doc.setTextColor(...gray);
+  doc.text("UK Shoppers Africa — computer-generated payment history report. Individual receipts are available in the customer portal.", 18, y);
+
+  doc.save(`UKSA-PaymentHistory-${new Date().toISOString().slice(0, 10)}.pdf`);
+}

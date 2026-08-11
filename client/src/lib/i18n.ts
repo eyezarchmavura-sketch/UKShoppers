@@ -375,6 +375,10 @@ export const t: Record<string, Record<Lang, string>> = {
   "pay.pendingStatus": { en: "Pending", sw: "Inasubiri", rw: "Biratekerejwe", lg: "Kireetera" },
   "pay.refunded": { en: "Refunded", sw: "Imerejeshwa", rw: "Byasubijwe", lg: "Kyaddizibwa" },
   "pay.receiptTooltip": { en: "Download PDF receipt", sw: "Pakua risiti ya PDF", rw: "Kuramo ifiche ya PDF", lg: "Ttwaale risiti ya PDF" },
+  "pay.export": { en: "Export", sw: "Pakua Orodha", rw: "Kuramo Urutonde", lg: "Ttwaale Olukalala" },
+  "pay.exportCsv": { en: "Export CSV", sw: "Pakua CSV", rw: "Kuramo CSV", lg: "Ttwaale CSV" },
+  "pay.exportPdf": { en: "Export PDF Report", sw: "Pakua Ripoti PDF", rw: "Kuramo Raporo ya PDF", lg: "Ttwaale Lipoti PDF" },
+  "pay.exportNone": { en: "Nothing to export — adjust your filters first.", sw: "Hakuna cha kupakua — rekebisha vichungi kwanza.", rw: "Nta byo kuramo — hindura imikamo mbere.", lg: "Tewali kye tuttwaala — kyusa eby'okukebera kubanza." },
 
   /* ---------- Payment success ---------- */
   "success.locating": { en: "Locating your payment…", sw: "Inatafuta malipo yako…", rw: "Turishakira icyo wishyuye…", lg: "Tunoonya ssasula lyo…" },
