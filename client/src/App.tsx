@@ -14,6 +14,8 @@ import Tracking from "./pages/Tracking";
 import AddItems from "./pages/AddItems";
 import Checkout from "./pages/Checkout";
 import Wallet from "./pages/Wallet";
+import PaymentHistory from "./pages/PaymentHistory";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import Referrals from "./pages/Referrals";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -46,6 +48,12 @@ function Router() {
         </Route>
         <Route path={"/wallet"}>
           <PortalShell><Wallet /></PortalShell>
+        </Route>
+        <Route path={"/payments"}>
+          <PortalShell><PaymentHistory /></PortalShell>
+        </Route>
+        <Route path={"/success"}>
+          <PortalShell><PaymentSuccess /></PortalShell>
         </Route>
         <Route path={"/referrals"}>
           <PortalShell><Referrals /></PortalShell>

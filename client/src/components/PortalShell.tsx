@@ -28,6 +28,7 @@ const navItems = [
   { path: "/orders", label: "Orders", icon: Package },
   { path: "/tracking", label: "Tracking", icon: Truck },
   { path: "/wallet", label: "Wallet & Pay", icon: Wallet },
+  { path: "/payments", label: "Payments", icon: Wallet },
   { path: "/referrals", label: "Referrals", icon: Gift },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
@@ -195,7 +196,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
       {/* Mobile bottom bar */}
       {mobile && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[#1a1d23] border-t border-border flex items-center justify-around py-2 shadow-lg">
-          {navItems.slice(0, 5).map((item) => {
+          {[...navItems.slice(0, 4), navItems[5]].map((item) => {
             const active = location === item.path;
             return (
               <Link

@@ -28,9 +28,12 @@ import {
 } from "@/components/ui/dialog";
 import { PaystackButton } from "react-paystack";
 import { useFlutterwave } from "flutterwave-react-v3";
+import { DESTINATIONS, DESTINATION_LABELS, gbpWithLocal, type LocalCurrency } from "@/lib/currency";
+import { saveLastPayment, type PaymentTransaction } from "@/lib/receipts";
 
 const TOTAL_GBP = 132.49;
-const TOTAL_LOCAL = "TSh 448,500";
+
+const destCurrency = (code: string): LocalCurrency => DESTINATIONS[code] ?? DESTINATIONS.TZ;
 
 type GatewayId = "paystack" | "flutterwave" | "mpesa" | "bank" | "wallet";
 
@@ -96,6 +99,7 @@ export default function Checkout() {
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
   const [gateway, setGateway] = useState<GatewayId>("paystack");
+  const [destCode, setDestCode] = useState("TZ");
   const [duties, setDuties] = useState(true);
   const [paying, setPaying] = useState(false);
   const [txRef, setTxRef] = useState<string>("");
@@ -161,11 +165,24 @@ export default function Checkout() {
     setStep((s) => Math.min(s + 1, 2));
   };
 
-  const onSuccess = (tref: string) => {
+  const onSuccess = (tref: string, gwLabel = gateways.find((g) => g.id === gateway)?.label ?? gateway) => {
     setPaying(false);
     setTxRef(tref);
+    const tx: PaymentTransaction = {
+      ref: tref,
+      date: new Date().toISOString(),
+      gateway,
+      gatewayLabel: gwLabel,
+      amountGbp: TOTAL_GBP,
+      localAmount: gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "—",
+      destCode,
+      customer: "Amina M.",
+      status: "completed",
+      items: "Nike sneakers + ASOS dress + Boots skincare bundle",
+    };
+    saveLastPayment({ tx });
     toast.success(`Payment received (${tref}) — our London team will buy your items within 24 hours`);
-    setTimeout(() => navigate("/orders"), 1400);
+    setTimeout(() => navigate(`/success?ref=${encodeURIComponent(tref)}`), 900);
   };
 
   const onClose = () => {
@@ -173,12 +190,12 @@ export default function Checkout() {
     toast.info("Payment window closed — your order is still saved. Resume anytime.");
   };
 
-  /* ---------- Paystack config ---------- */
+  /* ---------- Paystack config — amount in minor units of the selected destination's currency ---------- */
   const paystackConfig = {
     reference: ref(),
     email: "customer@ukshoppersafrica.com",
-    amount: 448500, // in kobo/senti — TSh minor units demo; Paystack TZ uses TZS minor units
-    currency: "TZS",
+    amount: Math.round(TOTAL_GBP * destCurrency(destCode).rate * 100),
+    currency: destCurrency(destCode).code,
     publicKey: "pk_test_demo_placeholder",
     onSuccess: () => onSuccess(paystackConfig.reference),
     onClose,
@@ -213,9 +230,25 @@ export default function Checkout() {
     setBankOpen(true);
   };
   const confirmBank = () => {
+    const tref = txRef || ref();
+    setTxRef(tref);
+    saveLastPayment({
+      tx: {
+        ref: tref,
+        date: new Date().toISOString(),
+        gateway: "bank",
+        gatewayLabel: "Bank Transfer",
+        amountGbp: TOTAL_GBP,
+        localAmount: gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "—",
+        destCode,
+        customer: "Amina M.",
+        status: "pending",
+        items: "Nike sneakers + ASOS dress + Boots skincare bundle",
+      },
+    });
     setBankOpen(false);
-    toast.success(`Transfer reference ${txRef} logged — order activated once funds clear (1 business day)`);
-    navigate("/orders");
+    toast.success(`Transfer reference ${tref} logged — order activated once funds clear (1 business day)`);
+    navigate(`/success?ref=${encodeURIComponent(tref)}`);
   };
 
   return (
@@ -244,7 +277,24 @@ export default function Checkout() {
 
       {step === 0 && (
         <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5 space-y-4">
-          <h2 className="font-semibold">Shipping Destination in East Africa</h2>
+            <h2 className="font-semibold">Shipping Destination in East Africa</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(Object.keys(DESTINATIONS) as (keyof typeof DESTINATIONS)[]).map((code) => {
+              const c = DESTINATIONS[code];
+              return (
+                <button
+                  key={code}
+                  onClick={() => setDestCode(code)}
+                  className={`rounded-lg border p-3 text-left transition-colors ${
+                    destCode === code ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                  }`}>
+                  <span className="text-lg">{c.flag}</span>
+                  <p className="text-sm font-semibold mt-1">{DESTINATION_LABELS[code]}</p>
+                  <p className="text-[11px] text-muted-foreground">{c.symbol}</p>
+                </button>
+              );
+            })}
+          </div>
           <label className="flex items-start gap-3 border-2 border-primary rounded-lg p-4 cursor-pointer">
             <input type="radio" name="addr" defaultChecked className="mt-1 accent-[#111418]" />
             <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -350,7 +400,7 @@ export default function Checkout() {
             </div>
             <div className="border-t pt-2 flex justify-between text-base">
               <span className="font-bold text-primary">Total Payable:</span>
-              <span className="font-bold text-primary">£{TOTAL_GBP} (≈ {TOTAL_LOCAL})</span>
+              <span className="font-bold text-primary">£{TOTAL_GBP} (≈ {gbpWithLocal(TOTAL_GBP, destCurrency(destCode))})</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -444,7 +494,7 @@ export default function Checkout() {
               <Smartphone className="w-5 h-5" /> M-Pesa STK Push Sent
             </DialogTitle>
             <DialogDescription>
-              Check your Safaricom phone ({phone || "+254 7XX XXX XXX"}) — a payment prompt for £{TOTAL_GBP} (≈ KSh 236,000) is waiting. Enter your M-Pesa PIN to complete.
+              Check your Safaricom phone ({phone || "+254 7XX XXX XXX"}) — a payment prompt for £{TOTAL_GBP} (≈ {gbpWithLocal(TOTAL_GBP, destCurrency(destCode)).match(/\(([^)]+)\)/)?.[1] ?? "KSh 236,000"}) is waiting. Enter your M-Pesa PIN to complete.
             </DialogDescription>
           </DialogHeader>
           <div className="p-4 bg-[#39B54A]/10 rounded-lg text-center space-y-2">
@@ -473,7 +523,7 @@ export default function Checkout() {
             <div className="flex justify-between"><span className="text-muted-foreground">Account:</span><span className="font-semibold">UK Shoppers Africa INM LTD</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Account No.:</span><span className="font-semibold">0152-0299-4170</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Reference:</span><span className="font-bold text-primary">{txRef}</span></div>
-            <div className="flex justify-between border-t pt-2"><span className="font-semibold">Amount:</span><span className="font-bold">£{TOTAL_GBP} ≈ {TOTAL_LOCAL}</span></div>
+            <div className="flex justify-between border-t pt-2"><span className="font-semibold">Amount:</span><span className="font-bold">£{TOTAL_GBP} ≈ {gbpWithLocal(TOTAL_GBP, destCurrency(destCode))}</span></div>
           </div>
           <Button onClick={confirmBank} className="rounded-full font-semibold w-full">
             I've made the transfer — activate my order
