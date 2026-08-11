@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { Bot, Loader2, MessageCircle, PackageSearch, Receipt, Send, ShoppingCart, Trash2, X } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
+import { useLocation } from "wouter";
+import { loadTransactions } from "@/lib/receipts";
+import { demoOrders, demoTransactions } from "@/lib/demoData";
 import type { Lang } from "@/lib/i18n";
+
+const STORAGE_KEY = "queen-chat-conversation";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -10,6 +15,28 @@ type ChatMessage = {
 };
 
 type QuickAction = { key: string; prompt: string; keys: Partial<Record<Lang, string>> };
+
+/** Quick actions that navigate the user to a portal page instead of asking a question. */
+const NAV_ACTIONS: { key: string; path: string; icon: typeof PackageSearch; keys: Partial<Record<Lang, string>> }[] = [
+  {
+    key: "orders",
+    path: "/orders",
+    icon: PackageSearch,
+    keys: { en: "Track Orders", sw: "Fuatilia Maagizo", rw: "Reba ibicuruzwa", lg: "Lambula Ebiragala" },
+  },
+  {
+    key: "payments",
+    path: "/payments",
+    icon: Receipt,
+    keys: { en: "Payment History", sw: "Historia ya Malipo", rw: "Amateka y'ubwishyu", lg: "Embalirira y'okusasula" },
+  },
+  {
+    key: "add",
+    path: "/add",
+    icon: ShoppingCart,
+    keys: { en: "Add Items", sw: "Ongeza Bidhaa", rw: "Ongeramo ibintu", lg: "Wandiika Ebintu" },
+  },
+];
 
 const QUICK_ACTIONS: QuickAction[] = [
   {
@@ -42,23 +69,60 @@ const FALLBACK_ANSWER: Record<Lang, string> = {
 };
 
 const GREETING: Record<Lang, string> = {
-  en: "Habari! 👋 I'm your AI shopping assistant. I know everything about shopping in the UK and getting your parcels delivered to Tanzania, Kenya, Uganda, and Rwanda. Ask me anything — pricing, how it works, payments, delivery, or your UK address. How can I help you today?",
-  sw: "Habari! 👋 Mimi ni msaidizi wako wa kununua. Najua kila kitu kuhusu kununua Uingereza na kusafirisha vitu kwako Tanzania, Kenya, Uganda, na Rwanda. Niulize chochote — bei, jinsi inavyofanya kazi, malipo, usafirishaji, au anwani yako ya UK. Nikusaidieje leo?",
-  rw: "Amakuru! 👋 Ndi umufasha wawe wo kugura. Mbona byose ku kugura mu Bwongereza no kohereza ibintu byawe mu Burundi, Kenya, Uganda, na Rwanda. Umbaze ibyo wifuza — ibiciro, uko bikora, kwishyura, gutanga, cyangwa aderesi yawe yo mu Bwongereza. Ngufasha iki uyu munsi?",
-  lg: "Oli otya! 👋 Nze mubuuza wo ow'okugula. Manyi ebintu byonna ku kugula mu Bungereza n'okutuusa ebintu byo mu Tanzania, Kenya, Uganda, ne Rwanda. Mbuuza kintu kyonna — ssente, engeri bwe bikola, okusasula, okutuusa, oba endagiriro yo eya UK. Nkusobola okuyamba ki leero?",
+  en: "Habari! 👑 I'm Queen, your AI shopping assistant. I know everything about shopping in the UK and getting your parcels delivered to Tanzania, Kenya, Uganda, and Rwanda — and I can see your orders and payments to give you personal answers. Ask me anything — pricing, how it works, payments, delivery, or your UK address. How can I help you today?",
+  sw: "Habari! 👑 Mimi ni Queen, msaidizi wako wa kununua. Najua kila kitu kuhusu kununua Uingereza na kusafirisha vitu kwako Tanzania, Kenya, Uganda, na Rwanda — na naweza kuona maagizo na malipo yako ili nikujibu kibinafsi. Niulize chochote — bei, jinsi inavyofanya kazi, malipo, usafirishaji, au anwani yako ya UK. Nikusaidieje leo?",
+  rw: "Amakuru! 👑 Ndi Queen, umufasha wawe wo kugura. Mbona byose ku kugura mu Bwongereza no kohereza ibintu byawe mu Burundi, Kenya, Uganda, na Rwanda — kandi mbona ibicuruzwa n'ubwishyu byawe ngo ngusubize ku giti cyawe. Umbaze ibyo wifuza — ibiciro, uko bikora, kwishyura, gutanga, cyangwa aderesi yawe yo mu Bwongereza. Ngufasha iki uyu munsi?",
+  lg: "Oli otya! 👑 Nze Queen, mubuuza wo ow'okugula. Manyi ebintu byonna ku kugula mu Bungereza n'okutuusa ebintu byo mu Tanzania, Kenya, Uganda, ne Rwanda — era mmanyi ebiragala n'emissolo gyo ndage okukyabulirako ku giti kyekyeka. Mbuuza kintu kyonna — ssente, engeri bwe bikola, okusasula, okutuusa, oba endagiriro yo eya UK. Nkusobola okuyamba ki leero?",
 };
 
+function loadSaved(): { messages: ChatMessage[]; language: Lang } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      Array.isArray(parsed?.messages) &&
+      ["en", "sw", "rw", "lg"].includes(parsed?.language)
+    ) {
+      return { messages: parsed.messages, language: parsed.language };
+    }
+  } catch {
+    // Corrupted entry — start fresh.
+  }
+  return null;
+}
+
 export default function AssistantChat() {
+  const [, navigate] = useLocation();
   const [open, setOpen] = useState(false);
-  const [language, setLanguage] = useState<Lang>("en");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [language, setLanguage] = useState<Lang>("en");
+  const [initialized, setInitialized] = useState(false);
   const [pending, setPending] = useState(false);
-  const [greeted, setGreeted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatMutation = trpc.assistant.chat.useMutation({
-    mutationKey: ["assistant-chat", language],
+    mutationKey: ["queen-chat", language],
   });
+
+  // Persist conversation across page refreshes.
+  useEffect(() => {
+    if (!initialized) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, language }));
+    } catch {
+      // Storage unavailable — degrade gracefully.
+    }
+  }, [messages, language, initialized]);
+
+  useEffect(() => {
+    const saved = loadSaved();
+    if (saved && saved.messages.length > 0) {
+      setMessages(saved.messages);
+      setLanguage(saved.language);
+    }
+    setInitialized(true);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -66,10 +130,7 @@ export default function AssistantChat() {
 
   const greet = (lang: Lang) => {
     setLanguage(lang);
-    if (!greeted) {
-      setMessages([{ role: "assistant", content: GREETING[lang] }]);
-      setGreeted(true);
-    }
+    setMessages(prev => (prev.length === 0 ? [{ role: "assistant", content: GREETING[lang] }] : prev));
   };
 
   const send = async (prompt: string) => {
@@ -80,10 +141,22 @@ export default function AssistantChat() {
     setInput("");
     setPending(true);
     try {
+      const realPayments = loadTransactions();
+      const payments = (realPayments.length > 0 ? realPayments : demoTransactions).slice(0, 10).map(p =>
+        "gatewayLabel" in p
+          ? { gateway: p.gatewayLabel, status: p.status, amount: String(p.amountGbp ?? ""), currency: "GBP", date: p.date, reference: p.ref }
+          : { gateway: p.type === "in" ? "Wallet" : "Payment", status: "completed", amount: p.amount, currency: "GBP", date: p.time, reference: p.id },
+      );
+      const orders = demoOrders.slice(0, 10).map(o => ({
+        store: o.store ?? "UK Store",
+        status: o.status,
+        date: o.updatedAt ?? o.edd ?? "",
+      }));
       const res = await chatMutation.mutateAsync({
         message: trimmed,
         language,
         history,
+        personal: { orders, payments },
       });
       setMessages(prev => [
         ...prev,
@@ -100,7 +173,7 @@ export default function AssistantChat() {
     <>
       {/* Floating trigger */}
       <button
-        aria-label="AI Assistant"
+        aria-label="Queen AI Assistant"
         onClick={() => setOpen(v => !v)}
         className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-[#C9A24B] to-[#A07C28] text-white shadow-lg shadow-black/25 transition-transform duration-150 hover:scale-105 active:scale-95"
       >
@@ -116,9 +189,21 @@ export default function AssistantChat() {
               <Bot className="h-5 w-5 text-[#C9A24B]" />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">AI Shopping Assistant</p>
-              <p className="text-[11px] text-muted-foreground">UK Shoppers Africa · 24/7</p>
+              <p className="truncate text-sm font-semibold">Queen</p>
+              <p className="text-[11px] text-muted-foreground">AI Shopping Assistant · UK Shoppers Africa · 24/7</p>
             </div>
+            <button
+              aria-label="Clear chat"
+              onClick={() => {
+                try {
+                  localStorage.removeItem(STORAGE_KEY);
+                } catch { /* ignore */ }
+                setMessages([]);
+              }}
+              className="ml-2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
             <div className="ml-auto flex gap-1">
               {(Object.keys(GREETING) as Lang[]).map(lang => (
                 <button
@@ -161,17 +246,34 @@ export default function AssistantChat() {
           </div>
 
           {/* Quick actions */}
-          {messages.length <= 1 && !pending && (
+          {!pending && (
             <div className="flex flex-wrap gap-1.5 border-t border-border bg-card px-4 py-2">
-              {QUICK_ACTIONS.map(a => (
-                <button
-                  key={a.key}
-                  onClick={() => send(a.prompt)}
-                  className="rounded-full border border-[#C9A24B]/40 bg-[#C9A24B]/10 px-2.5 py-1 text-[11px] font-medium text-[#A07C28] transition-colors hover:bg-[#C9A24B]/20 dark:text-[#E0C06E]"
-                >
-                  {a.keys[language] ?? a.keys.en}
-                </button>
-              ))}
+              {NAV_ACTIONS.map(a => {
+                const Icon = a.icon;
+                return (
+                  <button
+                    key={a.key}
+                    onClick={() => {
+                      setOpen(false);
+                      navigate(a.path);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-full border border-[#C9A24B]/40 bg-[#C9A24B]/10 px-2.5 py-1 text-[11px] font-medium text-[#A07C28] transition-colors hover:bg-[#C9A24B]/20 dark:text-[#E0C06E]"
+                  >
+                    <Icon className="h-3 w-3" />
+                    {a.keys[language] ?? a.keys.en}
+                  </button>
+                );
+              })}
+              {messages.length <= 1 &&
+                QUICK_ACTIONS.map(a => (
+                  <button
+                    key={a.key}
+                    onClick={() => send(a.prompt)}
+                    className="rounded-full border border-[#C9A24B]/40 bg-[#C9A24B]/10 px-2.5 py-1 text-[11px] font-medium text-[#A07C28] transition-colors hover:bg-[#C9A24B]/20 dark:text-[#E0C06E]"
+                  >
+                    {a.keys[language] ?? a.keys.en}
+                  </button>
+                ))}
             </div>
           )}
 

@@ -39,6 +39,33 @@ export const appRouter = router({
             )
             .max(10)
             .default([]),
+          personal: z
+            .object({
+              orders: z
+                .array(
+                  z.object({
+                    store: z.string().optional(),
+                    status: z.string().optional(),
+                    date: z.string().optional(),
+                  }),
+                )
+                .max(30)
+                .optional(),
+              payments: z
+                .array(
+                  z.object({
+                    gateway: z.string().optional(),
+                    status: z.string().optional(),
+                    amount: z.string().optional(),
+                    currency: z.string().optional(),
+                    date: z.string().optional(),
+                    reference: z.string().optional(),
+                  }),
+                )
+                .max(30)
+                .optional(),
+            })
+            .optional(),
         }),
       )
       .mutation(async ({ input }) => {
@@ -48,7 +75,8 @@ export const appRouter = router({
           rw: "Ikinyarwanda",
           lg: "Oluganda",
         };
-        const systemPrompt = `${ASSISTANT_KNOWLEDGE}\n\nRESPOND IN ${languageLabel[input.language].toUpperCase()}.`;
+        const personalContext = buildPersonalContext(input.personal);
+        const systemPrompt = `${ASSISTANT_KNOWLEDGE}${personalContext}\n\nYou are named Queen. Respond warmly and briefly in ${languageLabel[input.language].toUpperCase()}. If the customer asks about their own orders or payments and personal context was provided, reference the actual data (status, reference, amounts, dates). If personal context was not provided or empty, explain that the customer can check their dashboard or share details so you can help.`;
         const messages = [
           { role: "system" as const, content: systemPrompt },
           ...input.history.map(m => ({ role: m.role, content: m.content })),
@@ -69,5 +97,26 @@ export const appRouter = router({
       }),
   }),
 });
+
+function buildPersonalContext(personal: { orders?: unknown[]; payments?: unknown[] } | undefined): string {
+  if (!personal) return "\n\nCUSTOMER CONTEXT: none provided.";
+  const orders = (personal.orders ?? []) as Array<Record<string, string | undefined>>;
+  const payments = (personal.payments ?? []) as Array<Record<string, string | undefined>>;
+  const orderLines = orders.map(o =>
+    [`Store: ${o.store ?? "unknown"}`, `Status: ${o.status ?? "unknown"}`, o.date ? `Date: ${o.date}` : null]
+      .filter(Boolean)
+      .join(" · "),
+  );
+  const paymentLines = payments.map(p =>
+    [`Gateway: ${p.gateway ?? "unknown"}`, `Status: ${p.status ?? "unknown"}`, p.amount && p.currency ? `Amount: ${p.amount} ${p.currency}` : null, p.reference ? `Ref: ${p.reference}` : null, p.date ? `Date: ${p.date}` : null]
+      .filter(Boolean)
+      .join(" · "),
+  );
+  const sections: string[] = [];
+  if (orderLines.length > 0) sections.push("CUSTOMER ORDERS:\n" + orderLines.map(l => `- ${l}`).join("\n"));
+  if (paymentLines.length > 0) sections.push("CUSTOMER PAYMENTS:\n" + paymentLines.map(l => `- ${l}`).join("\n"));
+  if (sections.length === 0) return "\n\nCUSTOMER CONTEXT: none provided (no orders or payments yet).";
+  return "\n\n" + sections.join("\n\n") + "\nUse this real customer data when answering questions about their orders or payments.";
+}
 
 export type AppRouter = typeof appRouter;
