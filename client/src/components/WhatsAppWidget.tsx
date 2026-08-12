@@ -31,7 +31,7 @@ export default function WhatsAppWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 bottom-32 sm:bottom-6 z-50">
       {open ? (
         <div className="bg-white rounded-3xl shadow-2xl border border-border w-80 sm:w-96 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
@@ -95,7 +95,7 @@ export default function WhatsAppWidget() {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="group flex items-center gap-2.5 bg-[#25D366] text-white px-5 py-3.5 rounded-full shadow-xl hover:bg-[#20ba5a] transition-all active:scale-[0.97] font-semibold text-sm">
+          className="group flex items-center gap-2.5 bg-[#25D366] text-white px-5 py-3.5 rounded-full shadow-xl hover:bg-[#20ba5a] transition-all active:scale-[0.97] font-semibold text-sm max-sm:px-4 max-sm:py-3">
           <MessageCircle className="w-5 h-5 fill-current" />
           <span>Chat on WhatsApp</span>
         </button>

@@ -1,16 +1,30 @@
 import { useState } from "react";
-import { Gift, Copy, Check, MessageCircle, Users } from "lucide-react";
+import { Gift, Copy, Check, MessageCircle, Users, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { demoReferred } from "@/lib/demoData";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
+
+/** Derive a deterministic, honest referral code from the user's real account id. */
+function referralCodeFor(userId: string | number): string {
+  return `UKS-${String(userId).toUpperCase().slice(0, 7)}`;
+}
 
 export default function Referrals() {
   const [copied, setCopied] = useState(false);
-  const code = "UKS-AMINA7";
-  const link = `https://ukshoppersafrica.com/join/${code}`;
-  const earned = 18; // GBP
-  const goal = 45; // GBP
+  const { user, isAuthenticated } = useAuth();
+
+  const code = user?.id ? referralCodeFor(user.id) : "UKS-AMINA7";
+  const link = `${window.location.origin}/join/${code}`;
+
+  const shareText = `Shop the UK and ship to East Africa with UK Shoppers Africa — use my code ${code} for £6.00 credit: ${link}`;
+
+  const onCopy = () => {
+    navigator.clipboard?.writeText(`${link} — Use my code ${code} for £6.00 UK shopping credit`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+    toast.success("Link + code copied to clipboard");
+  };
 
   return (
     <div className="p-4 lg:p-8 max-w-[900px] mx-auto space-y-6">
@@ -20,6 +34,21 @@ export default function Referrals() {
           Earn £6.00 shipping credit for every friend who completes their first order to East Africa.
         </p>
       </div>
+
+      {!isAuthenticated && (
+        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+          <LogIn className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-amber-900">Sign in to activate your referral link</p>
+            <p className="text-amber-800/80 mt-1">
+              Your personal referral code is generated from your account. Sign in to see it and start earning.
+            </p>
+          </div>
+          <Button onClick={() => startLogin()} className="shrink-0 rounded-full bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.97]">
+            Sign in
+          </Button>
+        </div>
+      )}
 
       {/* Share card */}
       <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground p-6 lg:p-8">
@@ -42,18 +71,13 @@ export default function Referrals() {
           </p>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => {
-                navigator.clipboard?.writeText(`${link} — Use my code ${code} for £6.00 UK shopping credit`);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-                toast.success("Link + code copied to clipboard");
-              }}
+              onClick={onCopy}
               className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-medium transition-colors active:scale-[0.97]">
               {copied ? <Check className="w-4 h-4 text-[#D4AF37]" /> : <Copy className="w-4 h-4" />}
               {copied ? "Copied!" : "Copy link"}
             </button>
             <a
-              href={"https://wa.me/?text=" + encodeURIComponent(`Shop the UK and ship to East Africa with UK Shoppers Africa — use my code ${code} for £6.00 credit: ${link}`)}
+              href={"https://wa.me/?text=" + encodeURIComponent(shareText)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] text-primary px-4 py-2 text-sm font-semibold hover:brightness-95 transition-all active:scale-[0.97]">
@@ -69,11 +93,11 @@ export default function Referrals() {
           <p className="text-sm font-semibold flex items-center gap-2">
             <Users className="w-4 h-4 text-primary" /> Referral rewards
           </p>
-          <p className="text-sm text-muted-foreground">
-            £{earned} / £{goal}
-          </p>
+          <p className="text-sm text-muted-foreground">£0.00 / £45.00</p>
         </div>
-        <Progress value={(earned / goal) * 100} className="mt-3 h-2.5" />
+        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-primary/10">
+          <div className="h-full w-0 rounded-full bg-[#D4AF37]" />
+        </div>
         <p className="text-xs text-muted-foreground mt-2">
           Reach £45 to unlock VIP tier — priority London warehouse packaging and 5% off every shipment.
         </p>
@@ -81,27 +105,14 @@ export default function Referrals() {
 
       {/* Referred users */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
-        <h2 className="font-semibold mb-3">Friends you've invited ({demoReferred.length})</h2>
-        <div className="divide-y divide-border">
-          {demoReferred.map((u) => (
-            <div key={u.name} className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                  {u.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </span>
-                <div>
-                  <p className="text-sm font-medium">{u.name}</p>
-                  <p className="text-xs text-muted-foreground">{u.status}</p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
-                £6.00 Earned
-              </span>
-            </div>
-          ))}
+        <h2 className="font-semibold mb-3">Friends you've invited</h2>
+        <div className="text-center py-8">
+          <p className="text-sm font-medium text-foreground">No friends invited yet</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+            {isAuthenticated
+              ? "Share your referral link above — friends who complete their first order earn you £6.00 in shipping credit."
+              : "Sign in to share your personal referral link and track invitations."}
+          </p>
         </div>
       </div>
     </div>

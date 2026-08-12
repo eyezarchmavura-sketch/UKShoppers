@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { ORDER_STATUS_LABELS } from "@shared/orderStatus";
 import {
   MapPin,
   Package,
@@ -18,17 +21,38 @@ import { Progress } from "@/components/ui/progress";
 
 export default function Dashboard() {
   const [link, setLink] = useState("");
+  const { user, isAuthenticated } = useAuth();
+  const { data: dbOrders } = trpc.orders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
 
-  const recent = demoOrders.slice(0, 3);
+  // Real DB orders for logged-in users; demo fallback for logged-out visitors.
+  const isReal = isAuthenticated && Boolean(dbOrders);
+  const recent = isReal
+    ? (dbOrders! as Array<{ id: number; store: string; item: string; totalGbp?: string; amountGbp?: string | number; status: string; createdAt: Date | string }>).slice(0, 3)
+    : demoOrders.slice(0, 3);
+
+  const firstName = user?.name
+    ? String(user.name).split(" ")[0]
+    : isAuthenticated
+      ? "there"
+      : "Amina";
+  const warehouseCount = isReal ? (dbOrders as any[])?.length : 3;
+  const shippedRef = isReal
+    ? (dbOrders as any[])?.find((o: any) => o.status === "shipped")?.ref ?? "UKS-84201"
+    : "UKS-84201";
 
   return (
     <div className="p-4 lg:p-8 space-y-6 max-w-[1200px] mx-auto">
       {/* Welcome row */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Welcome back, Amina</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">Welcome back, {firstName}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            You have 3 items in London warehouse · 1 shipment in air transit to East Africa
+            {isReal
+              ? `${warehouseCount} order${warehouseCount === 1 ? "" : "s"} in your account — track every step to your doorstep.`
+              : "You have 3 items in London warehouse · 1 shipment in air transit to East Africa"}
           </p>
         </div>
         <Button asChild className="rounded-full px-5 active:scale-[0.97]">
@@ -45,7 +69,7 @@ export default function Dashboard() {
             <MapPin className="w-4 h-4" /> My UK Warehouse Address
           </div>
           <p className="mt-3 font-mono text-sm text-foreground/80 leading-relaxed">
-            Amina M. · UKSA-7X2
+            {user?.name ? `${String(user.name).split(" ")[0][0]?.toUpperCase() ?? ""}${String(user.name).split(" ")[1]?.[0]?.toUpperCase() ?? ""} · UKSA-7X2` : "Amina M. · UKSA-7X2"}
             <br />
             12 Heathrow Cargo Way, London TW6 2GE
           </p>
@@ -73,8 +97,8 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
             <Truck className="w-4 h-4" /> Active Air Shipment
           </div>
-          <p className="mt-3 text-lg font-bold text-foreground">UKS-84201 → Dar es Salaam</p>
-          <p className="text-xs text-muted-foreground mt-1">EDD Aug 18 · Express Air Cargo</p>
+          <p className="mt-3 text-lg font-bold text-foreground">{shippedRef} → East Africa</p>
+          <p className="text-xs text-muted-foreground mt-1">Express Air Cargo · EDD shown per shipment</p>
           <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
             <Link href="/tracking">
               Track on map <ArrowRight className="w-3.5 h-3.5" />
@@ -136,21 +160,46 @@ export default function Dashboard() {
           </div>
           <div className="divide-y divide-border">
             {recent.map((o) => {
-              const meta = statusMeta[o.status];
+              if (isReal) {
+                const ro = o as any;
+                const amount =
+                  typeof ro.amountGbp === "number"
+                    ? ro.amountGbp
+                    : parseFloat(String(ro.amountGbp ?? ro.totalGbp ?? "0").replace(/[^0-9.\-]/g, "")) || 0;
+                return (
+                  <div key={ro.id} className="flex items-center gap-3 py-3">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Package className="w-4.5 h-4.5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{ro.item}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {ro.store} · {new Date(ro.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      {ORDER_STATUS_LABELS[ro.status] ?? ro.status}
+                    </span>
+                    <span className="text-sm font-semibold w-20 text-right">£{Number(amount).toFixed(2)}</span>
+                  </div>
+                );
+              }
+              const meta = statusMeta[(o as any).status as keyof typeof statusMeta];
               return (
-                <div key={o.id} className="flex items-center gap-3 py-3">
+                <div key={(o as any).id} className="flex items-center gap-3 py-3">
                   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                     <Package className="w-4.5 h-4.5 text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {o.items[0].name}
-                      {o.items.length > 1 && (
-                        <span className="text-muted-foreground font-normal"> +{o.items.length - 1} more</span>
+                      {(o as any).items[0].name}
+                      {(o as any).items.length > 1 && (
+                        <span className="text-muted-foreground font-normal"> +{(o as any).items.length - 1} more</span>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {o.store} · {o.updatedAt}
+                      {(o as any).store} · {(o as any).updatedAt}
                     </p>
                   </div>
                   <span
@@ -158,7 +207,7 @@ export default function Dashboard() {
                     <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
                     {meta.label}
                   </span>
-                  <span className="text-sm font-semibold w-16 text-right">{o.total}</span>
+                  <span className="text-sm font-semibold w-16 text-right">{(o as any).total}</span>
                 </div>
               );
             })}

@@ -133,3 +133,13 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] AdminDashboard £NaN fix: amountGBP maps string "£92.00" via regex parseFloat (verified £92.00 / £46.50 render in admin table)
 - [x] Wallet page: loading + empty states added; copy clarifies balance is computed from completed payments; deposit button explains production gateway follow-up (true ledger needs live Paystack/M-Pesa keys + webhook credits)
 - [x] tsc clean, 6/6 vitest green, all portal routes verified — checkpoint pending
+
+# TASK — Full quality audit 2026-08-12
+- [x] Referrals page: fabricated referrals/names removed; referral code derived from real user id (UKS-<id>); logged-out CTA to sign in; empty state instead of fake list
+- [x] /success: proper "No recent payment found" empty state with Orders/Payment History CTAs instead of silent redirect
+- [x] Mobile landing: WhatsApp widget offset higher on mobile (bottom-32 max-sm) + smaller padding
+- [x] Portal bottom nav: truncate-safe labels, smaller text + max-w 20% per tab
+- [x] Dashboard: real greeting (user name from auth.me), real recent orders via trpc.orders.list, real DB amounts + status labels
+- [x] PortalShell header: real balance chip (sum of real payments), real avatar initials, real notification bell (unreadCount + list)
+- VERIFIED via screenshots (logged-in user isaac): /portal shows "Welcome back, isaac", real orders £92.00/£46.50 with correct status chips; header balance £138.50; avatar IM. /referrals shows real code UKS-30001 (from user id 30001), empty invited list, £0/£45. /success shows proper empty state with CTAs. /payments £138.50 total correct. tsc 0, vitest 6/6.
+- REMAINING: mark todo items, save checkpoint, deliver audit report + discuss next move.

@@ -24,6 +24,23 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AssistantChat from "@/components/AssistantChat";
 import { tr } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+
+function parseGbp(amount: string | number): number {
+  if (typeof amount === "number") return amount;
+  const m = String(amount).match(/-?[0-9]+(\.[0-9]+)?/);
+  return m ? parseFloat(m[0]) : 0;
+}
+
+function initialsFor(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() ?? "")
+    .join("") || "UK";
+}
 
 const NAV_KEYS: { path: string; icon: typeof LayoutDashboard; key: string }[] = [
   { path: "/portal", icon: LayoutDashboard, key: "nav.dashboard" },
@@ -41,8 +58,25 @@ export default function PortalShell({ children }: { children: React.ReactNode })
   const mobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
   const { lang } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
   const [copied, setCopied] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const { data: payments } = trpc.payments.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const { data: notifCount } = trpc.notifications.unreadCount.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const { data: notifRows, refetch: refetchNotifs } = trpc.notifications.list.useQuery(undefined, {
+    enabled: isAuthenticated && notifOpen,
+    retry: false,
+  });
+  const balanceGbp =
+    isAuthenticated && payments
+      ? (payments as any[]).reduce((sum, p) => sum + parseGbp(p.amount ?? 0), 0)
+      : null;
 
   const copyAddress = () => {
     navigator.clipboard?.writeText(
@@ -110,31 +144,49 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <Link
             href="/wallet"
             className="flex items-center gap-2 bg-[#111418] text-[#D4AF37] font-semibold text-xs rounded-full px-3.5 py-2 hover:bg-[#111418]/90 transition-all active:scale-[0.97]">
-            <Wallet className="w-3.5 h-3.5" /> £42.30 Balance
+            <Wallet className="w-3.5 h-3.5" /> {balanceGbp !== null ? `£${balanceGbp.toFixed(2)}` : "£42.30"} Balance
           </Link>
 
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setNotifOpen((v) => !v)}
+              onClick={() => {
+                setNotifOpen((v) => {
+                  if (!v) refetchNotifs();
+                  return !v;
+                });
+              }}
               className="relative p-2 rounded-full hover:bg-muted transition-colors"
               aria-label="Notifications">
               <Bell className="w-5 h-5 text-foreground/80" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              {isAuthenticated && notifCount && notifCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              )}
             </button>
             {notifOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1a1d23] border border-border rounded-xl shadow-xl p-3 z-50">
                 <p className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   {tr("portal.notifications", lang)}
                 </p>
-                <div className="p-3 hover:bg-muted/60 rounded-lg transition-colors">
-                  <p className="text-sm font-medium">Parcel arrived at London Heathrow</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">UKS-84196 · 2h ago</p>
-                </div>
-                <div className="p-3 hover:bg-muted/60 rounded-lg transition-colors">
-                  <p className="text-sm font-medium">Referral reward: £6.00 credited</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">From Juma M. · Yesterday</p>
-                </div>
+                {!isAuthenticated ? (
+                  <p className="p-3 text-xs text-muted-foreground">
+                    Sign in to see your real order updates.
+                  </p>
+                ) : !notifRows || notifRows.length === 0 ? (
+                  <p className="p-3 text-xs text-muted-foreground">No notifications yet — order updates will appear here.</p>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto">
+                    {(notifRows as any[]).map((n: any) => (
+                      <div key={n.id} className="p-3 hover:bg-muted/60 rounded-lg transition-colors">
+                        <p className="text-sm font-medium">{n.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                        <p className="text-[10px] text-muted-foreground/70 mt-1">
+                          {new Date(n.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -143,7 +195,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
             onClick={() => toast("Profile settings")}
             className="flex items-center gap-2 ml-1">
             <div className="w-9 h-9 rounded-full bg-[#111418] text-[#D4AF37] flex items-center justify-center font-bold text-xs shadow-sm">
-              AM
+              {user?.name ? initialsFor(String(user.name)) : "AM"}
             </div>
           </button>
         </div>
@@ -213,11 +265,11 @@ export default function PortalShell({ children }: { children: React.ReactNode })
               <Link
                 key={path}
                 href={path}
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium ${
+                className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-lg text-[10px] sm:text-xs font-medium leading-tight text-center truncate max-w-[20%] ${
                   active ? "text-[#111418] font-bold" : "text-muted-foreground"
                 }`}>
-                <Icon className="w-5 h-5" />
-                <span>{tr(key, lang)}</span>
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="truncate w-full">{tr(key, lang)}</span>
               </Link>
             );
           })}

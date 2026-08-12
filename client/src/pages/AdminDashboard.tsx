@@ -55,12 +55,8 @@ interface AdminOrder {
   date: string;
 }
 
-const initialOrders: AdminOrder[] = [
-  { id: "UKS-84201", dbId: 0, client: "Amina Mohamed (Dar es Salaam)", destination: "Tanzania", store: "Nike UK", item: "Nike Air Max 90", amountGBP: 132.49, status: "Air Shipped to E.A.", date: "Aug 10, 2026" },
-  { id: "UKS-84196", dbId: 0, client: "Juma Juma (Nairobi)", destination: "Kenya", store: "Zara UK", item: "Linen Blazer", amountGBP: 94.00, status: "London Warehouse", date: "Aug 9, 2026" },
-  { id: "UKS-84190", dbId: 0, client: "Grace Wanjiku (Kampala)", destination: "Uganda", store: "Amazon UK", item: "Kindle Paperwhite", amountGBP: 178.98, status: "Awaiting purchase", date: "Aug 8, 2026" },
-  { id: "UKS-84177", dbId: 0, client: "Patrick Kagame (Kigali)", destination: "Rwanda", store: "Boots UK", item: "Skincare Bundle", amountGBP: 61.50, status: "Delivered", date: "Aug 4, 2026" },
-];
+// Empty placeholder used before real data loads — never displayed as fake customers.
+const EMPTY_ORDERS: AdminOrder[] = [];
 
 function toAdmin(o: DbOrder): AdminOrder {
   return {
@@ -92,19 +88,19 @@ export default function AdminDashboard() {
       refetch();
       toast.success("Milestone updated — customer notified via Queen + email");
     },
-    onError: () => toast.error("Could not advance the milestone — check the order state"),
+    onError: (e) => toast.error(e?.message ?? "Could not advance the milestone — check the order state"),
   });
 
-  const orders: AdminOrder[] = isAdmin && dbOrders ? dbOrders.map(toAdmin) : initialOrders;
+  // Admins only see real database orders — no fabricated customer records.
+  const orders: AdminOrder[] = isAdmin && dbOrders ? (dbOrders as DbOrder[]).map(toAdmin) : EMPTY_ORDERS;
 
   const updateStatus = (order: AdminOrder, newStatusLabel: string) => {
     const newStatus = STATUS_OPTIONS.find((s) => STATUS_LABEL[s] === newStatusLabel) ?? newStatusLabel;
     if (isAdmin && order.dbId > 0) {
       advanceStatus.mutate({ orderId: order.dbId, status: newStatus, note: "Updated from admin operations hub" });
-      return;
+    } else if (!isAdmin) {
+      toast.error("Only administrators can update order milestones");
     }
-    // Demo fallback: update local state only.
-    toast.success(`Order ${order.id} milestone updated to: ${newStatusLabel}`);
   };
 
   const filteredOrders = orders.filter((o) => {

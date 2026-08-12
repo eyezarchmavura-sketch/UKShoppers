@@ -19,19 +19,32 @@ export default function PaymentSuccess() {
   useEffect(() => {
     const last = getLastPayment();
     setTx(last);
-    if (!last) {
-      // No payment recorded — send them back to orders rather than showing broken data
-      const t = setTimeout(() => navigate("/orders", { replace: true }), 1200);
-      return () => clearTimeout(t);
-    }
-  }, [navigate]);
+  }, []);
 
   const ref = searchParams?.get("ref") ?? tx?.ref;
 
   if (!tx) {
     return (
-      <div className="p-10 text-center text-sm text-muted-foreground">
-        {tr("success.locating", lang)} <span className="animate-spin inline-block">⟳</span>
+      <div className="p-4 lg:p-8 max-w-[640px] mx-auto">
+        <div className="bg-white dark:bg-card rounded-2xl shadow-sm p-10 text-center">
+          <div className="w-14 h-14 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
+            <CheckCircle2 className="w-7 h-7 text-primary/50" />
+          </div>
+          <h1 className="font-display text-xl font-bold mb-2">No recent payment found</h1>
+          <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+            This page confirms your most recent completed payment. If you just paid,
+            return here from the checkout confirmation — or check your orders and payment
+            history below.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button onClick={() => navigate("/orders")} className="rounded-full bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.97]">
+              My Orders
+            </Button>
+            <Button onClick={() => navigate("/payments")} variant="outline" className="rounded-full active:scale-[0.97]">
+              Payment History
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
