@@ -41,6 +41,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AssistantChat from "@/components/AssistantChat";
 import { getRetailerUrl } from "@/lib/retailerLinks";
+import { stores, storeCategories, type Store } from "@/lib/stores";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
@@ -52,45 +53,6 @@ const WAREHOUSE_IMG = "/manus-storage/warehouse-london_64a80d77.png";
 const LIFESTYLE_FASHION_IMG = "/manus-storage/lifestyle-fashion_e2409cf2.png";
 const LIFESTYLE_ELECTRONICS_IMG = "/manus-storage/lifestyle-electronics_ba252c3d.png";
 const LIFESTYLE_BEAUTY_IMG = "/manus-storage/lifestyle-beauty_28758d01.png";
-
-interface Store {
-  name: string;
-  category: string;
-  domain: string;
-  note: string;
-}
-
-const stores: Store[] = [
-  { name: "Amazon UK", category: "Marketplace", domain: "amazon.co.uk", note: "Everything under one roof" },
-  { name: "eBay UK", category: "Marketplace", domain: "ebay.co.uk", note: "Auctions & direct buys" },
-  { name: "ASOS", category: "Fashion", domain: "asos.com", note: "Trend-led fashion & beauty" },
-  { name: "Nike UK", category: "Fashion", domain: "nike.com/gb", note: "Sneakers & sportswear" },
-  { name: "Adidas UK", category: "Fashion", domain: "adidas.co.uk", note: "Sportswear & originals" },
-  { name: "Zara UK", category: "Fashion", domain: "zara.com/uk", note: "Contemporary fashion" },
-  { name: "Next UK", category: "Fashion", domain: "next.co.uk", note: "Family fashion & home" },
-  { name: "Marks & Spencer", category: "Fashion", domain: "marksandspencer.com", note: "British quality classics" },
-  { name: "Primark Online", category: "Fashion", domain: "primark.com", note: "Budget-friendly fashion" },
-  { name: "Boots", category: "Beauty & Health", domain: "boots.com", note: "Pharmacy & skincare" },
-  { name: "Superdrug", category: "Beauty & Health", domain: "superdrug.com", note: "Health & beauty deals" },
-  { name: "Apple UK", category: "Electronics", domain: "apple.com/uk", note: "iPhone, Mac & more" },
-  { name: "Argos", category: "Electronics", domain: "argos.co.uk", note: "Home, tech & toys" },
-  { name: "Currys", category: "Electronics", domain: "currys.co.uk", note: "Electronics & appliances" },
-  { name: "John Lewis", category: "Electronics", domain: "johnlewis.com", note: "Premium home & tech" },
-  { name: "Sports Direct", category: "Sport & Outdoors", domain: "sportsdirect.com", note: "Big sports brands" },
-  { name: "JD Sports", category: "Sport & Outdoors", domain: "jdsports.co.uk", note: "Trainers & kit" },
-  { name: "Decathlon UK", category: "Sport & Outdoors", domain: "decathlon.co.uk", note: "Outdoor & fitness gear" },
-  { name: "Lakeland", category: "Home & Kitchen", domain: "lakeland.co.uk", note: "Kitchen & home essentials" },
-  { name: "IKEA UK", category: "Home & Kitchen", domain: "ikea.com/gb", note: "Furniture & homeware" },
-  { name: "H&M UK", category: "Fashion", domain: "hm.com/gb", note: "Affordable everyday style" },
-  { name: "The Body Shop", category: "Beauty & Health", domain: "thebodyshop.com", note: "Natural skincare" },
-  { name: "Sephora UK", category: "Beauty & Health", domain: "sephora.co.uk", note: "Luxury cosmetics" },
-  { name: "HMV", category: "Entertainment", domain: "hmv.com", note: "Music, games & collectibles" },
-];
-
-const storeCategories = [
-  "All",
-  ...Array.from(new Set(stores.map((s) => s.category))),
-];
 
 const journeyStops = [
   {
@@ -448,7 +410,7 @@ export default function Landing() {
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
             <a href="#how-it-works" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.howItWorks", lang)}</a>
             <a href="#calculator" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.instantQuote", lang)}</a>
-            <a href="#stores" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.stores", lang)}</a>
+            <Link href="/stores" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.stores", lang)}</Link>
             <Link href="/admin" className="text-[#111418] dark:text-[#F3E7AF] font-semibold hover:underline dark:hover:text-[#D4AF37]">{tr("nav.staffAdmin", lang)}</Link>
           </nav>
 
