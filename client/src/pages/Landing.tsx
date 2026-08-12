@@ -42,6 +42,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AssistantChat from "@/components/AssistantChat";
 import { getRetailerUrl } from "@/lib/retailerLinks";
 import { stores, storeCategories, type Store } from "@/lib/stores";
+import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
@@ -346,6 +347,8 @@ export default function Landing() {
   const revealRef = useReveal<HTMLDivElement>();
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
   const [productUrl, setProductUrl] = useState("");
+  const [storeSearch, setStoreSearch] = useState("");
+  const [storeCategory, setStoreCategory] = useState("All");
   const [itemPriceGBP, setItemPriceGBP] = useState<number | "">("");
   const [weightKg, setWeightKg] = useState<number | "">("");
   const hasPlanningInputs = typeof itemPriceGBP === "number" && itemPriceGBP > 0 && typeof weightKg === "number" && weightKg > 0;
@@ -376,6 +379,11 @@ export default function Landing() {
       return;
     }
     window.location.assign(`/add?productUrl=${encodeURIComponent(productUrl.trim())}`);
+  };
+
+  const handleStoreDiscovery = (event: React.FormEvent) => {
+    event.preventDefault();
+    window.location.assign(buildStoreDirectoryHref(storeSearch, storeCategory));
   };
 
   return (
@@ -441,6 +449,21 @@ export default function Landing() {
             </Link>
           </div>
         </div>
+        <div className="border-t border-border/70 bg-white/80 dark:bg-[#15181d]/80">
+          <div className="container flex h-11 items-center gap-3 overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
+            <span className="hidden md:inline text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Browse UK stores</span>
+            <span className="hidden md:block h-4 w-px bg-border" aria-hidden="true" />
+            {storeCategories.filter((category) => category !== "All").map((category) => (
+              <Link
+                key={category}
+                href={buildStoreDirectoryHref("", category)}
+                className="text-xs font-semibold text-foreground/75 hover:text-[#A67C00] dark:hover:text-[#E6C764] transition-colors">
+                {category}
+              </Link>
+            ))}
+            <Link href="/stores" className="ml-auto text-xs font-bold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">All stores</Link>
+          </div>
+        </div>
       </header>
 
       {/* ============ HERO SECTION (cinematic) ============ */}
@@ -489,6 +512,36 @@ export default function Landing() {
                   {tr("hero.ctaPortal", lang)}
                 </Link>
               </div>
+
+              <form onSubmit={handleStoreDiscovery} className="hero-rise hero-rise-d4 max-w-2xl rounded-2xl border border-border/80 bg-white/75 dark:bg-card/80 p-3 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-3 px-1 pb-2">
+                  <label htmlFor="hero-store-search" className="text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Find a UK store or department</label>
+                  <Link href="/stores" className="text-xs font-semibold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">Browse all stores</Link>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[1fr_164px_auto]">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                    <input
+                      id="hero-store-search"
+                      value={storeSearch}
+                      onChange={(event) => setStoreSearch(event.target.value)}
+                      placeholder="Amazon, trainers, beauty, home…"
+                      className="h-11 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#C9A227]/60"
+                    />
+                  </div>
+                  <select
+                    value={storeCategory}
+                    onChange={(event) => setStoreCategory(event.target.value)}
+                    aria-label="Filter stores by category"
+                    className="h-11 rounded-xl border border-input bg-background px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-[#C9A227]/60">
+                    {storeCategories.map((category) => <option key={category} value={category}>{category === "All" ? "All categories" : category}</option>)}
+                  </select>
+                  <Button type="submit" className="h-11 rounded-xl bg-[#111418] px-5 text-[#D4AF37] hover:bg-black">
+                    Search stores <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="px-1 pt-2 text-[11px] text-muted-foreground">We open the retailer’s UK site in a new tab; bring any product link back for staff review.</p>
+              </form>
 
               <div className="hero-rise hero-rise-d4 grid grid-cols-3 gap-6 pt-6 border-t border-border/60">
                 <div>

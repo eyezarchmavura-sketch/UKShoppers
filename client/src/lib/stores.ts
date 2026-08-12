@@ -34,13 +34,26 @@ export const stores: Store[] = [
 
 export const storeCategories = ["All", ...Array.from(new Set(stores.map((store) => store.category)))];
 
+const categoryIntentKeywords: Record<string, string[]> = {
+  "Sport & Outdoors": ["trainer", "sneaker", "running", "shoe", "football", "fitness", "gym", "sport"],
+  "Beauty & Health": ["beauty", "skincare", "skin care", "makeup", "cosmetic", "pharmacy", "wellness"],
+  Electronics: ["electronics", "tech", "laptop", "phone", "mobile", "computer", "gaming", "appliance"],
+  "Home & Kitchen": ["home", "kitchen", "furniture", "decor", "cookware"],
+  Fashion: ["fashion", "clothing", "clothes", "dress", "jacket", "bag", "accessory"],
+  Entertainment: ["entertainment", "music", "game", "collectible", "vinyl"],
+};
+
 export function filterStores(searchTerm: string, category: string): Store[] {
   const normalizedSearch = searchTerm.trim().toLowerCase();
+  const intentCategories = Object.entries(categoryIntentKeywords)
+    .filter(([, keywords]) => keywords.some((keyword) => normalizedSearch.includes(keyword)))
+    .map(([intentCategory]) => intentCategory);
 
   return stores.filter((store) => {
     const matchesCategory = category === "All" || store.category === category;
     const matchesSearch = !normalizedSearch || [store.name, store.domain, store.note, store.category]
       .some((value) => value.toLowerCase().includes(normalizedSearch));
-    return matchesCategory && matchesSearch;
+    const matchesIntent = intentCategories.includes(store.category);
+    return matchesCategory && (matchesSearch || matchesIntent);
   });
 }

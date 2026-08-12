@@ -11,4 +11,11 @@ describe("filterStores", () => {
     expect(filterStores("nike", "Fashion").map((store) => store.name)).toEqual(["Nike UK"]);
     expect(filterStores("nike", "Electronics")).toEqual([]);
   });
+
+  it("maps common product intents to the relevant verified retailer category", () => {
+    expect(filterStores("running shoes", "Sport & Outdoors").map((store) => store.name))
+      .toEqual(["Sports Direct", "JD Sports", "Decathlon UK"]);
+    expect(filterStores("skincare", "All").map((store) => store.name))
+      .toContain("Boots");
+  });
 });

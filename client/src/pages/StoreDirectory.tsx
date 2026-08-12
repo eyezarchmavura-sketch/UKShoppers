@@ -5,11 +5,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { filterStores, storeCategories } from "@/lib/stores";
 import { getRetailerUrl } from "@/lib/retailerLinks";
+import { getStoreDirectoryFilters } from "@/lib/storeDirectoryQuery";
 
 export default function StoreDirectory() {
   const { theme, toggleTheme } = useTheme();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchTerm, setSearchTerm] = useState(() => getStoreDirectoryFilters(window.location.search).searchTerm);
+  const [activeCategory, setActiveCategory] = useState(() => getStoreDirectoryFilters(window.location.search).category);
   const visibleStores = filterStores(searchTerm, activeCategory);
 
   return (
