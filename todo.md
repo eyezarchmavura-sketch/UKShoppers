@@ -143,3 +143,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] PortalShell header: real balance chip (sum of real payments), real avatar initials, real notification bell (unreadCount + list)
 - VERIFIED via screenshots (logged-in user isaac): /portal shows "Welcome back, isaac", real orders £92.00/£46.50 with correct status chips; header balance £138.50; avatar IM. /referrals shows real code UKS-30001 (from user id 30001), empty invited list, £0/£45. /success shows proper empty state with CTAs. /payments £138.50 total correct. tsc 0, vitest 6/6.
 - REMAINING: mark todo items, save checkpoint, deliver audit report + discuss next move.
+
+# TASK — Project documentation and GitHub sync 2026-08-12
+- [x] Review the current implementation and refresh README.md with accurate setup, architecture, feature, operations, and deployment guidance.
+- [x] Create PROJECT_GUIDE.md as a technical and operational handover: workflows, roles, data model, notifications, payments, testing, and known production follow-ups.
+- [x] Validate the Markdown files, publish both documents to eyezarchmavura-sketch/UKShoppers-website, and checkpoint the documentation update. GitHub commits: README `62c96efe22db0eb4b7d3d3aaaad0a6de3941dc24`; PROJECT_GUIDE published at `PROJECT_GUIDE.md` on `main`.
