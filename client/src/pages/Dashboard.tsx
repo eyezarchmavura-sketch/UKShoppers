@@ -118,7 +118,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Paste-a-link demo */}
+      {/* Verified purchase-request entry point */}
       <div className="relative overflow-hidden rounded-2xl bg-primary text-primary-foreground p-6 lg:p-8">
         <div className="absolute top-0 right-0 opacity-10 grid grid-cols-8 gap-3 p-4 select-none pointer-events-none" aria-hidden>
           {Array.from({ length: 32 }).map((_, i) => (
@@ -127,17 +127,17 @@ export default function Dashboard() {
         </div>
         <div className="relative">
           <h2 className="font-display text-xl font-bold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#D4AF37]" /> Paste a link, get an instant quote
+            <Zap className="w-5 h-5 text-[#D4AF37]" /> Paste a link, request a verified quote
           </h2>
           <p className="text-sm text-primary-foreground/70 mt-1">
-            Works on Amazon UK, ASOS, Zara, Next, and all UK retail stores.
+            Our team reviews the exact item, delivery details, and all costs before sending a payment request.
           </p>
           <form
             className="mt-4 flex flex-col sm:flex-row gap-2"
             onSubmit={(e) => {
               e.preventDefault();
               if (link.trim()) {
-                toast.success("Opening quote flow — demo item loaded");
+                window.location.assign(`/add?productUrl=${encodeURIComponent(link.trim())}`);
               } else {
                 toast.error("Paste a product URL first");
               }
@@ -151,7 +151,7 @@ export default function Dashboard() {
             <Button
               type="submit"
               className="h-11 rounded-full bg-[#D4AF37] text-primary font-semibold hover:brightness-95 active:scale-[0.97]">
-              Get Instant Quote
+              Request review
             </Button>
           </form>
           <p className="text-xs text-primary-foreground/50 mt-3">

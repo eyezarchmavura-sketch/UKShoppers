@@ -28,7 +28,7 @@ function merchantFromUrl(value: string) {
 export default function AddItems() {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  const [productUrl, setProductUrl] = useState("");
+  const [productUrl, setProductUrl] = useState(() => new URLSearchParams(window.location.search).get("productUrl") ?? "");
   const [itemDetails, setItemDetails] = useState("");
   const [destination, setDestination] = useState(destinations[0]);
   const [deliveryAddress, setDeliveryAddress] = useState("");

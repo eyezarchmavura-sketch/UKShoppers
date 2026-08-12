@@ -382,15 +382,20 @@ export default function Landing() {
   const revealRef = useReveal<HTMLDivElement>();
   const [selectedDest, setSelectedDest] = useState(destinations[0]);
   const [productUrl, setProductUrl] = useState("");
-  const [itemPriceGBP, setItemPriceGBP] = useState(75);
-  const [weightKg, setWeightKg] = useState(1.5);
+  const [itemPriceGBP, setItemPriceGBP] = useState<number | "">("");
+  const [weightKg, setWeightKg] = useState<number | "">("");
+  const hasPlanningInputs = typeof itemPriceGBP === "number" && itemPriceGBP > 0 && typeof weightKg === "number" && weightKg > 0;
+  const planningPrice = typeof itemPriceGBP === "number" ? itemPriceGBP : 0;
+  const planningWeight = typeof weightKg === "number" ? weightKg : 0;
 
-  const shippingCostGBP = weightKg * 11;
-  const serviceFeeGBP = Math.max(5, itemPriceGBP * 0.08);
-  const totalGBP = itemPriceGBP + shippingCostGBP + serviceFeeGBP;
+  const shippingCostGBP = hasPlanningInputs ? planningWeight * 11 : 0;
+  const serviceFeeGBP = hasPlanningInputs ? Math.max(5, planningPrice * 0.08) : 0;
+  const totalGBP = hasPlanningInputs ? planningPrice + shippingCostGBP + serviceFeeGBP : 0;
 
   let localTotal = "";
-  if (selectedDest.code === "TZ") {
+  if (!hasPlanningInputs) {
+    localTotal = "—";
+  } else if (selectedDest.code === "TZ") {
     localTotal = `TSh ${(totalGBP * 3400).toLocaleString()}`;
   } else if (selectedDest.code === "KE") {
     localTotal = `KSh ${(totalGBP * 168).toLocaleString()}`;
@@ -402,14 +407,11 @@ export default function Landing() {
 
   const handleQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productUrl && itemPriceGBP <= 0) {
-      toast.error("Please enter a product link or price");
+    if (!productUrl.trim()) {
+      toast.error("Paste the UK product link so our team can review the exact item.");
       return;
     }
-    toast.success("Quote generated successfully! Redirecting to checkout portal...");
-    setTimeout(() => {
-      window.location.href = "/portal";
-    }, 1000);
+    window.location.assign(`/add?productUrl=${encodeURIComponent(productUrl.trim())}`);
   };
 
   return (
@@ -544,14 +546,14 @@ export default function Landing() {
             <div id="calculator" className="lg:col-span-5">
               <div className="hero-float bg-white dark:bg-card rounded-3xl p-6 sm:p-8 shadow-2xl dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] border border-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 bg-[#C9A227]/20 text-[#111418] text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
-                  Instant Calculator
+                  Planning calculator
                 </div>
                 <h3 className="text-xl font-bold text-[#111418] mb-1 flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-[#C9A227]" /> {tr("calc.title", lang)}
                 </h3>
-                <p className="text-xs text-muted-foreground mb-6">
-                  {tr("calc.subtitle", lang)}
-                </p>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    {tr("calc.subtitle", lang)}
+                  </p>
 
                 <form onSubmit={handleQuoteSubmit} className="space-y-4">
                   <div>
@@ -578,7 +580,7 @@ export default function Landing() {
                       {tr("calc.link", lang)}
                     </label>
                     <input
-                      type="text"
+                        type="url"
                       placeholder="https://www.amazon.co.uk/dp/..."
                       value={productUrl}
                       onChange={(e) => setProductUrl(e.target.value)}
@@ -593,9 +595,9 @@ export default function Landing() {
                       </label>
                       <input
                         type="number"
-                        min="5"
+                        min="0.01"
                         value={itemPriceGBP}
-                        onChange={(e) => setItemPriceGBP(Number(e.target.value))}
+                        onChange={(e) => setItemPriceGBP(e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
                       />
                     </div>
@@ -608,28 +610,34 @@ export default function Landing() {
                         step="0.1"
                         min="0.2"
                         value={weightKg}
-                        onChange={(e) => setWeightKg(Number(e.target.value))}
+                        onChange={(e) => setWeightKg(e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
                       />
                     </div>
                   </div>
 
                   <div className="bg-[#111418]/5 rounded-2xl p-4 border border-[#111418]/10 space-y-2 mt-4">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{tr("calc.shipping", lang)} ({weightKg}kg):</span>
-                      <span>£{shippingCostGBP.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{tr("calc.fee", lang)}:</span>
-                      <span>£{serviceFeeGBP.toFixed(2)}</span>
-                    </div>
-                    <div className="border-t border-border pt-2 flex justify-between items-center">
-                      <span className="text-sm font-bold text-[#111418]">{tr("calc.total", lang)}:</span>
-                      <div className="text-right">
-                        <div className="text-base font-bold text-[#111418]">£{totalGBP.toFixed(2)}</div>
-                        <div className="text-xs font-semibold text-[#C9A227]">{localTotal}</div>
-                      </div>
-                    </div>
+                    {hasPlanningInputs ? (
+                      <>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{tr("calc.shipping", lang)} ({planningWeight}kg):</span>
+                          <span>£{shippingCostGBP.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{tr("calc.fee", lang)}:</span>
+                          <span>£{serviceFeeGBP.toFixed(2)}</span>
+                        </div>
+                        <div className="border-t border-border pt-2 flex justify-between items-center">
+                          <span className="text-sm font-bold text-[#111418]">{tr("calc.total", lang)}:</span>
+                          <div className="text-right">
+                            <div className="text-base font-bold text-[#111418]">£{totalGBP.toFixed(2)}</div>
+                            <div className="text-xs font-semibold text-[#C9A227]">{localTotal}</div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-xs leading-relaxed text-muted-foreground">Enter the item price and approximate weight for a planning estimate. Your confirmed quote is prepared by our team after they verify availability, delivery, and customs requirements.</p>
+                    )}
                   </div>
 
                   <button

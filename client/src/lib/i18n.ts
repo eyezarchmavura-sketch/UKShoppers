@@ -20,10 +20,10 @@ export const t: Record<string, Record<Lang, string>> = {
     lg: "Bwe Bikola",
   },
   "nav.instantQuote": {
-    en: "Instant Quote",
-    sw: "Bei Papo kwa Papo",
-    rw: "Igiciro Vuba",
-    lg: "Emiwendo",
+    en: "Request a Quote",
+    sw: "Omba Nukuu",
+    rw: "Saba Igiciro",
+    lg: "Saba Ebbaluwa y'Emiwendo",
   },
   "nav.stores": {
     en: "Popular Stores",
@@ -108,16 +108,16 @@ export const t: Record<string, Record<Lang, string>> = {
 
   /* ---------- Calculator ---------- */
   "calc.title": {
-    en: "Estimate Your Order",
-    sw: "Kadiria Agizo Lako",
-    rw: "Gereranya Icyo Ugiye Kugura",
-    lg: "Ggereranya Ekiguzi Kyo",
+    en: "Plan Your Request",
+    sw: "Panga Ombi Lako",
+    rw: "Tegura Ubusabe Bwawe",
+    lg: "Tegeka Okusaba Kwo",
   },
   "calc.subtitle": {
-    en: "Select your East African destination and item details for instant pricing.",
-    sw: "Chagua nchi yako na maelezo ya bidhaa kwa bei ya papo kwa papo.",
-    rw: "Hitamo aho ukomoka mu Burasirazuba bw'Afurika n'ibisobanuro by'igicuruzwa.",
-    lg: "Londa ekifo kyo mu East Africa n'ebimu ku kintu okumanya emiwendo.",
+    en: "Plan your request, then let our team verify the final quote before payment.",
+    sw: "Panga ombi lako, kisha timu yetu ithibitishe nukuu ya mwisho kabla ya malipo.",
+    rw: "Tegura ubusabe bwawe; ikipe yacu yemeze igiciro cya nyuma mbere yo kwishyura.",
+    lg: "Tegeka okusaba kwo; ttiimu yaffe ekakase omuwendo ogusembayo nga tonnasasula.",
   },
   "calc.destination": {
     en: "Destination Country",
@@ -126,16 +126,16 @@ export const t: Record<string, Record<Lang, string>> = {
     lg: "Ggwanga Gyo",
   },
   "calc.link": {
-    en: "Paste UK Product Link (Optional)",
-    sw: "Bandika Kiungo cha Bidhaa ya UK (Hiari)",
-    rw: "Kopa Link y'Igicuruzwa cya UK (Bidafite akamaro)",
-    lg: "Ssa Link y'Ekintu ekya UK (Bwe waba oyagala)",
+    en: "Paste UK Product Link",
+    sw: "Bandika Kiungo cha Bidhaa ya UK",
+    rw: "Kopa Link y'Igicuruzwa cya UK",
+    lg: "Ssa Link y'Ekintu ekya UK",
   },
   "calc.price": {
-    en: "Item Price (£ GBP)",
-    sw: "Bei ya Bidhaa (£ GBP)",
-    rw: "Igiciro cy'Igicuruzwa (£ GBP)",
-    lg: "Emiwendo gy'Ekintu (£ GBP)",
+    en: "Item Price for Planning (£ GBP)",
+    sw: "Bei ya Bidhaa kwa Makadirio (£ GBP)",
+    rw: "Igiciro cy'Igicuruzwa cyo Kugerageranya (£ GBP)",
+    lg: "Omuwendo gw'Ekintu ogw'Okugerageranya (£ GBP)",
   },
   "calc.weight": {
     en: "Approx. Weight (kg)",
@@ -156,16 +156,16 @@ export const t: Record<string, Record<Lang, string>> = {
     lg: "Ekisenge ky'Obuweereza n'Okukebera",
   },
   "calc.total": {
-    en: "Total Est. Cost",
-    sw: "Jumla ya Makadirio",
-    rw: "Igiciro Cyose",
-    lg: "Ekiguzi Kyonna",
+    en: "Planning Estimate",
+    sw: "Makadirio ya Awali",
+    rw: "Ikigereranyo Cya Mbere",
+    lg: "Okugerageranya Okusooka",
   },
   "calc.proceed": {
-    en: "Proceed with Order",
-    sw: "Endelea na Agizo",
-    rw: "Komeza Gura",
-    lg: "Ddamu Okugula",
+    en: "Request Staff Review",
+    sw: "Omba Ukaguzi wa Timu",
+    rw: "Saba Isuzuma ry'Abakozi",
+    lg: "Saba Ttiimu Ekeberere",
   },
 
   "sec.howBadge": { en: "Seamless Process", sw: "Mchakato Rahisi", rw: "Urugendo Rworoshye", lg: "Entambula Ennungi" },
@@ -181,7 +181,7 @@ export const t: Record<string, Record<Lang, string>> = {
   "sec.teamAdmin": { en: "Team Operations Admin", sw: "Utawala wa Timu", rw: "Ubuyobozi bw'Ikipe", lg: "Ebikwatibwako eby'Abakozi" },
   "foot.home": { en: "Home", sw: "Nyumbani", rw: "Ahabanza", lg: "Ewaka" },
   "foot.dashboard": { en: "Customer Dashboard", sw: "Dashibodi ya Wateja", rw: "Dashboard y'Abakiriya", lg: "Dashboard y'Abakaziyana" },
-  "foot.quote": { en: "Instant Quote & Link", sw: "Bei Papo na Kiungo", rw: "Igiciro Vuba na Link", lg: "Emiwendo ne Link" },
+  "foot.quote": { en: "Request a Quote", sw: "Omba Nukuu", rw: "Saba Igiciro", lg: "Saba Ebbaluwa y'Emiwendo" },
   "foot.admin": { en: "Operations Staff Admin", sw: "Utawala wa Timu", rw: "Ubuyobozi bw'Abakozi", lg: "Ebikwatibwako eby'Abakozi" },
 
   /* ---------- Section headers ---------- */
