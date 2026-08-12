@@ -29,6 +29,7 @@ import {
   Lock,
   Recycle,
   Quote,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ import { tr, Lang } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AssistantChat from "@/components/AssistantChat";
+import { getRetailerUrl } from "@/lib/retailerLinks";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
@@ -279,48 +281,48 @@ const storeLogos: Record<string, string> = {
 };
 
 function StoreCard({ store, delay }: { store: Store; delay?: number }) {
-  const handleStoreClick = () => {
-    // Prefill the calculator with the store's URL pattern and scroll to it
-    const input = document.querySelector<HTMLInputElement>(
-      '#calculator input[type="text"]'
-    );
-    if (input) {
-      input.value = `https://www.${store.domain}/`;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.focus();
-    }
-    scrollToCalculator();
-    toast.success(`${store.name} selected — estimate your order below`, {
-      duration: 2500,
-    });
-  };
+  const retailerUrl = getRetailerUrl(store.domain);
+  const requestUrl = `/add?productUrl=${encodeURIComponent(retailerUrl)}`;
 
   return (
-    <button
-      onClick={handleStoreClick}
-      title={`Estimate an order from ${store.name}`}
-      className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start text-left w-full reveal-up" data-reveal-delay={String(delay)}>
-      <div className="w-10 h-10 rounded-xl bg-white border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
-        {storeLogos[store.name] ? (
-          <img
-            src={storeLogos[store.name]}
-            alt={`${store.name} brand logo`}
-            className="w-8 h-8 object-contain"
-            loading="lazy"
-          />
-        ) : (
-          <span className="text-[#111418] font-black text-sm">{store.name.charAt(0)}</span>
-        )}
+    <article
+      className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start text-left w-full reveal-up"
+      data-reveal-delay={String(delay)}>
+      <a
+        href={retailerUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`Open ${store.name} UK storefront in a new tab`}
+        className="w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] rounded-lg">
+        <div className="w-10 h-10 rounded-xl bg-white border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
+          {storeLogos[store.name] ? (
+            <img
+              src={storeLogos[store.name]}
+              alt={`${store.name} brand logo`}
+              className="w-8 h-8 object-contain"
+              loading="lazy"
+            />
+          ) : (
+            <span className="text-[#111418] font-black text-sm">{store.name.charAt(0)}</span>
+          )}
+        </div>
+        <h3 className="font-bold text-[#111418] dark:text-[#F7F4E8] text-sm mt-3 leading-tight flex items-center gap-1.5">
+          {store.name} <ExternalLink className="w-3 h-3 shrink-0 text-[#C9A227]" aria-hidden="true" />
+        </h3>
+        <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
+        <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
+      </a>
+      <div className="mt-3 pt-3 border-t border-border/60 flex flex-col gap-2 w-full">
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 dark:text-[#E6C764]">
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Supported UK retailer
+        </span>
+        <Link
+          href={requestUrl}
+          className="text-[11px] font-semibold text-[#111418] dark:text-[#F3E7AF] hover:text-[#A67C00] dark:hover:text-[#D4AF37] underline underline-offset-4">
+          Request staff review
+        </Link>
       </div>
-      <h3 className="font-bold text-[#111418] text-sm mt-3 leading-tight">
-        {store.name}
-      </h3>
-      <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
-      <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
-      <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 w-full">
-        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified UK Store
-      </div>
-    </button>
+    </article>
   );
 }
 
