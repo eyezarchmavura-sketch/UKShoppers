@@ -3,19 +3,20 @@ import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { ASSISTANT_KNOWLEDGE } from "./assistantKnowledge";
 import {
   ORDER_STATUS_LABELS,
   advanceOrderStatus,
+  advanceOrderStatusForOperations,
   countUnreadNotifications,
   createOrder,
   createPayment,
   listNotificationsByUser,
+  listOperationsOrders,
   listOrdersByUser,
   listPaymentsByUser,
   markNotificationsRead,
-  seedOnFirstLogin,
   upsertUser,
 } from "./db";
 
@@ -23,14 +24,7 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(async ({ ctx }) => {
-      // Seed starter orders, a payment, and milestone notifications the first
-      // time a logged-in user visits the portal so the experience is never empty.
-      if (ctx.user && ctx.user.id) {
-        await seedOnFirstLogin(ctx.user.id, ctx.user.name ?? null);
-      }
-      return ctx.user;
-    }),
+    me: publicProcedure.query(({ ctx }) => ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -54,6 +48,7 @@ export const appRouter = router({
           store: z.string().min(1),
           item: z.string().min(1).max(512),
           destination: z.string().min(1),
+          deliveryAddress: z.string().min(8).max(512).optional(),
           amountGbp: z.string().min(1),
           amountLocal: z.string().optional(),
           currencyCode: z.string().optional(),
@@ -69,13 +64,14 @@ export const appRouter = router({
           store: input.store,
           item: input.item,
           destination: input.destination,
+          deliveryAddress: input.deliveryAddress,
           amountGbp: input.amountGbp,
           amountLocal: input.amountLocal,
           currencyCode: input.currencyCode ?? "GBP",
           weightKg: input.weightKg,
           status: "pending_purchase",
           timeline: JSON.stringify([
-            { at: new Date().toISOString(), status: "pending_purchase", note: "Order created by " + (ctx.user.name ?? "customer") },
+            { at: new Date().toISOString(), status: "pending_purchase", note: "Purchase request submitted by " + (ctx.user.name ?? "customer") + "; awaiting staff quote review" },
           ]),
         });
         return { ref };
@@ -84,7 +80,7 @@ export const appRouter = router({
 
   payments: router({
     list: protectedProcedure.query(({ ctx }) => listPaymentsByUser(ctx.user.id)),
-    create: protectedProcedure
+    createIntent: protectedProcedure
       .input(
         z.object({
           orderId: z.number().optional(),
@@ -102,12 +98,14 @@ export const appRouter = router({
           userId: ctx.user.id,
           orderId: input.orderId ?? null,
           gateway: input.gateway,
-          status: "paid",
+          // The browser can only create an expected payment. A signed event plus
+          // server-side provider reconciliation is required to mark it paid.
+          status: "pending",
           amount: input.amount,
           currencyCode: input.currencyCode,
           destination: input.destination,
         });
-        return { ref };
+        return { ref, status: "pending" as const };
       }),
   }),
 
@@ -143,6 +141,34 @@ export const appRouter = router({
         const newStatus = await advanceOrderStatus(input.orderId, input.status, input.note);
         return { status: newStatus };
       }),
+  }),
+
+  operations: router({
+    queue: staffProcedure
+      .input(
+        z.object({
+          status: z.enum(Object.keys(ORDER_STATUS_LABELS) as [string, ...string[]]).optional(),
+          search: z.string().trim().max(100).optional(),
+          limit: z.number().int().min(1).max(100).default(50),
+        }),
+      )
+      .query(({ input }) => listOperationsOrders(input)),
+    advanceStatus: staffProcedure
+      .input(
+        z.object({
+          orderId: z.number().int().positive(),
+          status: z.enum(Object.keys(ORDER_STATUS_LABELS) as [string, ...string[]]),
+          note: z.string().trim().min(3).max(200),
+        }),
+      )
+      .mutation(({ ctx, input }) =>
+        advanceOrderStatusForOperations(
+          input.orderId,
+          input.status,
+          input.note,
+          ctx.user.role === "staff" ? "staff" : "admin",
+        ),
+      ),
   }),
 
   assistant: router({

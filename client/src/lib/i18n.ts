@@ -371,6 +371,7 @@ export const t: Record<string, Record<Lang, string>> = {
   "pay.searchPh": { en: "Search by reference or gateway…", sw: "Tafuta kwa marejeleo au mlango wa malipo…", rw: "Shakisha nimero cyangwa uburyo bwo kwishyura…", lg: "Noonya nimuwa oba engeri y'okusasula…" },
   "pay.all": { en: "All", sw: "Zote", rw: "Byose", lg: "Byonna" },
   "pay.none": { en: "No transactions found.", sw: "Hakuna muamala iliyopatikana.", rw: "Nta guhurukana byabonetse.", lg: "Tewali kusasula kulaze." },
+  "pay.noneRealHint": { en: "Your verified transactions will appear here.", sw: "Miamala yako iliyothibitishwa itaonekana hapa.", rw: "Ibikorwa byawe byemejwe bizagaragara hano.", lg: "Ensimbi zo ezikakasiddwa zijja kulabika wano." },
   "pay.paid": { en: "Paid", sw: "Imelipwa", rw: "Byishyuwe", lg: "Kyasasuliddwa" },
   "pay.pendingStatus": { en: "Pending", sw: "Inasubiri", rw: "Biratekerejwe", lg: "Kireetera" },
   "pay.refunded": { en: "Refunded", sw: "Imerejeshwa", rw: "Byasubijwe", lg: "Kyaddizibwa" },

@@ -1,10 +1,9 @@
 /* UK Shoppers Africa — Payment History
-   Brand: black ink + gold. Real database transactions for logged-in users,
-   demo fallback for logged-out visitors. Export works for both.
+   Brand: black ink + gold. Transactions are displayed only from the real database.
    Style note: gold/black/faint-blue tokens from index.css; fully localized via t() (en/sw/rw/lg). */
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard, Smartphone, Landmark, Wallet, Download, Search, FileSpreadsheet, FileText } from "lucide-react";
-import { ensureDemoHistory, downloadReceipt, downloadTransactionsCsv, downloadTransactionsPdf, type PaymentTransaction } from "@/lib/receipts";
+import { downloadReceipt, downloadTransactionsCsv, downloadTransactionsPdf, type PaymentTransaction } from "@/lib/receipts";
 import { DESTINATION_LABELS } from "@/lib/currency";
 import { tr } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -39,12 +38,7 @@ export default function PaymentHistory() {
   });
 
   const txs = useMemo<PaymentTransaction[]>(() => {
-    if (!isAuthenticated || !dbPayments) {
-      return ensureDemoHistory();
-    }
-    // Map real DB payments into the shared transaction shape so filters,
-    // summary cards, and exports work identically.
-    return dbPayments.map((p) => toTx(p));
+    return (dbPayments ?? []).map((p) => toTx(p));
   }, [dbPayments, isAuthenticated]);
 
   const filtered = txs.filter(
@@ -56,7 +50,6 @@ export default function PaymentHistory() {
   const totalPaid = txs
     .filter((t) => t.status === "completed")
     .reduce((s, t) => s + (Number.isFinite(t.amountGbp) ? t.amountGbp : 0), 0);
-  const isReal = isAuthenticated && Boolean(dbPayments);
 
   return (
     <div className="p-4 lg:p-8 max-w-[1000px] mx-auto space-y-6">
@@ -156,7 +149,9 @@ export default function PaymentHistory() {
           <div className="bg-white dark:bg-card rounded-xl p-10 text-center">
             <Wallet className="w-10 h-10 text-muted-foreground mx-auto" />
             <p className="text-sm text-muted-foreground mt-3">
-              {isReal ? tr("pay.none", lang) + " " + tr("pay.noneRealHint", lang) : tr("pay.none", lang)}
+              {isAuthenticated
+                ? tr("pay.none", lang) + " " + tr("pay.noneRealHint", lang)
+                : "Sign in to view your payment history."}
             </p>
           </div>
         )}

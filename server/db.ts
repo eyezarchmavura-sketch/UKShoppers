@@ -1,11 +1,13 @@
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertNotification,
   InsertOrder,
   InsertPayment,
+  InsertPaymentEvent,
   notifications,
   orders,
+  paymentEvents,
   payments,
 } from "../drizzle/schema";
 import { InsertUser, users } from "../drizzle/schema";
@@ -108,121 +110,6 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-/**
- * Idempotent first-login seeding: gives every first-time user a starter set
- * of orders, one paid payment, and unread milestone notifications so the
- * portal never feels empty.
- */
-export async function seedOnFirstLogin(userId: number, userName: string | null): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-
-  const existing = await db
-    .select({ id: orders.id })
-    .from(orders)
-    .where(eq(orders.userId, userId))
-    .limit(1);
-  if (existing.length > 0) return;
-
-  const name = userName || "you";
-  const now = new Date();
-  const h = (hours: number) => new Date(now.getTime() - hours * 3600 * 1000);
-
-  const starterOrders: Array<{
-    ref: string;
-    store: string;
-    item: string;
-    destination: string;
-    amountGbp: string;
-    amountLocal: string;
-    currencyCode: string;
-    weightKg: string;
-    status: "pending_purchase" | "purchased" | "in_warehouse" | "shipped";
-    timeline: { at: string; status: string; note: string }[];
-  }> = [
-    {
-      ref: "UKS-84201",
-      store: "Nike",
-      item: "Nike Air Max 90 trainers (UK 9)",
-      destination: "Dar es Salaam, Tanzania",
-      amountGbp: "£92.00",
-      amountLocal: "TZS 231,840",
-      currencyCode: "TZS",
-      weightKg: "1.4",
-      status: "shipped",
-      timeline: [
-        { at: h(96).toISOString(), status: "pending_purchase", note: "Order created by " + name },
-        { at: h(72).toISOString(), status: "purchased", note: "Trainers purchased at Nike UK" },
-        { at: h(48).toISOString(), status: "in_warehouse", note: "Received at London warehouse" },
-        { at: h(6).toISOString(), status: "shipped", note: "Air freight departed Heathrow" },
-      ],
-    },
-    {
-      ref: "UKS-84202",
-      store: "Boots",
-      item: "Skincare bundle (3 items)",
-      destination: "Kigali, Rwanda",
-      amountGbp: "£46.50",
-      amountLocal: "RWF 71,145",
-      currencyCode: "RWF",
-      weightKg: "0.9",
-      status: "purchased",
-      timeline: [
-        { at: h(30).toISOString(), status: "pending_purchase", note: "Order created by " + name },
-        { at: h(12).toISOString(), status: "purchased", note: "Items purchased at Boots UK" },
-      ],
-    },
-  ];
-
-  for (const o of starterOrders) {
-    await db.insert(orders).values({
-      ref: o.ref,
-      userId,
-      store: o.store,
-      item: o.item,
-      destination: o.destination,
-      amountGbp: o.amountGbp,
-      amountLocal: o.amountLocal,
-      currencyCode: o.currencyCode,
-      weightKg: o.weightKg,
-      status: o.status,
-      timeline: JSON.stringify(o.timeline),
-    });
-  }
-
-  await db.insert(payments).values({
-    ref: "TXN-" + h(6).toISOString().slice(0, 13).replace(/[^0-9]/g, ""),
-    userId,
-    orderId: null,
-    gateway: "M-Pesa",
-    status: "paid",
-    amount: "£138.50 (TZS 302,985)",
-    currencyCode: "TZS",
-    destination: "Dar es Salaam, Tanzania",
-  });
-
-  // Insert the seeded orders' notification events as unread so Queen's badge
-  // reflects real shipment milestones from the moment the user signs in.
-  const seeded = await db.select().from(orders).where(eq(orders.userId, userId));
-  for (const order of seeded) {
-    const timeline: { at: string; status: string; note: string }[] = order.timeline
-      ? JSON.parse(order.timeline)
-      : [];
-    for (const ev of timeline.slice(1)) {
-      await db.insert(notifications).values({
-        userId,
-        orderId: order.id,
-        type: "order_status",
-        title: ev.status === "shipped" ? "Order shipped" : "Order update",
-        body: `${order.store} · ${order.ref} — ${ev.note}`,
-        statusFrom: null,
-        statusTo: ev.status,
-        read: "no",
-      });
-    }
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Orders
 // ---------------------------------------------------------------------------
@@ -237,6 +124,54 @@ export async function getOrderById(id: number) {
   if (!db) return undefined;
   const rows = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
   return rows[0];
+}
+
+export type OperationsQueueInput = {
+  status?: string;
+  search?: string;
+  limit?: number;
+};
+
+/** A restricted, staff-facing queue projection with server-side search/filtering. */
+export async function listOperationsOrders(input: OperationsQueueInput = {}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const filters = [];
+  if (input.status && (orders.status.enumValues as readonly string[]).includes(input.status)) {
+    filters.push(eq(orders.status, input.status as (typeof orders.status.enumValues)[number]));
+  }
+  if (input.search?.trim()) {
+    const needle = `%${input.search.trim().replace(/[%_]/g, "\\$&")}%`;
+    filters.push(
+      or(
+        like(orders.ref, needle),
+        like(orders.store, needle),
+        like(orders.item, needle),
+        like(orders.destination, needle),
+        like(users.name, needle),
+      ),
+    );
+  }
+
+  const base = db
+    .select({
+      id: orders.id,
+      ref: orders.ref,
+      customerName: users.name,
+      destination: orders.destination,
+      store: orders.store,
+      item: orders.item,
+      amountGbp: orders.amountGbp,
+      status: orders.status,
+      timeline: orders.timeline,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .innerJoin(users, eq(orders.userId, users.id));
+
+  const filtered = filters.length ? base.where(and(...filters)) : base;
+  return filtered.orderBy(desc(orders.createdAt)).limit(Math.min(Math.max(input.limit ?? 50, 1), 100));
 }
 
 export async function createOrder(data: InsertOrder) {
@@ -312,6 +247,31 @@ export async function advanceOrderStatus(
 }
 
 /**
+ * Staff may advance an order exactly one milestone at a time. Final delivery
+ * confirmation remains administrator-only because it is the terminal state.
+ */
+export async function advanceOrderStatusForOperations(
+  orderId: number,
+  status: string,
+  note: string,
+  actorRole: "staff" | "admin",
+): Promise<string | undefined> {
+  const current = await getOrderById(orderId);
+  if (!current) return undefined;
+
+  const pipeline = Object.keys(ORDER_STATUS_LABELS);
+  const fromIndex = pipeline.indexOf(current.status);
+  const toIndex = pipeline.indexOf(status);
+  if (toIndex !== fromIndex + 1) {
+    throw new Error("Orders can only advance to their next milestone in the operations queue.");
+  }
+  if (actorRole === "staff" && status === "delivered") {
+    throw new Error("Only an administrator can record final delivery confirmation.");
+  }
+  return advanceOrderStatus(orderId, status, note);
+}
+
+/**
  * Forward an order milestone update to the customer's inbox through the
  * platform's notification service (delivered by email for end customers).
  */
@@ -362,6 +322,53 @@ export async function createPayment(data: InsertPayment) {
   if (!db) throw new Error("Database not available");
   await db.insert(payments).values(data);
   return data.ref;
+}
+
+export async function getPaymentByRef(ref: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(payments).where(eq(payments.ref, ref)).limit(1);
+  return rows[0];
+}
+
+/**
+ * Stores an already verified gateway event. The database unique constraint on
+ * providerEventId is the idempotency barrier for provider retry deliveries.
+ */
+export async function recordVerifiedPaymentEvent(data: InsertPaymentEvent): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    await db.insert(paymentEvents).values(data);
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    if (message.includes("duplicate") || message.includes("unique")) return false;
+    throw error;
+  }
+}
+
+/**
+ * Performs a monotonic transition from pending to paid only after the caller
+ * has verified the event signature and independently reconciled the gateway.
+ */
+export async function settleVerifiedPayment(input: {
+  ref: string;
+  provider: string;
+  providerTransactionId: string;
+}): Promise<"settled" | "already_settled" | "not_found" | "provider_mismatch"> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const payment = await getPaymentByRef(input.ref);
+  if (!payment) return "not_found";
+  if (payment.gateway.toLowerCase() !== input.provider.toLowerCase()) return "provider_mismatch";
+  if (payment.status === "paid") return "already_settled";
+
+  await db
+    .update(payments)
+    .set({ status: "paid", providerTransactionId: input.providerTransactionId, settledAt: new Date() } as never)
+    .where(and(eq(payments.id, payment.id), eq(payments.status, "pending")));
+  return "settled";
 }
 
 // ---------------------------------------------------------------------------

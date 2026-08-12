@@ -1,289 +1,69 @@
-/* UK Shoppers Africa — Internal Admin Operations Dashboard for Isaac Mavura & Team */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import {
-  Package,
-  Users,
-  Truck,
-  DollarSign,
-  Search,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldAlert,
-  FileText,
-  RefreshCw,
-  PlusCircle,
-  ExternalLink,
-} from "lucide-react";
+import { CheckCircle2, Clock, Package, Search, ShieldAlert, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import type { Order as DbOrder } from "../../../drizzle/schema";
 
-/* Admin-only milestone pipeline (client-facing labels) — mirrors the DB enum labels. */
-const STATUS_OPTIONS = [
-  "pending_purchase",
-  "purchased",
-  "in_warehouse",
-  "shipped",
-  "arrived",
-  "local_dispatch",
-  "delivered",
-];
-
+const STATUS_OPTIONS = ["pending_purchase", "purchased", "in_warehouse", "shipped", "arrived", "local_dispatch", "delivered"] as const;
 const STATUS_LABEL: Record<string, string> = {
-  pending_purchase: "Awaiting purchase",
-  purchased: "Purchased at store",
-  in_warehouse: "London Warehouse",
-  shipped: "Air Shipped to E.A.",
-  arrived: "Arrived / Customs",
-  local_dispatch: "Out for Delivery",
-  delivered: "Delivered",
+  pending_purchase: "Awaiting purchase", purchased: "Purchased at store", in_warehouse: "At London warehouse",
+  shipped: "Shipped by air freight", arrived: "Arrived / customs", local_dispatch: "Out for local delivery", delivered: "Delivered",
 };
 
-interface AdminOrder {
-  id: string;
-  dbId: number;
-  client: string;
-  destination: string;
-  store: string;
-  item: string;
-  amountGBP: number;
-  status: string;
-  date: string;
+type QueueOrder = { id: number; ref: string; customerName: string | null; destination: string | null; store: string; item: string; amountGbp: string | null; status: string; createdAt: Date };
+
+function amount(value: string | null) {
+  const parsed = Number.parseFloat(String(value ?? "0").replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
-// Empty placeholder used before real data loads — never displayed as fake customers.
-const EMPTY_ORDERS: AdminOrder[] = [];
-
-function toAdmin(o: DbOrder): AdminOrder {
-  return {
-    id: o.ref,
-    dbId: o.id,
-    client: o.destination,
-    destination: o.destination,
-    store: o.store,
-    item: o.item,
-    amountGBP: (typeof o.amountGbp === "number" ? o.amountGbp : parseFloat(String(o.amountGbp).replace(/[^0-9.\-]/g, ""))) || 0,
-    status: STATUS_LABEL[o.status] ?? o.status,
-    date: new Date(o.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-  };
+function nextStatus(status: string) {
+  const index = STATUS_OPTIONS.indexOf(status as (typeof STATUS_OPTIONS)[number]);
+  return index >= 0 ? STATUS_OPTIONS[index + 1] : undefined;
 }
 
 export default function AdminDashboard() {
   const { isAuthenticated, user } = useAuth();
-  const isAdmin = isAuthenticated && user?.role === "admin";
-  const { data: dbOrders, refetch } = trpc.orders.list.useQuery(undefined, {
-    enabled: isAdmin,
-    retry: false,
-  });
-
-  const [filter, setFilter] = useState("All");
+  const isOperator = isAuthenticated && (user?.role === "staff" || user?.role === "admin");
+  const [status, setStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const input = useMemo(() => ({ status: status === "all" ? undefined : status as (typeof STATUS_OPTIONS)[number], search: search.trim() || undefined, limit: 50 }), [search, status]);
+  const queue = trpc.operations.queue.useQuery(input, { enabled: isOperator, retry: false });
+  const mutation = trpc.operations.advanceStatus.useMutation({
+    onSuccess: () => { void queue.refetch(); toast.success("Milestone recorded. The customer is notified in the portal and by email."); },
+    onError: (error) => toast.error(error.message || "This order cannot be advanced from its current milestone."),
+  });
+  const orders = (queue.data ?? []) as QueueOrder[];
+  const active = orders.filter((order) => order.status !== "delivered").length;
+  const warehouse = orders.filter((order) => order.status === "in_warehouse").length;
+  const delivered = orders.filter((order) => order.status === "delivered").length;
 
-  const advanceStatus = trpc.admin.advanceStatus.useMutation({
-    onSuccess: () => {
-      refetch();
-      toast.success("Milestone updated — customer notified via Queen + email");
-    },
-    onError: (e) => toast.error(e?.message ?? "Could not advance the milestone — check the order state"),
+  const advance = (order: QueueOrder, next: string) => mutation.mutate({
+    orderId: order.id, status: next,
+    note: `Updated by ${user?.name ?? "operations staff"} from the secure operations queue.`,
   });
 
-  // Admins only see real database orders — no fabricated customer records.
-  const orders: AdminOrder[] = isAdmin && dbOrders ? (dbOrders as DbOrder[]).map(toAdmin) : EMPTY_ORDERS;
+  return <div className="min-h-screen bg-[#F2F4F7] font-sans">
+    <header className="sticky top-0 z-50 bg-[#111418] text-white shadow-md"><div className="container flex h-20 items-center justify-between gap-4 px-4 lg:px-8">
+      <div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D4AF37] font-bold text-lg text-[#111418]">EA</div><div className="min-w-0"><h1 className="truncate font-bold text-lg leading-none">UK Shoppers <span className="text-[#D4AF37]">Africa</span> — Operations Queue</h1><p className="mt-1 text-xs text-white/70">Restricted fulfilment workspace for approved staff</p></div></div>
+      <div className="flex shrink-0 gap-2"><Link href="/" className="hidden px-2 py-2 text-xs font-semibold text-[#D4AF37] hover:underline sm:inline">Public site</Link><Link href="/portal" className="rounded-full bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20">Client portal</Link></div>
+    </div></header>
+    <main className="container space-y-7 py-7">
+      {!isOperator ? <section className="mx-auto max-w-2xl rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-sm"><ShieldAlert className="mx-auto mb-4 h-10 w-10 text-amber-600" /><h2 className="text-xl font-bold text-[#111418]">Staff access required</h2><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">This queue contains limited customer fulfilment information and is available only to users assigned the <strong>staff</strong> or <strong>admin</strong> role.</p><Link href="/portal" className="mt-6 inline-flex rounded-xl bg-[#111418] px-4 py-2 text-sm font-semibold text-white">Return to your portal</Link></section> : <>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3"><Metric icon={Package} label="Open orders" value={String(active)} detail="Visible in this filtered queue" /><Metric icon={Truck} label="London warehouse" value={String(warehouse)} detail="Awaiting onward air freight" accent="gold" /><Metric icon={CheckCircle2} label="Delivered" value={String(delivered)} detail="In this filtered queue" accent="green" /></section>
+        <section className="space-y-5 rounded-3xl border border-border bg-white p-5 shadow-sm lg:p-8">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#A07C28]">Live database queue</p><h2 className="mt-1 text-xl font-bold text-[#111418]">Customer purchase requests and shipments</h2><p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">Search and status filters run on the server. Staff can only move an order one milestone forward; final delivery remains an administrator action.</p></div><label className="relative w-full md:w-72"><span className="sr-only">Search orders</span><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Order ID, customer, store..." className="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#111418]" /></label></div>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant={status === "all" ? "default" : "outline"} onClick={() => setStatus("all")}>All</Button>{STATUS_OPTIONS.map((item) => <Button key={item} size="sm" variant={status === item ? "default" : "outline"} onClick={() => setStatus(item)}>{STATUS_LABEL[item]}</Button>)}</div>
+          {queue.isLoading ? <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4 animate-spin" /> Loading queue…</div> : orders.length === 0 ? <div className="rounded-2xl border border-dashed border-border px-6 py-14 text-center"><Package className="mx-auto h-9 w-9 text-[#A07C28]" /><h3 className="mt-3 font-semibold text-[#111418]">No matching orders</h3><p className="mt-1 text-sm text-muted-foreground">Adjust the search or filter, or wait for a customer to submit a purchase request.</p></div> : <div className="overflow-x-auto rounded-2xl border border-border"><table className="w-full min-w-[860px] border-collapse text-left text-sm"><thead className="bg-[#F7F7F4] text-xs font-bold uppercase tracking-wider text-muted-foreground"><tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Customer & destination</th><th className="px-4 py-3">Items</th><th className="px-4 py-3">Value</th><th className="px-4 py-3">Milestone</th><th className="px-4 py-3 text-right">Controlled action</th></tr></thead><tbody className="divide-y divide-border">{orders.map((order) => { const next = nextStatus(order.status); const canAdvance = Boolean(next) && !(user?.role === "staff" && next === "delivered"); return <tr key={order.id} className="hover:bg-muted/30"><td className="px-4 py-4"><div className="font-mono font-bold text-[#111418]">{order.ref}</div><div className="mt-1 text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div></td><td className="px-4 py-4"><div className="font-semibold">{order.customerName || "Customer"}</div><div className="text-xs text-muted-foreground">{order.destination || "Destination pending"}</div></td><td className="px-4 py-4"><div className="max-w-56 truncate font-medium">{order.item}</div><div className="text-xs text-muted-foreground">{order.store}</div></td><td className="px-4 py-4 font-bold">£{amount(order.amountGbp).toFixed(2)}</td><td className="px-4 py-4"><span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">{STATUS_LABEL[order.status] || order.status}</span></td><td className="px-4 py-4 text-right">{canAdvance && next ? <Button size="sm" disabled={mutation.isPending} onClick={() => advance(order, next)}>Advance to {STATUS_LABEL[next]}</Button> : <span className="text-xs font-medium text-muted-foreground">{order.status === "delivered" ? "Completed" : "Admin delivery confirmation required"}</span>}</td></tr>; })}</tbody></table></div>}
+        </section>
+      </>}
+    </main>
+  </div>;
+}
 
-  const updateStatus = (order: AdminOrder, newStatusLabel: string) => {
-    const newStatus = STATUS_OPTIONS.find((s) => STATUS_LABEL[s] === newStatusLabel) ?? newStatusLabel;
-    if (isAdmin && order.dbId > 0) {
-      advanceStatus.mutate({ orderId: order.dbId, status: newStatus, note: "Updated from admin operations hub" });
-    } else if (!isAdmin) {
-      toast.error("Only administrators can update order milestones");
-    }
-  };
-
-  const filteredOrders = orders.filter((o) => {
-    const matchesFilter = filter === "All" || o.status === filter;
-    const matchesSearch =
-      o.id.toLowerCase().includes(search.toLowerCase()) ||
-      o.client.toLowerCase().includes(search.toLowerCase()) ||
-      o.item.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  return (
-    <div className="min-h-screen bg-[#F2F4F7] font-sans">
-      {/* Top Admin Header */}
-      <header className="bg-[#111418] text-white sticky top-0 z-50 shadow-md">
-        <div className="container flex items-center justify-between h-20 px-4 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D4AF37] text-[#111418] flex items-center justify-center font-bold text-lg">
-              EA
-            </div>
-            <div>
-              <h1 className="font-bold text-lg leading-none">
-                UK Shoppers <span className="text-[#D4AF37]">Africa</span> — Operations Hub
-              </h1>
-              <p className="text-xs text-white/70 mt-1">Internal Team Dashboard (Isaac Mavura & Staff)</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-xs font-semibold text-[#D4AF37] hover:underline">
-              View Public Website
-            </Link>
-            <Link href="/portal" className="text-xs font-semibold bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-colors">
-              Client Portal View
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="container py-8 space-y-8">
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between text-muted-foreground text-sm font-medium">
-              <span>Active Orders</span>
-              <Package className="w-5 h-5 text-[#111418]" />
-            </div>
-            <div className="text-3xl font-bold text-[#111418] mt-2">24</div>
-            <p className="text-xs text-emerald-600 mt-1 font-medium">+18% vs last week</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between text-muted-foreground text-sm font-medium">
-              <span>London Warehouse</span>
-              <Truck className="w-5 h-5 text-[#C9A227]" />
-            </div>
-            <div className="text-3xl font-bold text-[#111418] mt-2">12 Parcels</div>
-            <p className="text-xs text-muted-foreground mt-1">Awaiting consolidation flight</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between text-muted-foreground text-sm font-medium">
-              <span>East Africa Hubs</span>
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="text-3xl font-bold text-[#111418] mt-2">4 Countries</div>
-            <p className="text-xs text-muted-foreground mt-1">TZ, KE, UG, RW</p>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between text-muted-foreground text-sm font-medium">
-              <span>Monthly Volume</span>
-              <DollarSign className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="text-3xl font-bold text-[#111418] mt-2">£18,450</div>
-            <p className="text-xs text-emerald-600 mt-1 font-medium">Fully cleared & insured</p>
-          </div>
-        </div>
-
-        {/* Orders Management Table */}
-        <div className="bg-white rounded-3xl shadow-sm border border-border p-6 lg:p-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#111418]">Customer Purchase Requests & Shipments</h2>
-              <p className="text-xs text-muted-foreground mt-1">
-                {isAdmin
-                  ? "Live database — every milestone change triggers a real notification and email for the customer."
-                  : "Sign in as an administrator to manage real orders and milestones."}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search order ID, client..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
-                />
-              </div>
-              <Button
-                onClick={() => toast.success("Exported operational report to CSV")}
-                variant="outline"
-                className="rounded-xl">
-                Export Report
-              </Button>
-            </div>
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            {["All", "Awaiting purchase", "Purchased at store", "London Warehouse", "Air Shipped to E.A.", "Arrived / Customs", "Out for Delivery", "Delivered"].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                  filter === f
-                    ? "bg-[#111418] text-[#D4AF37] shadow-sm"
-                    : "bg-[#F2F4F7] text-foreground/75 hover:bg-muted"
-                }`}>
-                {f}
-              </button>
-            ))}
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="py-3 px-4 whitespace-nowrap">Order ID</th>
-                  <th className="py-3 px-4">Client & Destination</th>
-                  <th className="py-3 px-4">Store & Item</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Current Milestone</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                {filteredOrders.map((o) => (
-                  <tr key={o.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="py-4 px-4 font-mono font-bold text-[#111418] whitespace-nowrap">{o.id}</td>
-                    <td className="py-4 px-4">
-                      <div className="font-semibold text-foreground">{o.client}</div>
-                      <div className="text-xs text-muted-foreground">{o.destination}</div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="font-medium text-foreground">{o.item}</div>
-                      <div className="text-xs text-muted-foreground">{o.store}</div>
-                    </td>
-                    <td className="py-4 px-4 font-bold text-[#111418]">£{o.amountGBP.toFixed(2)}</td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                          o.status === "Delivered"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : o.status === "Air Shipped to E.A."
-                            ? "bg-blue-100 text-blue-800"
-                            : o.status === "London Warehouse"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-amber-100 text-amber-800"
-                        }`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                        {o.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <select
-                        value={o.status}
-                        onChange={(e) => updateStatus(o, e.target.value)}
-                        disabled={advanceStatus.isPending}
-                        className="rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111418] disabled:opacity-60">
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={STATUS_LABEL[s]}>
-                            {STATUS_LABEL[s]}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+function Metric({ icon: Icon, label, value, detail, accent = "ink" }: { icon: typeof Package; label: string; value: string; detail: string; accent?: "ink" | "gold" | "green" }) {
+  const colors = { ink: "text-[#111418]", gold: "text-[#A07C28]", green: "text-emerald-700" };
+  return <div className="rounded-2xl border border-border bg-white p-5 shadow-sm"><div className="flex items-center justify-between text-sm font-medium text-muted-foreground"><span>{label}</span><Icon className={`h-5 w-5 ${colors[accent]}`} /></div><div className={`mt-2 text-3xl font-bold ${colors[accent]}`}>{value}</div><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;
 }

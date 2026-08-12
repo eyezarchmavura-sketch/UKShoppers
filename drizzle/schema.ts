@@ -16,7 +16,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "staff", "admin"]).default("user").notNull(),
   /** Customer preference: receive order milestone updates by email. */
   emailNotifications: varchar("emailNotifications", { length: 8 }).default("yes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -40,6 +40,8 @@ export const orders = mysqlTable("orders", {
   store: varchar("store", { length: 128 }).notNull(),
   item: varchar("item", { length: 512 }).notNull(),
   destination: varchar("destination", { length: 128 }).notNull(),
+  /** Customer-provided address, intentionally excluded from the staff queue list projection. */
+  deliveryAddress: varchar("deliveryAddress", { length: 512 }),
   amountGbp: varchar("amountGbp", { length: 32 }).notNull(),
   amountLocal: varchar("amountLocal", { length: 64 }),
   currencyCode: varchar("currencyCode", { length: 8 }).default("GBP"),
@@ -76,11 +78,33 @@ export const payments = mysqlTable("payments", {
   amount: varchar("amount", { length: 32 }).notNull(),
   currencyCode: varchar("currencyCode", { length: 8 }).default("GBP").notNull(),
   destination: varchar("destination", { length: 128 }),
+  /** Provider transaction ID is only saved after server-side verification. */
+  providerTransactionId: varchar("providerTransactionId", { length: 128 }),
+  /** UTC timestamp at which a verified provider event settled this payment. */
+  settledAt: timestamp("settledAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
+
+/**
+ * Immutable audit trail for signed provider webhooks. providerEventId is unique
+ * per gateway so retries cannot settle a payment twice.
+ */
+export const paymentEvents = mysqlTable("payment_events", {
+  id: int("id").autoincrement().primaryKey(),
+  paymentId: int("paymentId"),
+  provider: varchar("provider", { length: 64 }).notNull(),
+  providerEventId: varchar("providerEventId", { length: 160 }).notNull().unique(),
+  eventType: varchar("eventType", { length: 96 }).notNull(),
+  verificationStatus: mysqlEnum("verificationStatus", ["verified", "rejected"]).notNull(),
+  payload: text("payload"),
+  receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+});
+
+export type PaymentEvent = typeof paymentEvents.$inferSelect;
+export type InsertPaymentEvent = typeof paymentEvents.$inferInsert;
 
 /**
  * Order milestone notifications for Queen's badge and email updates.

@@ -59,11 +59,40 @@ describe("notifications badge", () => {
   });
 });
 
+describe("production customer onboarding", () => {
+  it("does not fabricate orders, payments, or notifications for a new account", async () => {
+    const caller = appRouter.createCaller(
+      createContext({ id: 99001, openId: "production-empty-account" }),
+    );
+
+    await expect(caller.orders.list()).resolves.toEqual([]);
+    await expect(caller.payments.list()).resolves.toEqual([]);
+    await expect(caller.notifications.unreadCount()).resolves.toBe(0);
+  });
+});
+
 describe("admin.advanceStatus access control", () => {
   it("rejects non-admin users", async () => {
     const caller = appRouter.createCaller(createContext({ role: "user" }));
     await expect(
       caller.admin.advanceStatus({ orderId: 1, status: "purchased", note: "test" }),
     ).rejects.toThrow(/permission/);
+  });
+});
+
+describe("operations queue access control", () => {
+  it("rejects customers from the restricted cross-customer queue", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "user" }));
+    await expect(caller.operations.queue({ limit: 10 })).rejects.toThrow(/Staff access/);
+  });
+
+  it("allows staff to read the restricted queue projection", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "staff" }));
+    await expect(caller.operations.queue({ limit: 10 })).resolves.toEqual(expect.any(Array));
+  });
+
+  it("allows administrators to read the restricted queue projection", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "admin" }));
+    await expect(caller.operations.queue({ limit: 10 })).resolves.toEqual(expect.any(Array));
   });
 });

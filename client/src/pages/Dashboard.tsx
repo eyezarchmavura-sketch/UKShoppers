@@ -14,7 +14,6 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
-import { demoOrders, statusMeta } from "@/lib/demoData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -27,21 +26,17 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Real DB orders for logged-in users; demo fallback for logged-out visitors.
-  const isReal = isAuthenticated && Boolean(dbOrders);
-  const recent = isReal
-    ? (dbOrders! as Array<{ id: number; store: string; item: string; totalGbp?: string; amountGbp?: string | number; status: string; createdAt: Date | string }>).slice(0, 3)
-    : demoOrders.slice(0, 3);
+  const recent = (dbOrders ?? []).slice(0, 3);
 
   const firstName = user?.name
     ? String(user.name).split(" ")[0]
     : isAuthenticated
       ? "there"
-      : "Amina";
-  const warehouseCount = isReal ? (dbOrders as any[])?.length : 3;
-  const shippedRef = isReal
-    ? (dbOrders as any[])?.find((o: any) => o.status === "shipped")?.ref ?? "UKS-84201"
-    : "UKS-84201";
+      : "there";
+  const warehouseOrders = (dbOrders ?? []).filter((order) =>
+    ["purchased", "in_warehouse"].includes(order.status),
+  );
+  const shippedOrder = (dbOrders ?? []).find((order) => order.status === "shipped");
 
   return (
     <div className="p-4 lg:p-8 space-y-6 max-w-[1200px] mx-auto">
@@ -50,9 +45,9 @@ export default function Dashboard() {
         <div>
           <h1 className="font-display text-2xl font-bold text-primary">Welcome back, {firstName}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {isReal
-              ? `${warehouseCount} order${warehouseCount === 1 ? "" : "s"} in your account — track every step to your doorstep.`
-              : "You have 3 items in London warehouse · 1 shipment in air transit to East Africa"}
+            {isAuthenticated
+              ? `${dbOrders?.length ?? 0} order${(dbOrders?.length ?? 0) === 1 ? "" : "s"} in your account — track every step to your doorstep.`
+              : "Sign in to create purchase requests and follow every shipment to your doorstep."}
           </p>
         </div>
         <Button asChild className="rounded-full px-5 active:scale-[0.97]">
@@ -69,7 +64,9 @@ export default function Dashboard() {
             <MapPin className="w-4 h-4" /> My UK Warehouse Address
           </div>
           <p className="mt-3 font-mono text-sm text-foreground/80 leading-relaxed">
-            {user?.name ? `${String(user.name).split(" ")[0][0]?.toUpperCase() ?? ""}${String(user.name).split(" ")[1]?.[0]?.toUpperCase() ?? ""} · UKSA-7X2` : "Amina M. · UKSA-7X2"}
+            {user?.name
+              ? `${String(user.name).split(" ")[0][0]?.toUpperCase() ?? ""}${String(user.name).split(" ")[1]?.[0]?.toUpperCase() ?? ""} · UKSA-${user.id}`
+              : "Your name · Your UKSA account code"}
             <br />
             12 Heathrow Cargo Way, London TW6 2GE
           </p>
@@ -84,8 +81,12 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
             <Package className="w-4 h-4" /> In London Warehouse
           </div>
-          <p className="mt-3 text-2xl font-bold text-foreground">3 items · 12 kg</p>
-          <p className="text-xs text-muted-foreground mt-1">Awaiting free consolidation</p>
+          <p className="mt-3 text-2xl font-bold text-foreground">
+            {warehouseOrders.length} order{warehouseOrders.length === 1 ? "" : "s"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {warehouseOrders.length > 0 ? "Awaiting consolidation or shipment" : "No purchases are at the warehouse yet"}
+          </p>
           <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
             <Link href="/orders">
               Consolidate <ArrowRight className="w-3.5 h-3.5" />
@@ -97,13 +98,23 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 text-primary font-semibold text-sm">
             <Truck className="w-4 h-4" /> Active Air Shipment
           </div>
-          <p className="mt-3 text-lg font-bold text-foreground">{shippedRef} → East Africa</p>
-          <p className="text-xs text-muted-foreground mt-1">Express Air Cargo · EDD shown per shipment</p>
-          <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
-            <Link href="/tracking">
-              Track on map <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </Button>
+          <p className="mt-3 text-lg font-bold text-foreground">
+            {shippedOrder ? `${shippedOrder.ref} → ${shippedOrder.destination}` : "No active air shipment"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {shippedOrder ? "Express Air Cargo · EDD shown per shipment" : "Create a purchase request to start your delivery journey"}
+          </p>
+          {shippedOrder ? (
+            <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
+              <Link href={`/tracking?ref=${encodeURIComponent(shippedOrder.ref)}`}>
+                Track on map <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" asChild className="mt-3 rounded-full border-primary/40">
+              <Link href="/add">Add Items <ArrowRight className="w-3.5 h-3.5" /></Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -159,13 +170,17 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="divide-y divide-border">
-            {recent.map((o) => {
-              if (isReal) {
-                const ro = o as any;
+            {recent.length === 0 ? (
+              <div className="py-8 text-center">
+                <Package className="w-8 h-8 mx-auto text-muted-foreground/50" />
+                <p className="mt-2 text-sm font-medium">Your purchase requests will appear here</p>
+                <p className="mt-1 text-xs text-muted-foreground">Add a UK store item when you are ready to shop.</p>
+              </div>
+            ) : recent.map((ro) => {
                 const amount =
                   typeof ro.amountGbp === "number"
                     ? ro.amountGbp
-                    : parseFloat(String(ro.amountGbp ?? ro.totalGbp ?? "0").replace(/[^0-9.\-]/g, "")) || 0;
+                    : parseFloat(String(ro.amountGbp ?? "0").replace(/[^0-9.\-]/g, "")) || 0;
                 return (
                   <div key={ro.id} className="flex items-center gap-3 py-3">
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -184,33 +199,7 @@ export default function Dashboard() {
                     <span className="text-sm font-semibold w-20 text-right">£{Number(amount).toFixed(2)}</span>
                   </div>
                 );
-              }
-              const meta = statusMeta[(o as any).status as keyof typeof statusMeta];
-              return (
-                <div key={(o as any).id} className="flex items-center gap-3 py-3">
-                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Package className="w-4.5 h-4.5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {(o as any).items[0].name}
-                      {(o as any).items.length > 1 && (
-                        <span className="text-muted-foreground font-normal"> +{(o as any).items.length - 1} more</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {(o as any).store} · {(o as any).updatedAt}
-                    </p>
-                  </div>
-                  <span
-                    className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${meta.tint} ${meta.text}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-                    {meta.label}
-                  </span>
-                  <span className="text-sm font-semibold w-16 text-right">{(o as any).total}</span>
-                </div>
-              );
-            })}
+              })}
           </div>
         </div>
 

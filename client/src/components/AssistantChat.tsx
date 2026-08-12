@@ -4,12 +4,9 @@ import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { loadTransactions } from "@/lib/receipts";
-import { demoOrders, demoTransactions } from "@/lib/demoData";
 import type { Lang } from "@/lib/i18n";
 
 const STORAGE_KEY = "queen-chat-conversation";
-const UPDATES_KEY = "queen-order-updates";
 
 /** Catalog of stores on the platform with categories, for affinity suggestions. */
 const STORE_CATALOG: { name: string; category: string; offers: string }[] = [
@@ -91,50 +88,6 @@ function buildSuggestions(orderedStores: string[]): Array<{ store: string; categ
   return result;
 }
 
-/** Simulated proactive order-status updates Queen would push to a customer. */
-const ORDER_UPDATES: { key: string; label: Partial<Record<Lang, string>>; prompt: string }[] = [
-  {
-    key: "nike-shipped",
-    label: {
-      en: "Nike order shipped",
-      sw: "Agizo la Nike limetumwa",
-      rw: "Ibicuruzwa bya Nike byoherejwe",
-      lg: "Ekiragala kya Nike kitutumiddwa",
-    },
-    prompt: "My Nike order was just shipped to Dar es Salaam. When will it arrive and how do I track it?",
-  },
-  {
-    key: "zara-warehouse",
-    label: {
-      en: "Zara items at warehouse",
-      sw: "Bidhaa za Zara ziko ghala",
-      rw: "Ibicuruzwa bya Zara biri mu kigega",
-      lg: "Ebintu bya Zara biri mu ggwaani",
-    },
-    prompt: "My Zara order has arrived at the London warehouse. Can I consolidate it with my other items to save shipping?",
-  },
-  {
-    key: "payment-received",
-    label: {
-      en: "Payment confirmed",
-      sw: "Malipo yamepokelewa",
-      rw: "Ubwishyu bwakiriwe",
-      lg: "Okusasula kukakasiddwa",
-    },
-    prompt: "I just made a payment. Can you confirm it went through and show me my updated balance?",
-  },
-  {
-    key: "delivery-today",
-    label: {
-      en: "Delivery arriving today",
-      sw: "Ufunguzi uko leo",
-      rw: "Ibicuruzwa bizagera uyu munsi",
-      lg: "Ebintu byo bijja leero",
-    },
-    prompt: "My parcel is arriving today in Kampala. What do I need to have ready for the courier?",
-  },
-];
-
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -201,18 +154,6 @@ const GREETING: Record<Lang, string> = {
   lg: "Oli otya! 👑 Nze Queen, mubuuza wo ow'okugula. Manyi ebintu byonna ku kugula mu Bungereza n'okutuusa ebintu byo mu Tanzania, Kenya, Uganda, ne Rwanda — era mmanyi ebiragala n'emissolo gyo ndage okukyabulirako ku giti kyekyeka. Mbuuza kintu kyonna — ssente, engeri bwe bikola, okusasula, okutuusa, oba endagiriro yo eya UK. Nkusobola okuyamba ki leero?",
 };
 
-function loadSavedUpdates(): { key: string }[] {
-  try {
-    const raw = localStorage.getItem(UPDATES_KEY);
-    if (!raw) return ORDER_UPDATES.map(u => ({ key: u.key }));
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-  } catch {
-    // Corrupted — show all updates.
-  }
-  return ORDER_UPDATES.map(u => ({ key: u.key }));
-}
-
 function loadSaved(): { messages: ChatMessage[]; language: Lang } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -249,10 +190,20 @@ export default function AssistantChat() {
     enabled: isAuthenticated,
     retry: false,
   });
+  const { data: customerNotifications } = trpc.notifications.list.useQuery(undefined, {
+    enabled: isAuthenticated && open,
+    retry: false,
+  });
+  const { data: customerOrders } = trpc.orders.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const { data: customerPayments } = trpc.payments.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+  });
   const markRead = trpc.notifications.markRead.useMutation();
-  // Fallback to the simulated demo updates when logged out.
-  const realUnread = isAuthenticated ? (unreadCount ?? 0) : 0;
-  const unread = isAuthenticated ? realUnread : loadSavedUpdates().length;
+  const unread = isAuthenticated ? (unreadCount ?? 0) : 0;
 
   // Persist conversation across page refreshes.
   useEffect(() => {
@@ -281,12 +232,6 @@ export default function AssistantChat() {
     // Mark real unread notifications as read on first open.
     if (isAuthenticated) {
       markRead.mutate(undefined, { onSuccess: () => refetchUnread() });
-    } else {
-      try {
-        localStorage.setItem(UPDATES_KEY, JSON.stringify([]));
-      } catch {
-        // Storage unavailable — degrade gracefully.
-      }
     }
   };
 
@@ -303,16 +248,18 @@ export default function AssistantChat() {
     setInput("");
     setPending(true);
     try {
-      const realPayments = loadTransactions();
-      const payments = (realPayments.length > 0 ? realPayments : demoTransactions).slice(0, 10).map(p =>
-        "gatewayLabel" in p
-          ? { gateway: p.gatewayLabel, status: p.status, amount: String(p.amountGbp ?? ""), currency: "GBP", date: p.date, reference: p.ref }
-          : { gateway: p.type === "in" ? "Wallet" : "Payment", status: "completed", amount: p.amount, currency: "GBP", date: p.time, reference: p.id },
-      );
-      const orders = demoOrders.slice(0, 10).map(o => ({
-        store: o.store ?? "UK Store",
-        status: o.status,
-        date: o.updatedAt ?? o.edd ?? "",
+      const payments = (customerPayments ?? []).slice(0, 10).map(payment => ({
+        gateway: payment.gateway,
+        status: payment.status,
+        amount: String(payment.amount),
+        currency: payment.currencyCode ?? "GBP",
+        date: payment.createdAt.toISOString(),
+        reference: payment.ref,
+      }));
+      const orders = (customerOrders ?? []).slice(0, 10).map(order => ({
+        store: order.store,
+        status: order.status,
+        date: order.updatedAt.toISOString(),
       }));
       const orderedStores = Array.from(new Set(orders.map(o => o.store).filter(Boolean))) as string[];
       const suggestions = buildSuggestions(orderedStores);
@@ -392,17 +339,17 @@ export default function AssistantChat() {
 
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-muted/30 px-4 py-3">
-            {unread > 0 && messages.length === 0 && (
+            {isAuthenticated && customerNotifications && customerNotifications.filter((notification) => notification.read === "no").length > 0 && messages.length === 0 && (
               <div className="space-y-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-[#A07C28] dark:text-[#E0C06E]">New updates from Queen</p>
-                {ORDER_UPDATES.map(u => (
+                {customerNotifications.filter((notification) => notification.read === "no").map(notification => (
                   <button
-                    key={u.key}
-                    onClick={() => send(u.prompt)}
+                    key={notification.id}
+                    onClick={() => send(`Please explain this order update: ${notification.title}. ${notification.body}`)}
                     className="flex w-full items-center gap-2 rounded-xl border border-[#C9A24B]/30 bg-[#C9A24B]/10 px-3 py-2 text-left transition-colors hover:bg-[#C9A24B]/20"
                   >
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C9A24B] text-[10px] font-bold text-black">!</span>
-                    <span className="text-[12px] font-medium text-foreground">{u.label[language] ?? u.label.en}</span>
+                    <span className="text-[12px] font-medium text-foreground">{notification.title}</span>
                     <Send className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
                   </button>
                 ))}

@@ -15,6 +15,20 @@
       "when": 1786484054817,
       "tag": "0001_lethal_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786556602715,
+      "tag": "0002_harsh_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1786559879850,
+      "tag": "0003_dizzy_marvel_boy",
+      "breakpoints": true
     }
   ]
 }

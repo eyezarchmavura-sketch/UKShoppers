@@ -144,7 +144,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
           <Link
             href="/wallet"
             className="flex items-center gap-2 bg-[#111418] text-[#D4AF37] font-semibold text-xs rounded-full px-3.5 py-2 hover:bg-[#111418]/90 transition-all active:scale-[0.97]">
-            <Wallet className="w-3.5 h-3.5" /> {balanceGbp !== null ? `£${balanceGbp.toFixed(2)}` : "£42.30"} Balance
+            <Wallet className="w-3.5 h-3.5" /> {balanceGbp !== null ? `£${balanceGbp.toFixed(2)} Balance` : "Wallet"}
           </Link>
 
           {/* Notifications */}
@@ -195,7 +195,7 @@ export default function PortalShell({ children }: { children: React.ReactNode })
             onClick={() => toast("Profile settings")}
             className="flex items-center gap-2 ml-1">
             <div className="w-9 h-9 rounded-full bg-[#111418] text-[#D4AF37] flex items-center justify-center font-bold text-xs shadow-sm">
-              {user?.name ? initialsFor(String(user.name)) : "AM"}
+              {user?.name ? initialsFor(String(user.name)) : "UK"}
             </div>
           </button>
         </div>
@@ -226,6 +226,18 @@ export default function PortalShell({ children }: { children: React.ReactNode })
                   </Link>
                 );
               })}
+              {isAuthenticated && (user?.role === "staff" || user?.role === "admin") && (
+                <Link
+                  href="/admin"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    location === "/admin"
+                      ? "bg-[#111418] text-[#D4AF37] shadow-sm font-semibold"
+                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                  }`}>
+                  <Package className={`w-4.5 h-4.5 ${location === "/admin" ? "text-[#D4AF37]" : "text-muted-foreground"}`} />
+                  Operations queue
+                </Link>
+              )}
             </nav>
 
             <div className="mt-auto pt-6 border-t border-border">

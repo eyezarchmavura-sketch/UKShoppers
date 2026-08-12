@@ -1,238 +1,149 @@
-/* UK Shoppers Africa Add Items — paste URL OR upload shopping cart screenshot */
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Loader2, Link2, Check, ShoppingCart, CreditCard, Store, Upload, Image as ImageIcon } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Link2, Loader2, MapPin, PackagePlus, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 
-interface FetchedItem {
-  name: string;
-  store: string;
-  storePrice: number;
-  weight: number;
-  fee: number;
-  shipping: number;
+const destinations = [
+  "Dar es Salaam, Tanzania",
+  "Nairobi, Kenya",
+  "Kampala, Uganda",
+  "Kigali, Rwanda",
+  "Bujumbura, Burundi",
+];
+
+function merchantFromUrl(value: string) {
+  try {
+    const host = new URL(value).hostname.replace(/^www\./, "");
+    return host || "UK retailer";
+  } catch {
+    return "UK retailer";
+  }
 }
 
 export default function AddItems() {
   const [, navigate] = useLocation();
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState<FetchedItem | null>(null);
-  const [cart, setCart] = useState<FetchedItem[]>([]);
-  const [localCurrency, setLocalCurrency] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
+  const [productUrl, setProductUrl] = useState("");
+  const [itemDetails, setItemDetails] = useState("");
+  const [destination, setDestination] = useState(destinations[0]);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [createdRef, setCreatedRef] = useState<string | null>(null);
 
-  const fetchQuote = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url.trim()) {
-      toast.error("Paste a product URL first");
+  const submitRequest = trpc.orders.create.useMutation({
+    onSuccess: ({ ref }) => {
+      setCreatedRef(ref);
+      toast.success("Purchase request submitted for staff review");
+    },
+    onError: (error) => toast.error(error.message || "We could not submit your request. Please try again."),
+  });
+
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please sign in before submitting a purchase request.");
       return;
     }
-    setLoading(true);
-    setFetched(null);
-    setTimeout(() => {
-      setFetched({
-        name: "Nike Air Max 90 — White/Black, UK 9",
-        store: "Nike UK",
-        storePrice: 109.99,
-        weight: 0.9,
-        fee: 8.0,
-        shipping: 14.5,
-      });
-      setLoading(false);
-      toast.success("Quote fetched successfully!");
-    }, 1500);
+    if (!productUrl.trim() || !itemDetails.trim() || !deliveryAddress.trim()) {
+      toast.error("Add the product link, item details, and delivery address before submitting.");
+      return;
+    }
+    try {
+      new URL(productUrl);
+    } catch {
+      toast.error("Enter a complete product URL beginning with https://");
+      return;
+    }
+
+    submitRequest.mutate({
+      store: merchantFromUrl(productUrl),
+      item: `${itemDetails.trim()} — ${productUrl.trim()}`,
+      destination,
+      deliveryAddress: deliveryAddress.trim(),
+      amountGbp: "Pending staff review",
+      currencyCode: "GBP",
+    });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setUploadedFile(file.name);
-    setTimeout(() => {
-      setUploading(false);
-      setFetched({
-        name: `Cart Screenshot (${file.name}) — 3 items`,
-        store: "UK Retailer (Manual Quote)",
-        storePrice: 145.00,
-        weight: 1.4,
-        fee: 10.0,
-        shipping: 18.5,
-      });
-      toast.success("Screenshot uploaded! Our London team will verify items and prepare your manual quote.");
-    }, 1500);
-  };
-
-  const addToCart = () => {
-    if (!fetched) return;
-    setCart((c) => [...c, fetched]);
-    toast.success("Added to cart — your all-in quote is locked in");
-  };
-
-  const subtotal = cart.reduce((s, i) => s + i.storePrice + i.fee + i.shipping, 0);
-  const totalLocal = Math.round(subtotal * 3400); // TSh conversion demo
+  if (createdRef) {
+    return (
+      <div className="mx-auto max-w-2xl p-4 lg:p-8">
+        <section className="rounded-2xl border border-primary/25 bg-primary/5 p-6 text-center sm:p-10">
+          <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Request received</p>
+          <h1 className="mt-2 font-display text-2xl font-bold text-primary">Your purchase request is in the queue</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Reference <strong className="text-foreground">{createdRef}</strong>. A UK Shoppers Africa staff member will check availability, item variations, shipping, customs requirements, and the confirmed total before a payment request is issued.
+          </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button onClick={() => navigate("/orders")} className="rounded-full px-6">Track this request</Button>
+            <Button variant="outline" onClick={() => setCreatedRef(null)} className="rounded-full px-6">Submit another item</Button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 lg:p-8 max-w-[900px] mx-auto space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 p-4 lg:p-8">
       <div>
-        <h1 className="font-display text-2xl font-bold text-primary">Add UK Items & Cart Screenshots</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Paste any UK product link OR upload a screenshot of your basket/cart from Amazon UK, ASOS, Zara, etc. for manual quoting.
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Personal shopping request</p>
+        <h1 className="mt-2 font-display text-2xl font-bold text-primary">Request a verified UK purchase quote</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Send the exact product link and your delivery details. Our team reviews availability and all costs before creating any payment request; no placeholder prices are shown here.
         </p>
       </div>
 
-      {/* Tabs / Two Options */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Option 1: Paste Link */}
-        <form onSubmit={fetchQuote} className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
-          <div className="flex items-center gap-2 font-bold text-[#111418]">
-            <Link2 className="w-5 h-5 text-[#C9A227]" /> Option 1: Paste UK Product Link
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Paste any link from supported UK stores for an instant automated quote.
+      <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-5 text-card-foreground sm:p-6">
+        <div className="flex items-start gap-3 rounded-xl bg-muted/60 p-4">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <p className="text-sm text-muted-foreground">
+            Your request is reviewed by a person. A payment link is issued only after our team confirms the item, destination, and final payable amount.
           </p>
-          <div className="flex gap-2">
-            <input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://www.amazon.co.uk/dp/..."
-              className="flex-1 rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
-            />
-            <Button type="submit" disabled={loading} className="rounded-xl px-5 bg-[#111418] text-[#D4AF37]">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fetch"}
-            </Button>
-          </div>
-        </form>
-
-        {/* Option 2: Upload Screenshot */}
-        <div className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
-          <div className="flex items-center gap-2 font-bold text-[#111418]">
-            <Upload className="w-5 h-5 text-[#C9A227]" /> Option 2: Upload Cart Screenshot
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Screenshot your basket from any UK store and upload it here for personal shopper review.
-          </p>
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-4 cursor-pointer hover:border-[#111418] transition-colors bg-[#F2F4F7]">
-            {uploading ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-[#111418]" /> Uploading & reviewing screenshot...
-              </div>
-            ) : (
-              <>
-                <ImageIcon className="w-6 h-6 text-[#111418] mb-1" />
-                <span className="text-xs font-semibold text-[#111418]">Click to upload screenshot</span>
-                <span className="text-[10px] text-muted-foreground mt-0.5">PNG, JPG up to 10MB</span>
-              </>
-            )}
-            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-          </label>
         </div>
-      </div>
 
-      {/* Result card */}
-      {fetched && (
-        <div className="bg-white rounded-2xl shadow-lg border border-border p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="flex flex-col sm:flex-row gap-6">
-            <div className="w-full sm:w-40 h-40 rounded-2xl bg-[#111418]/5 flex items-center justify-center shrink-0 border border-[#111418]/10">
-              <ShoppingCart className="w-12 h-12 text-[#111418]" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <span className="text-[10px] font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-2.5 py-0.5 rounded-full">
-                  {fetched.store}
-                </span>
-                <h2 className="text-lg font-bold text-foreground mt-1.5">{fetched.name}</h2>
-              </div>
+        <div className="space-y-2">
+          <label htmlFor="product-url" className="text-sm font-semibold">UK product link</label>
+          <div className="relative">
+            <Link2 className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input id="product-url" type="url" value={productUrl} onChange={(event) => setProductUrl(event.target.value)} placeholder="https://www.amazon.co.uk/dp/..." className="pl-9" required />
+          </div>
+          <p className="text-xs text-muted-foreground">Use the specific product or cart link from a UK retailer.</p>
+        </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm bg-[#F2F4F7] p-4 rounded-xl">
-                <div>
-                  <p className="text-muted-foreground text-[11px]">Item Price</p>
-                  <p className="font-bold text-[#111418]">£{fetched.storePrice.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-[11px]">Service Fee</p>
-                  <p className="font-bold text-[#111418]">£{fetched.fee.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-[11px]">Est. Weight</p>
-                  <p className="font-bold text-[#111418]">{fetched.weight} kg</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-[11px]">Air Shipping</p>
-                  <p className="font-bold text-[#111418]">£{fetched.shipping.toFixed(2)}</p>
-                </div>
-              </div>
+        <div className="space-y-2">
+          <label htmlFor="item-details" className="text-sm font-semibold">Item details</label>
+          <Textarea id="item-details" value={itemDetails} onChange={(event) => setItemDetails(event.target.value)} placeholder="Example: Nike Air Max 90, white/black, UK size 9, quantity 1." maxLength={380} className="min-h-24" required />
+          <p className="text-xs text-muted-foreground">Include size, colour, quantity, preferred variation, and any alternatives.</p>
+        </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Estimated Cost (Duties Prepaid)</p>
-                  <p className="text-2xl font-bold text-[#111418]">
-                    £{(fetched.storePrice + fetched.fee + fetched.shipping).toFixed(2)}
-                  </p>
-                  <p className="text-xs font-semibold text-[#C9A227]">≈ TSh 448,500 / KSh 22,400</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={addToCart} className="rounded-full border-[#111418]/30">
-                    Add to Cart
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      toast.success("Proceeding to checkout with locked quote");
-                      navigate("/checkout");
-                    }}
-                    className="rounded-full bg-[#111418] text-[#D4AF37] hover:bg-[#111418]/90 font-semibold px-6">
-                    Proceed to Checkout <CreditCard className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="destination" className="text-sm font-semibold">Delivery destination</label>
+            <select id="destination" value={destination} onChange={(event) => setDestination(event.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+              {destinations.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="delivery-address" className="text-sm font-semibold">Delivery address</label>
+            <div className="relative">
+              <MapPin className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input id="delivery-address" value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Street, area, city" className="pl-9" minLength={8} maxLength={512} required />
             </div>
           </div>
         </div>
-      )}
 
-      {/* Cart summary */}
-      <div className="bg-white rounded-2xl shadow-sm border border-border p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-[#111418] flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-[#C9A227]" /> Active Cart ({cart.length} items)
-          </h2>
-          {cart.length > 0 && (
-            <span className="font-bold text-[#111418]">
-              £{cart.reduce((s, i) => s + i.storePrice + i.fee + i.shipping, 0).toFixed(2)}
-            </span>
-          )}
+        <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground"><ClipboardCheck className="h-4 w-4 text-primary" /> Staff review before quote and payment</p>
+          <Button type="submit" disabled={submitRequest.isPending} className="rounded-full px-6">
+            {submitRequest.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting request</> : <><PackagePlus className="mr-2 h-4 w-4" />Submit for quote review</>}
+          </Button>
         </div>
-        {cart.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4 text-center">
-            Your cart is empty. Paste a link or upload a cart screenshot above to start shopping.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {cart.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3.5 bg-[#F2F4F7] rounded-xl text-sm">
-                <div>
-                  <p className="font-semibold text-[#111418]">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.store}</p>
-                </div>
-                <p className="font-bold text-[#111418]">
-                  £{(item.storePrice + item.fee + item.shipping).toFixed(2)}
-                </p>
-              </div>
-            ))}
-            <div className="pt-2 flex justify-end">
-              <Button
-                onClick={() => navigate("/checkout")}
-                className="rounded-full bg-[#111418] text-[#D4AF37] font-semibold px-8">
-                Proceed to Checkout
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      </form>
     </div>
   );
 }

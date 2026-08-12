@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Check, MapPin, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { demoTracking, demoOrders } from "@/lib/demoData";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -59,7 +58,7 @@ function buildSteps(order: DbOrder): Step[] {
 export default function Tracking() {
   const [whatsapp, setWhatsapp] = useState(true);
 
-  // Accept ?ref=UKS-84201 to deep-link from an order card; otherwise default to the first shipped order.
+  // Order cards pass a reference in the URL so customers never see another customer's shipment.
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const refParam = params.get("ref") ?? undefined;
 
@@ -77,9 +76,11 @@ export default function Tracking() {
       };
     }
     return {
-      steps: demoTracking,
-      orderLabel: `${demoOrders[0].trackingNumber} · Nike UK → Dar es Salaam`,
-      orderEdd: demoOrders[0].edd,
+      steps: [],
+      orderLabel: isAuthenticated
+        ? "Select an order to view its shipment timeline"
+        : "Sign in to view your shipment timeline",
+      orderEdd: undefined,
       real: false,
     };
   }, [dbOrder, isAuthenticated]);
@@ -97,28 +98,22 @@ export default function Tracking() {
         </div>
       </div>
 
-      {/* Route visual */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 font-semibold">
-            <MapPin className="w-4 h-4 text-primary" /> London Heathrow Hub
-          </div>
-          <div className="flex-1 mx-3 relative h-px bg-border">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[65%] h-0.5 bg-primary rounded-full" />
-            <span className="absolute left-[62%] -top-1.5 w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
-          </div>
-          <div className="flex items-center gap-2 font-semibold">
-            <MapPin className="w-4 h-4 text-[#C9A227]" /> Dar es Salaam / Nairobi
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground mt-3 text-center">
-          Express Air Freight from UK to East Africa.
-        </p>
-      </div>
-
-      {/* Stepper */}
-      <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(10,54,34,0.08)] p-5">
-        <div className="relative pl-6 space-y-0">
+        {real ? (
+          <>
+            <div className="flex items-center justify-between text-sm mb-6">
+              <div className="flex items-center gap-2 font-semibold">
+                <MapPin className="w-4 h-4 text-primary" /> London Heathrow Hub
+              </div>
+              <div className="flex-1 mx-3 relative h-px bg-border">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[65%] h-0.5 bg-primary rounded-full" />
+                <span className="absolute left-[62%] -top-1.5 w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
+              </div>
+              <div className="flex items-center gap-2 font-semibold">
+                <MapPin className="w-4 h-4 text-[#C9A227]" /> Destination
+              </div>
+            </div>
+            <div className="relative pl-6 space-y-0">
           {steps.map((s, i) => (
             <div key={s.title} className="relative pb-6 last:pb-0">
               {i < steps.length - 1 && (
@@ -141,11 +136,20 @@ export default function Tracking() {
               </div>
             </div>
           ))}
-        </div>
-        {real && (
-          <p className="text-xs text-muted-foreground mt-4 border-t pt-3">
-            Live tracking from the London warehouse to your doorstep — updated automatically at each checkpoint.
-          </p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4 border-t pt-3">
+              Live tracking from the London warehouse to your doorstep — updated automatically at each checkpoint.
+            </p>
+          </>
+        ) : (
+          <div className="py-8 text-center">
+            <MapPin className="w-8 h-8 mx-auto text-muted-foreground/50" />
+            <p className="mt-2 text-sm font-medium">No shipment is selected</p>
+            <p className="mt-1 text-xs text-muted-foreground">Choose an eligible order from My Orders to view its live checkpoint timeline.</p>
+            <Button variant="outline" size="sm" asChild className="mt-4 rounded-full border-primary/40">
+              <a href="/orders">View my orders</a>
+            </Button>
+          </div>
         )}
       </div>
 
