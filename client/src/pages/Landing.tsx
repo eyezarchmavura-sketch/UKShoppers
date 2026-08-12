@@ -434,8 +434,8 @@ export default function Landing() {
               UK
             </div>
             <div>
-              <span className="font-bold text-lg text-[#111418] tracking-tight block leading-none">
-                UK Shoppers <span className="text-[#C9A227]">Africa</span>
+              <span className="font-bold text-lg text-[#111418] dark:text-[#F7F4E8] tracking-tight block leading-none">
+                UK Shoppers <span className="text-[#C9A227] dark:text-[#E6C764]">Africa</span>
               </span>
               <span className="text-[11px] text-muted-foreground font-medium tracking-wide">
                 Powered by INM LTD
@@ -444,10 +444,10 @@ export default function Landing() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
-            <a href="#how-it-works" className="hover:text-[#111418] transition-colors">{tr("nav.howItWorks", lang)}</a>
-            <a href="#calculator" className="hover:text-[#111418] transition-colors">{tr("nav.instantQuote", lang)}</a>
-            <a href="#stores" className="hover:text-[#111418] transition-colors">{tr("nav.stores", lang)}</a>
-            <Link href="/admin" className="text-[#111418] font-semibold hover:underline">{tr("nav.staffAdmin", lang)}</Link>
+            <a href="#how-it-works" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.howItWorks", lang)}</a>
+            <a href="#calculator" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.instantQuote", lang)}</a>
+            <a href="#stores" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.stores", lang)}</a>
+            <Link href="/admin" className="text-[#111418] dark:text-[#F3E7AF] font-semibold hover:underline dark:hover:text-[#D4AF37]">{tr("nav.staffAdmin", lang)}</Link>
           </nav>
 
           <div className="flex items-center gap-3">
