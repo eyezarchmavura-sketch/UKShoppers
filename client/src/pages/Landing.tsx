@@ -243,6 +243,8 @@ const storeLogos: Record<string, string> = {
   HMV: "/manus-storage/hmv_de33faf9.png",
 };
 
+const marqueeStores = stores.slice(0, 14);
+
 function StoreCard({ store, delay }: { store: Store; delay?: number }) {
   const retailerUrl = getRetailerUrl(store.domain);
   const requestUrl = `/add?productUrl=${encodeURIComponent(retailerUrl)}`;
@@ -299,7 +301,7 @@ function StoreWall({ lang }: { lang: Lang }) {
 
   return (
     <div className="container">
-      <div className="text-center max-w-2xl mx-auto mb-10">
+      <div className="max-w-2xl mb-10 text-left">
         <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
           100+ Supported Stores
         </span>
@@ -312,7 +314,7 @@ function StoreWall({ lang }: { lang: Lang }) {
       </div>
 
       {/* Category filter chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-10">
+      <div className="flex flex-wrap justify-start gap-2 mb-10">
         {storeCategories.map((cat) => (
           <button
             key={cat}
@@ -334,7 +336,7 @@ function StoreWall({ lang }: { lang: Lang }) {
         ))}
       </div>
 
-      <p className="text-center text-xs text-muted-foreground mt-8">
+      <p className="text-left text-xs text-muted-foreground mt-8">
         Not on the list? We support virtually every UK retailer — paste any product link and we'll confirm instantly.
       </p>
     </div>
@@ -400,12 +402,12 @@ export default function Landing() {
 
       {/* ============ NAV ============ */}
       <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#1a1d23]/95 backdrop-blur-md border-b border-border shadow-xs">
-        <div className="container flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center gap-3">
+        <div className="container flex h-20 items-center justify-between gap-2 sm:gap-4">
+          <Link href="/" className="flex min-w-0 shrink items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#111418] flex items-center justify-center text-[#D4AF37] font-bold text-xl shadow-md">
               UK
             </div>
-            <div>
+            <div className="hidden sm:block">
               <span className="font-bold text-lg text-[#111418] dark:text-[#F7F4E8] tracking-tight block leading-none">
                 UK Shoppers <span className="text-[#C9A227] dark:text-[#E6C764]">Africa</span>
               </span>
@@ -422,7 +424,7 @@ export default function Landing() {
             <Link href="/admin" className="text-[#111418] dark:text-[#F3E7AF] font-semibold hover:underline dark:hover:text-[#D4AF37]">{tr("nav.staffAdmin", lang)}</Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             {/* Language switcher */}
             <LanguageSwitcher compact />
 
@@ -444,8 +446,8 @@ export default function Landing() {
             </Link>
             <Link
               href="/add"
-              className="inline-flex items-center gap-2 rounded-full bg-[#111418] text-[#D4AF37] px-5 py-2.5 text-sm font-semibold shadow-md hover:bg-[#111418]/90 transition-all active:scale-[0.98]">
-              Start Shopping <ArrowRight className="w-4 h-4" />
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#111418] px-3 py-2.5 text-xs font-semibold text-[#D4AF37] shadow-md transition-all hover:bg-[#111418]/90 active:scale-[0.98] sm:gap-2 sm:px-5 sm:text-sm">
+              Start Shopping <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -462,6 +464,31 @@ export default function Landing() {
               </Link>
             ))}
             <Link href="/stores" className="ml-auto text-xs font-bold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">All stores</Link>
+          </div>
+        </div>
+        <div className="retailer-belt border-t border-border/70 bg-[#111418] text-[#F7F4E8] dark:bg-black" aria-label="Supported UK retailers">
+          <div className="container flex h-12 items-center gap-4 overflow-hidden">
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-[#D4AF37]">Shop UK brands</span>
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="retailer-belt-track gap-3 py-1">
+                {[...marqueeStores, ...marqueeStores].map((store, index) => {
+                  const retailerUrl = getRetailerUrl(store.domain);
+                  return (
+                    <a
+                      key={`${store.name}-${index}`}
+                      href={retailerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-8 shrink-0 items-center gap-2 rounded-lg border border-white/15 bg-white px-2.5 text-xs font-semibold text-[#111418] hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
+                      {storeLogos[store.name] ? <img src={storeLogos[store.name]} alt="" className="h-4 w-6 object-contain" loading="lazy" /> : null}
+                      <span>{store.name}</span>
+                      <ExternalLink className="h-3 w-3 text-[#A67C00]" aria-hidden="true" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+            <Link href="/stores" className="shrink-0 text-xs font-bold text-[#D4AF37] hover:underline underline-offset-4">View all</Link>
           </div>
         </div>
       </header>
@@ -500,7 +527,21 @@ export default function Landing() {
                 {tr("hero.body", lang)}
               </p>
 
-              <div className="hero-rise hero-rise-d3 flex flex-col sm:flex-row gap-4 pt-2">
+              <div className="hero-rise hero-rise-d3 border-l-2 border-[#C9A227] pl-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Shop departments</p>
+                <div className="mt-2 flex flex-wrap justify-start gap-2">
+                  {storeCategories.filter((category) => category !== "All").map((category) => (
+                    <Link
+                      key={category}
+                      href={buildStoreDirectoryHref("", category)}
+                      className="rounded-full border border-[#111418]/15 bg-white/75 px-3 py-1.5 text-xs font-semibold text-[#111418] backdrop-blur-sm transition-colors hover:border-[#C9A227] hover:text-[#A67C00] dark:border-[#D4AF37]/35 dark:bg-card/80 dark:text-[#F7F4E8] dark:hover:border-[#D4AF37] dark:hover:text-[#D4AF37]">
+                      {category}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hero-rise hero-rise-d4 flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/add"
                   className="inline-flex items-center justify-center gap-3 rounded-full bg-[#111418] dark:bg-[#D4AF37] text-white dark:text-[#111418] px-8 py-4 text-base font-semibold shadow-lg hover:bg-[#111418]/90 dark:hover:brightness-95 transition-all active:scale-[0.97]">
@@ -671,14 +712,16 @@ export default function Landing() {
 
       {/* ============ SHOP BY CATEGORY VISUALS ============ */}
       <section className="py-16 sm:py-20 bg-[#F2F4F7]">
-        <div className="container">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+        <div className="container grid gap-10 lg:grid-cols-[15rem_1fr] lg:items-start">
+          <div className="text-left lg:sticky lg:top-36">
             <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               Shop by Category
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
               {tr("sec.categories", lang)}
             </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Browse trusted UK departments first, then bring the exact product link back for staff review.</p>
+            <Link href="/stores" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#A67C00] hover:underline underline-offset-4">Explore every store <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
             <div className="group relative rounded-3xl overflow-hidden shadow-xl cursor-pointer">
@@ -717,7 +760,7 @@ export default function Landing() {
       {/* ============ HOW IT WORKS ============ */}
       <section id="how-it-works" className="py-24 bg-[#F2F4F7]">
         <div className="container">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-left max-w-2xl mb-16">
               <span className="text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
               {tr("sec.howBadge", lang)}
             </span>

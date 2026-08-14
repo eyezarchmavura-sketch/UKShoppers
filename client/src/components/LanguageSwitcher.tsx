@@ -14,12 +14,12 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 font-medium rounded-full px-3 py-1.5 transition-colors hover:bg-muted active:scale-[0.97] ${
-          compact ? "text-xs text-foreground/80" : "text-sm bg-muted/60 border border-border/60"
+        className={`flex shrink-0 items-center gap-1.5 font-medium rounded-full px-3 py-1.5 transition-colors hover:bg-muted active:scale-[0.97] ${
+          compact ? "px-2 sm:px-3 text-xs text-foreground/80" : "text-sm bg-muted/60 border border-border/60"
         }`}
         aria-label="Change language">
         <span>{current.flag}</span>
-        <span className={!compact ? "hidden sm:inline" : ""}>{current.native}</span>
+        <span className="hidden sm:inline">{current.native}</span>
         <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (

@@ -308,6 +308,25 @@
     50% { transform: translate(3%, -4%) scale(1.06); }
     100% { transform: translate(-2%, 2%) scale(0.97); }
   }
+
+  /* Right-to-left retailer belt; pauses when a shopper focuses or hovers a store link. */
+  .retailer-belt-track {
+    animation: retailerBelt 48s linear infinite;
+    will-change: transform;
+  }
+  .retailer-belt-track:hover,
+  .retailer-belt-track:focus-within {
+    animation-play-state: paused;
+  }
+  @keyframes retailerBelt {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+.retailer-belt-track {
+  display: flex;
+  width: max-content;
 }
 
 /* Gold gradient text utility */
