@@ -5,18 +5,23 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { ASSISTANT_KNOWLEDGE } from "./assistantKnowledge";
+import { storagePut } from "./storage";
 import {
   ORDER_STATUS_LABELS,
   advanceOrderStatus,
   advanceOrderStatusForOperations,
   countUnreadNotifications,
+  countUnreadOperationAlerts,
+  createOperationAlert,
   createOrder,
   createPayment,
   listNotificationsByUser,
   listOperationsOrders,
+  listUnreadOperationAlerts,
   listOrdersByUser,
   listPaymentsByUser,
   markNotificationsRead,
+  markOperationAlertsRead,
   upsertUser,
 } from "./db";
 
@@ -53,18 +58,48 @@ export const appRouter = router({
           amountLocal: z.string().optional(),
           currencyCode: z.string().optional(),
           weightKg: z.string().optional(),
+          requestType: z.enum(["product_link", "cart_screenshot"]).default("product_link"),
+          screenshot: z.object({
+            fileName: z.string().min(1).max(256),
+            contentType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+            dataBase64: z.string().min(32),
+          }).optional(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
+        if (input.requestType === "cart_screenshot" && !input.screenshot) {
+          throw new Error("A cart screenshot is required for this request type.");
+        }
+        if (input.requestType === "product_link" && input.screenshot) {
+          throw new Error("Screenshot metadata does not match this request type.");
+        }
+
+        let screenshotKey: string | undefined;
+        let screenshotFileName: string | undefined;
+        if (input.screenshot) {
+          const encoded = input.screenshot.dataBase64.replace(/^data:[^;]+;base64,/, "");
+          const bytes = Buffer.from(encoded, "base64");
+          if (bytes.length === 0 || bytes.length > 10 * 1024 * 1024) {
+            throw new Error("Cart screenshots must be between 1 byte and 10 MB.");
+          }
+          const safeName = input.screenshot.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-160) || "cart-screenshot";
+          const stored = await storagePut(`order-screenshots/${ctx.user.id}/${safeName}`, bytes, input.screenshot.contentType);
+          screenshotKey = stored.key;
+          screenshotFileName = input.screenshot.fileName;
+        }
+
         const count = (await listOrdersByUser(ctx.user.id)).length;
         const ref = `UKS-${84300 + count + Math.floor(Math.random() * 99)}`;
-        await createOrder({
+        const created = await createOrder({
           ref,
           userId: ctx.user.id,
           store: input.store,
           item: input.item,
           destination: input.destination,
           deliveryAddress: input.deliveryAddress,
+          requestType: input.requestType,
+          screenshotKey,
+          screenshotFileName,
           amountGbp: input.amountGbp,
           amountLocal: input.amountLocal,
           currencyCode: input.currencyCode ?? "GBP",
@@ -74,7 +109,16 @@ export const appRouter = router({
             { at: new Date().toISOString(), status: "pending_purchase", note: "Purchase request submitted by " + (ctx.user.name ?? "customer") + "; awaiting staff quote review" },
           ]),
         });
-        return { ref };
+        if (input.requestType === "cart_screenshot") {
+          await createOperationAlert({
+            kind: "cart_screenshot",
+            orderId: created.id,
+            title: "New cart screenshot uploaded",
+            body: `${ctx.user.name ?? "A customer"} submitted ${screenshotFileName ?? "a cart screenshot"} for manual quote review.`,
+            read: "no",
+          });
+        }
+        return { ref, screenshotUploaded: Boolean(screenshotKey) };
       }),
   }),
 
@@ -144,6 +188,9 @@ export const appRouter = router({
   }),
 
   operations: router({
+    screenshotAlerts: staffProcedure.query(() => listUnreadOperationAlerts()),
+    screenshotAlertCount: staffProcedure.query(() => countUnreadOperationAlerts()),
+    markScreenshotAlertsRead: staffProcedure.mutation(() => markOperationAlertsRead()),
     queue: staffProcedure
       .input(
         z.object({

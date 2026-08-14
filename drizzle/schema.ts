@@ -42,6 +42,11 @@ export const orders = mysqlTable("orders", {
   destination: varchar("destination", { length: 128 }).notNull(),
   /** Customer-provided address, intentionally excluded from the staff queue list projection. */
   deliveryAddress: varchar("deliveryAddress", { length: 512 }),
+  /** How the customer supplied the shopping request. */
+  requestType: mysqlEnum("requestType", ["product_link", "cart_screenshot"]).default("product_link").notNull(),
+  /** Storage object key for a customer-uploaded cart screenshot. */
+  screenshotKey: varchar("screenshotKey", { length: 256 }),
+  screenshotFileName: varchar("screenshotFileName", { length: 256 }),
   amountGbp: varchar("amountGbp", { length: 32 }).notNull(),
   amountLocal: varchar("amountLocal", { length: 64 }),
   currencyCode: varchar("currencyCode", { length: 8 }).default("GBP"),
@@ -124,3 +129,17 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/** Staff-facing alerts that are shared across approved operations users. */
+export const operationAlerts = mysqlTable("operation_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  kind: varchar("kind", { length: 64 }).default("cart_screenshot").notNull(),
+  orderId: int("orderId").notNull(),
+  title: varchar("title", { length: 256 }).notNull(),
+  body: varchar("body", { length: 1024 }).notNull(),
+  read: mysqlEnum("read", ["no", "yes"]).default("no").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type OperationAlert = typeof operationAlerts.$inferSelect;
+export type InsertOperationAlert = typeof operationAlerts.$inferInsert;

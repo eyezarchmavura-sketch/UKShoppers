@@ -175,3 +175,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [ ] Define and connect approved one-time purchase and optional subscription products to the existing staff-approved purchase-request workflow; test only with Stripe test mode before any live activation.
 - [x] Redesign the public landing-page hierarchy with left-aligned “How it works” and supporting category content, plus an accessible right-to-left top retailer belt using the verified shared store catalogue; test responsive behavior and primary journey links. The new hierarchy retains the verified storefront and staff-review handoffs.
 - [x] Fix the mobile landing-page header overflow found during validation so the primary Start Shopping action remains fully visible and reachable at a 375px viewport. The responsive header now condenses brand and language labels without hiding the action.
+
+# TASK — Screenshot upload UX and admin alert 2026-08-14
+- [ ] Add visible upload progress bar and clear success message to the cart screenshot upload flow
+- [ ] Add admin notification badge for newly uploaded shopping cart screenshots
+- [ ] Verify upload and admin alert states with TypeScript, tests, and screenshots

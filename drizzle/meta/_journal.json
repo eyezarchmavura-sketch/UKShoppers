@@ -29,6 +29,20 @@
       "when": 1786559879850,
       "tag": "0003_dizzy_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786737708753,
+      "tag": "0004_lush_kronos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786737777378,
+      "tag": "0005_magical_mattie_franklin",
+      "breakpoints": true
     }
   ]
 }

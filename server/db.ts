@@ -5,7 +5,9 @@ import {
   InsertOrder,
   InsertPayment,
   InsertPaymentEvent,
+  InsertOperationAlert,
   notifications,
+  operationAlerts,
   orders,
   paymentEvents,
   payments,
@@ -163,6 +165,9 @@ export async function listOperationsOrders(input: OperationsQueueInput = {}) {
       store: orders.store,
       item: orders.item,
       amountGbp: orders.amountGbp,
+      requestType: orders.requestType,
+      screenshotKey: orders.screenshotKey,
+      screenshotFileName: orders.screenshotFileName,
       status: orders.status,
       timeline: orders.timeline,
       createdAt: orders.createdAt,
@@ -177,8 +182,41 @@ export async function listOperationsOrders(input: OperationsQueueInput = {}) {
 export async function createOrder(data: InsertOrder) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.insert(orders).values(data);
-  return data.ref;
+  const result = await db.insert(orders).values(data);
+  return { ref: data.ref, id: Number((result as unknown as { insertId?: number }).insertId ?? 0) };
+}
+
+export async function createOperationAlert(data: InsertOperationAlert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(operationAlerts).values(data);
+}
+
+export async function listUnreadOperationAlerts(limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(operationAlerts)
+    .where(eq(operationAlerts.read, "no"))
+    .orderBy(desc(operationAlerts.createdAt))
+    .limit(Math.min(Math.max(limit, 1), 50));
+}
+
+export async function countUnreadOperationAlerts() {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(operationAlerts)
+    .where(eq(operationAlerts.read, "no"));
+  return Number(rows[0]?.c ?? 0);
+}
+
+export async function markOperationAlertsRead() {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(operationAlerts).set({ read: "yes" } as never).where(eq(operationAlerts.read, "no"));
 }
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
