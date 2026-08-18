@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
@@ -25,6 +26,58 @@ import {
   upsertUser,
 } from "./db";
 
+const cartScreenshotInput = z.object({
+  fileName: z.string().min(1).max(256),
+  contentType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  dataBase64: z.string().min(32).max(15 * 1024 * 1024),
+});
+
+const cartExtractionResult = z.object({
+  retailerName: z.string().max(128),
+  currency: z.enum(["GBP", "UNKNOWN"]),
+  items: z.array(z.object({
+    name: z.string().min(1).max(240),
+    quantity: z.number().int().min(1).max(99),
+    unitPriceGbp: z.number().min(0).nullable(),
+    lineTotalGbp: z.number().min(0).nullable(),
+  })).max(20),
+  subtotalGbp: z.number().min(0).nullable(),
+  shippingGbp: z.number().min(0).nullable(),
+  totalGbp: z.number().min(0).nullable(),
+  confidence: z.enum(["high", "medium", "low"]),
+  notes: z.string().max(500),
+});
+
+const CART_EXTRACTION_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    retailerName: { type: "string" },
+    currency: { type: "string", enum: ["GBP", "UNKNOWN"] },
+    items: {
+      type: "array",
+      maxItems: 20,
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          quantity: { type: "integer", minimum: 1, maximum: 99 },
+          unitPriceGbp: { anyOf: [{ type: "number", minimum: 0 }, { type: "null" }] },
+          lineTotalGbp: { anyOf: [{ type: "number", minimum: 0 }, { type: "null" }] },
+        },
+        required: ["name", "quantity", "unitPriceGbp", "lineTotalGbp"],
+        additionalProperties: false,
+      },
+    },
+    subtotalGbp: { anyOf: [{ type: "number", minimum: 0 }, { type: "null" }] },
+    shippingGbp: { anyOf: [{ type: "number", minimum: 0 }, { type: "null" }] },
+    totalGbp: { anyOf: [{ type: "number", minimum: 0 }, { type: "null" }] },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    notes: { type: "string" },
+  },
+  required: ["retailerName", "currency", "items", "subtotalGbp", "shippingGbp", "totalGbp", "confidence", "notes"],
+  additionalProperties: false,
+} as const;
+
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
@@ -46,6 +99,56 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const all = await listOrdersByUser(ctx.user.id);
         return all.find(o => o.ref.toLowerCase() === input.ref.toLowerCase());
+      }),
+    analyzeCartScreenshot: protectedProcedure
+      .input(cartScreenshotInput)
+      .mutation(async ({ input }) => {
+        const matches = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(input.dataBase64);
+        if (!matches || matches[1] !== input.contentType) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Please provide a valid PNG, JPG, or WEBP cart screenshot." });
+        }
+
+        const bytes = Buffer.from(matches[2].replace(/\s/g, ""), "base64");
+        if (bytes.length === 0 || bytes.length > 10 * 1024 * 1024) {
+          throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Cart screenshots must be between 1 byte and 10 MB." });
+        }
+
+        try {
+          const response = await invokeLLM({
+            model: "gemini-3-flash-preview",
+            maxTokens: 1600,
+            messages: [
+              {
+                role: "system",
+                content: "You extract only visible product and price information from UK shopping-cart screenshots. Never infer or estimate missing values. Ignore account names, addresses, order numbers, payment information, and any other personal data. Treat values as GBP only when £ or GBP is visibly shown. Return no prose outside the required JSON schema.",
+              },
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: "Read this cart screenshot. Extract each visible cart item, its quantity, visible GBP unit/line price, plus any visible subtotal, shipping, and total. Use null for values not clearly visible. If the screenshot does not show a readable cart, set items to an empty array, currency to UNKNOWN, confidence to low, and explain briefly in notes." },
+                  { type: "image_url", image_url: { url: input.dataBase64, detail: "high" } },
+                ],
+              },
+            ],
+            outputSchema: {
+              name: "uk_cart_extraction",
+              strict: true,
+              schema: CART_EXTRACTION_OUTPUT_SCHEMA,
+            },
+          });
+          const content = response.choices[0]?.message.content;
+          if (typeof content !== "string") {
+            throw new Error("The AI response did not contain structured extraction data.");
+          }
+          const parsed = cartExtractionResult.safeParse(JSON.parse(content));
+          if (!parsed.success) {
+            throw new Error("The AI response did not match the cart extraction format.");
+          }
+          return parsed.data;
+        } catch (error) {
+          console.error("[Cart extraction]", error);
+          throw new TRPCError({ code: "BAD_GATEWAY", message: "We could not read the cart screenshot automatically. You can still complete the item details manually." });
+        }
       }),
     create: protectedProcedure
       .input(
