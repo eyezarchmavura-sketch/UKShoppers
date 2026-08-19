@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerPaymentWebhookRoutes } from "../paymentWebhooks";
+import { registerExternalStaffInviteRoutes } from "../externalStaffInvites";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,6 +35,9 @@ async function startServer() {
   const server = createServer(app);
   // Webhook routes must receive their exact request bytes before JSON parsing.
   registerPaymentWebhookRoutes(app);
+  // Invitation acceptance uses a signed, httpOnly session cookie and must be
+  // registered before the static client fallback.
+  registerExternalStaffInviteRoutes(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

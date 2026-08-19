@@ -96,3 +96,15 @@ describe("operations queue access control", () => {
     await expect(caller.operations.queue({ limit: 10 })).resolves.toEqual(expect.any(Array));
   });
 });
+
+describe("external staff invitation access control", () => {
+  it("rejects staff members from the owner-only invitation register", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "staff" }));
+
+    await expect(caller.externalStaffInvites.list()).rejects.toThrow(/permission/);
+    await expect(
+      caller.externalStaffInvites.create({ name: "External Operator", email: "operator@example.com" }),
+    ).rejects.toThrow(/permission/);
+    await expect(caller.externalStaffInvites.revoke({ id: 1 })).rejects.toThrow(/permission/);
+  });
+});

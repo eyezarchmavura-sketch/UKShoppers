@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertNotification,
@@ -6,11 +6,13 @@ import {
   InsertPayment,
   InsertPaymentEvent,
   InsertOperationAlert,
+  InsertStaffInvite,
   notifications,
   operationAlerts,
   orders,
   paymentEvents,
   payments,
+  staffInvites,
 } from "../drizzle/schema";
 import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -217,6 +219,62 @@ export async function markOperationAlertsRead() {
   const db = await getDb();
   if (!db) return;
   await db.update(operationAlerts).set({ read: "yes" } as never).where(eq(operationAlerts.read, "no"));
+}
+
+// ---------------------------------------------------------------------------
+// External staff invitations
+// ---------------------------------------------------------------------------
+
+export async function createStaffInvite(data: InsertStaffInvite) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(staffInvites).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(staffInvites).where(eq(staffInvites.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function listStaffInvites() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(staffInvites).orderBy(desc(staffInvites.createdAt)).limit(50);
+}
+
+export async function getActiveStaffInviteByTokenHash(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select()
+    .from(staffInvites)
+    .where(and(eq(staffInvites.tokenHash, tokenHash), isNull(staffInvites.revokedAt), gt(staffInvites.expiresAt, new Date())))
+    .limit(1);
+  return rows[0];
+}
+
+export async function getActiveStaffInviteById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select()
+    .from(staffInvites)
+    .where(and(eq(staffInvites.id, id), isNull(staffInvites.revokedAt), gt(staffInvites.expiresAt, new Date())))
+    .limit(1);
+  return rows[0];
+}
+
+export async function markStaffInviteAccepted(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(staffInvites).set({ acceptedAt: new Date() } as never).where(eq(staffInvites.id, id));
+}
+
+export async function revokeStaffInvite(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(staffInvites)
+    .set({ revokedAt: new Date() } as never)
+    .where(and(eq(staffInvites.id, id), isNull(staffInvites.revokedAt)));
 }
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

@@ -23,8 +23,12 @@ import {
   listPaymentsByUser,
   markNotificationsRead,
   markOperationAlertsRead,
+  createStaffInvite,
+  listStaffInvites,
+  revokeStaffInvite,
   upsertUser,
 } from "./db";
+import { createStaffInviteToken, getStaffInviteExpiry, hashStaffInviteToken } from "./externalStaffInvites";
 
 const cartScreenshotInput = z.object({
   fileName: z.string().min(1).max(256),
@@ -287,6 +291,35 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const newStatus = await advanceOrderStatus(input.orderId, input.status, input.note);
         return { status: newStatus };
+      }),
+  }),
+
+  externalStaffInvites: router({
+    list: adminProcedure.query(() => listStaffInvites()),
+    create: adminProcedure
+      .input(z.object({ name: z.string().trim().min(2).max(160), email: z.string().trim().toLowerCase().email().max(320) }))
+      .mutation(async ({ ctx, input }) => {
+        const token = createStaffInviteToken();
+        const created = await createStaffInvite({
+          name: input.name,
+          email: input.email,
+          tokenHash: hashStaffInviteToken(token),
+          role: "staff",
+          createdByUserId: ctx.user.id,
+          expiresAt: getStaffInviteExpiry(),
+        });
+        if (!created) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "The staff invitation could not be created." });
+        }
+        // The raw token is deliberately returned once, over the authenticated
+        // owner connection, and never written to the database or server logs.
+        return { id: created.id, token, expiresAt: created.expiresAt, name: created.name, email: created.email };
+      }),
+    revoke: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await revokeStaffInvite(input.id);
+        return { success: true } as const;
       }),
   }),
 

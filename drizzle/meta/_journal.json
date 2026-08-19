@@ -43,6 +43,13 @@
       "when": 1786737777378,
       "tag": "0005_magical_mattie_franklin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1787132688320,
+      "tag": "0006_giant_white_tiger",
+      "breakpoints": true
     }
   ]
 }

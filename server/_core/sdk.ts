@@ -22,6 +22,8 @@ export type SessionPayload = {
   openId: string;
   appId: string;
   name: string;
+  /** Set only for owner-created external staff sessions; checked against the invite record on each request. */
+  externalInviteId?: number;
 };
 
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
@@ -190,6 +192,7 @@ class SDKServer {
       openId: payload.openId,
       appId: payload.appId,
       name: payload.name,
+      ...(payload.externalInviteId ? { externalInviteId: payload.externalInviteId } : {}),
     })
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
       .setExpirationTime(expirationSeconds)
@@ -198,7 +201,7 @@ class SDKServer {
 
   async verifySession(
     cookieValue: string | undefined | null
-  ): Promise<{ openId: string; appId: string; name: string } | null> {
+  ): Promise<{ openId: string; appId: string; name: string; externalInviteId?: number } | null> {
     if (!cookieValue) {
       console.warn("[Auth] Missing session cookie");
       return null;
@@ -209,7 +212,7 @@ class SDKServer {
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
       });
-      const { openId, appId, name } = payload as Record<string, unknown>;
+      const { openId, appId, name, externalInviteId } = payload as Record<string, unknown>;
 
       if (
         !isNonEmptyString(openId) ||
@@ -220,10 +223,16 @@ class SDKServer {
         return null;
       }
 
+      if (externalInviteId !== undefined && (!Number.isInteger(externalInviteId) || Number(externalInviteId) <= 0)) {
+        console.warn("[Auth] External staff session has an invalid invitation identifier");
+        return null;
+      }
+
       return {
         openId,
         appId,
         name,
+        ...(externalInviteId !== undefined ? { externalInviteId: Number(externalInviteId) } : {}),
       };
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));
@@ -309,6 +318,13 @@ class SDKServer {
 
     if (!user) {
       throw ForbiddenError("User not found");
+    }
+
+    if (session.externalInviteId !== undefined) {
+      const invite = await db.getActiveStaffInviteById(session.externalInviteId);
+      if (!invite || user.openId !== `external_staff_invite_${invite.id}` || user.role !== "staff") {
+        throw ForbiddenError("External staff invitation is expired or revoked");
+      }
     }
 
     await db.upsertUser({

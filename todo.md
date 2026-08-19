@@ -180,3 +180,15 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [ ] Add visible upload progress bar and clear success message to the cart screenshot upload flow
 - [ ] Add admin notification badge for newly uploaded shopping cart screenshots
 - [ ] Verify upload and admin alert states with TypeScript, tests, and screenshots
+
+# TASK — WhatsApp administrator order alerts 2026-08-19
+- [ ] Audit the current customer-order notification flow and confirm whether a WhatsApp provider is configured and capable of delivering administrator alerts.
+- [ ] Add a secure, opt-in WhatsApp alert adapter for new purchase requests to Queen Admin (+44 7872 400699) and Isaac Admin (+255 763 173 629), using environment-managed credentials only and no hard-coded secrets.
+- [ ] Add automated tests and a safe operations fallback so failed WhatsApp delivery does not block customer order creation.
+- [ ] Create and validate a reusable WhatsApp-notification skill for future projects and notification workflows.
+- [ ] Resume the approved direct WhatsApp Business implementation after the user returns to this work and supplies the required Meta configuration values.
+
+# TASK — External administrator access 2026-08-19
+- [x] Audit the existing role and authentication controls for an external administrator who does not use Manus.
+- [x] Implement a secure, revocable, time-limited external administrator invitation flow with least-privilege staff access and no credential embedded in a public URL. Owner-only controls now create a 72-hour browser link, and signed staff sessions are checked against the active invitation record on every request.
+- [x] Test the invitation acceptance, role enforcement, expiry, and revocation behavior before publishing the access route. The route and owner UI were visually verified; TypeScript is clean and 32 regression tests pass, including token, expiry, hashing, and role-gating coverage.

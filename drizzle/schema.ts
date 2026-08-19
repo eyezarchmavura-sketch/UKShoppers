@@ -143,3 +143,25 @@ export const operationAlerts = mysqlTable("operation_alerts", {
 
 export type OperationAlert = typeof operationAlerts.$inferSelect;
 export type InsertOperationAlert = typeof operationAlerts.$inferInsert;
+
+/**
+ * Owner-created, external staff invitations. Only a SHA-256 token digest is
+ * persisted, so a leaked database row cannot be used as a login credential.
+ * A staff session is checked against this record on every authenticated request,
+ * allowing immediate revocation before the expiry time.
+ */
+export const staffInvites = mysqlTable("staff_invites", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  role: mysqlEnum("role", ["staff"]).default("staff").notNull(),
+  createdByUserId: int("createdByUserId").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  acceptedAt: timestamp("acceptedAt"),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type StaffInvite = typeof staffInvites.$inferSelect;
+export type InsertStaffInvite = typeof staffInvites.$inferInsert;
