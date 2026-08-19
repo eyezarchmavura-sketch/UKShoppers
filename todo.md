@@ -177,9 +177,9 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Fix the mobile landing-page header overflow found during validation so the primary Start Shopping action remains fully visible and reachable at a 375px viewport. The responsive header now condenses brand and language labels without hiding the action.
 
 # TASK — Screenshot upload UX and admin alert 2026-08-14
-- [ ] Add visible upload progress bar and clear success message to the cart screenshot upload flow
-- [ ] Add admin notification badge for newly uploaded shopping cart screenshots
-- [ ] Verify upload and admin alert states with TypeScript, tests, and screenshots
+- [x] Add visible upload progress bar and clear success message to the cart screenshot upload flow. The customer form now shows preparation/upload progress, an attached-file state, editable extraction results, and a submitted-for-review acknowledgement.
+- [x] Add admin notification badge for newly uploaded shopping cart screenshots. New screenshot orders create a shared unread operations alert and approved staff can mark alerts read from the restricted operations queue.
+- [x] Verify upload and admin alert states with TypeScript, tests, and screenshots. The customer form and role-restricted operations route were visually checked; `tsc --noEmit` and all 32 Vitest tests passed.
 
 # TASK — WhatsApp administrator order alerts 2026-08-19
 - [ ] Audit the current customer-order notification flow and confirm whether a WhatsApp provider is configured and capable of delivering administrator alerts.

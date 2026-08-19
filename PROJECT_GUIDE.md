@@ -19,13 +19,19 @@ UK Shoppers Africa supports an assisted-shopping and parcel-forwarding model. Th
 
 The customer starts from the public site or portal and supplies a UK product link or cart information. The estimate calculator uses the destination, item price, and estimated weight to present an indicative total. The customer should be clearly told that a quoted amount remains subject to final weight, retailer availability, prohibited-goods checks, duties, and operational confirmation.
 
-### 2.2 Checkout and Payment Record
+### 2.2 Cart Screenshot Requests
+
+Customers may upload a PNG, JPG, or WEBP cart screenshot up to 10 MB when a retailer link is unavailable. The request form shows a local preparation and upload-progress state, then offers an optional AI extraction of **only visibly shown cart items and GBP amounts**. Customers must review the editable item details, delivery address, and visible total before submission; the extracted total is never a final quote.
+
+On successful submission, the screenshot is stored under the authenticated customer’s order record and the customer receives an explicit confirmation that it is attached. The server creates a shared unread operations alert. Approved staff see the alert badge in the Operations Queue, may open the uploaded evidence for manual review, and should prepare a verified quote before issuing any payment request. Failed screenshot analysis must fall back to manual item-entry rather than preventing the customer from requesting a quote.
+
+### 2.3 Checkout and Payment Record
 
 The checkout experience creates a payment record and an order record for an authenticated user after its current success path. Payment records store the gateway, amount, currency, destination, and settlement state. Customers can view their history and export a PDF or CSV record.
 
 > **Operational status:** the interface has gateway-selection and payment-record flows, but the live provider credentials and verified webhooks are not yet configured. Do not represent the current implementation as a live payment-processing system until signed provider callbacks, settlement reconciliation, and failure handling are verified.
 
-### 2.3 Shipment Tracking
+### 2.4 Shipment Tracking
 
 An order moves through the following forward-only sequence:
 
@@ -41,7 +47,7 @@ An order moves through the following forward-only sequence:
 
 When an authorized administrator advances a status, the server appends a dated event to the order timeline and writes an unread notification for the affected customer. The portal notification bell and Queen badge read these notification records.
 
-### 2.4 Customer Notifications
+### 2.5 Customer Notifications
 
 The notification flow has three layers:
 
@@ -61,7 +67,7 @@ Email delivery failures are currently logged server-side rather than retried by 
 | Customer portal chrome | `client/src/components/PortalShell.tsx` | Navigation, real payment-balance display, user initials, notification menu |
 | Queen assistant | `client/src/components/AssistantChat.tsx` | Assistant panel, message persistence, quick actions, unread badge |
 | Customer pages | `client/src/pages/` | Dashboard, orders, tracking, payments, wallet, referrals, settings, checkout, receipt, address |
-| Admin dashboard | `client/src/pages/AdminDashboard.tsx` | Admin status controls and operations interface |
+| Admin dashboard | `client/src/pages/AdminDashboard.tsx` | Role-gated operations queue, milestone controls, screenshot alert badge, and secure evidence links |
 | Localized copy | `client/src/lib/i18n.ts` | English, Kiswahili, Kinyarwanda, and Luganda strings |
 
 ## 4. Security and Data Rules
@@ -160,4 +166,3 @@ The platform owner is responsible for business policy, shipping/fulfilment accur
 ---
 
 For the high-level platform overview and setup instructions, see [`README.md`](./README.md).
-
