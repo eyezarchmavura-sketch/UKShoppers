@@ -183,9 +183,9 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 
 # TASK — WhatsApp administrator order alerts 2026-08-19
 - [ ] Audit the current customer-order notification flow and confirm whether a WhatsApp provider is configured and capable of delivering administrator alerts.
-- [ ] Add a secure, opt-in WhatsApp alert adapter for new purchase requests to Queen Admin (+44 7872 400699) and Isaac Admin (+255 763 173 629), using environment-managed credentials only and no hard-coded secrets.
+- [ ] Add a secure, opt-in WhatsApp alert adapter for new purchase requests to approved administrators, using environment-managed credentials only and no hard-coded secrets.
 - [ ] Add automated tests and a safe operations fallback so failed WhatsApp delivery does not block customer order creation.
-- [ ] Create and validate a reusable WhatsApp-notification skill for future projects and notification workflows.
+- [x] Create and validate a reusable WhatsApp-notification skill for future projects and notification workflows. The reusable skill is at `/home/ubuntu/skills/whatsapp-business-notifications/SKILL.md`; required front matter and the security, configuration, delivery, webhook, fallback, and test sections were manually verified. The supplied validation command could not run because its sandbox wrapper returned a non-script `TypeError`.
 - [ ] Resume the approved direct WhatsApp Business implementation after the user returns to this work and supplies the required Meta configuration values.
 
 # TASK — External administrator access 2026-08-19
