@@ -210,3 +210,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Replace the previous full-build quotation with the user-approved TZS 2,500,000 affordable onboarding and platform-activation proposal.
 - [x] Credit the TZS 500,000 already paid and present the TZS 2,000,000 balance clearly, with activation occurring after settlement unless the parties agree otherwise in writing.
 - [x] Draft a respectful INM relationship letter that explains the support rationale, engineer continuity, optional monthly retainer, and a non-pressured option to part ways if the terms are not suitable. The client-ready draft is available at `docs/INM_AFFORDABLE_ONBOARDING_AND_RETAINER_PROPOSAL.md`.
+
+# TASK — WhatsApp-ready service payment statement 2026-08-23
+- [x] Review the user-supplied pricing reference and the approved TZS 2,500,000 onboarding terms.
+- [x] Create a concise shareable statement showing TZS 500,000 paid, TZS 2,000,000 remaining, and the activation condition.
+- [x] Deliver the file directly with clear instructions for sharing it on WhatsApp.
