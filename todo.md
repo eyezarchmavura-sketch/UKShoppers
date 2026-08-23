@@ -199,3 +199,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Locate the Gmail conversation with Madam Queen that contains the prior-site reference and verify the referenced URL and any authorized project-access materials. The legacy WordPress administration reference was authenticated successfully; credentials remain outside code, task logs, and analysis files.
 - [x] Analyze the referenced platform using verified public evidence and identify concrete opportunities for a simpler, more accurate client experience. Findings are documented in `docs/PRIOR_PLATFORM_ACCESS_FINDINGS.md` without sensitive access details.
 - [x] Convert the evidence into a prioritized, approval-ready implementation scope for UK Shoppers Africa. The recommendation is documented in `docs/LEGACY_PLATFORM_REPLACEMENT_SCOPE.md` and prioritizes a versioned staff quote and payment-request workflow.
+
+# TASK — Project cost and payment letter 2026-08-23
+- [x] Verify the delivered UK Shoppers Africa scope and agreed commercial price basis for a transparent client-facing cost letter.
+- [x] Calculate the recorded TZS 500,000 payment, remaining build balance, and separate ongoing monthly operations scope without representing unverified expenses as fact.
+- [x] Draft a professional review-ready letter for the co-owner, including payment status, delivered-system value, scope boundaries, and fair next steps. The review draft is available at `docs/UKSHOPPERS_PROJECT_COST_AND_PAYMENT_LETTER.md`.
