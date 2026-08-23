@@ -204,3 +204,4 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Verify the delivered UK Shoppers Africa scope and agreed commercial price basis for a transparent client-facing cost letter.
 - [x] Calculate the recorded TZS 500,000 payment, remaining build balance, and separate ongoing monthly operations scope without representing unverified expenses as fact.
 - [x] Draft a professional review-ready letter for the co-owner, including payment status, delivered-system value, scope boundaries, and fair next steps. The review draft is available at `docs/UKSHOPPERS_PROJECT_COST_AND_PAYMENT_LETTER.md`.
+- [x] Create and directly deliver a standalone quotation and payment-statement artifact that displays the full project cost, TZS 500,000 payment received, and remaining balance at the top of the document. Totals were independently recalculated before delivery.
