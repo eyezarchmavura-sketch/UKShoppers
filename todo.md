@@ -205,3 +205,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Calculate the recorded TZS 500,000 payment, remaining build balance, and separate ongoing monthly operations scope without representing unverified expenses as fact.
 - [x] Draft a professional review-ready letter for the co-owner, including payment status, delivered-system value, scope boundaries, and fair next steps. The review draft is available at `docs/UKSHOPPERS_PROJECT_COST_AND_PAYMENT_LETTER.md`.
 - [x] Create and directly deliver a standalone quotation and payment-statement artifact that displays the full project cost, TZS 500,000 payment received, and remaining balance at the top of the document. Totals were independently recalculated before delivery.
+
+# TASK — Revised INM onboarding and activation proposal 2026-08-23
+- [x] Replace the previous full-build quotation with the user-approved TZS 2,500,000 affordable onboarding and platform-activation proposal.
+- [x] Credit the TZS 500,000 already paid and present the TZS 2,000,000 balance clearly, with activation occurring after settlement unless the parties agree otherwise in writing.
+- [x] Draft a respectful INM relationship letter that explains the support rationale, engineer continuity, optional monthly retainer, and a non-pressured option to part ways if the terms are not suitable. The client-ready draft is available at `docs/INM_AFFORDABLE_ONBOARDING_AND_RETAINER_PROPOSAL.md`.
