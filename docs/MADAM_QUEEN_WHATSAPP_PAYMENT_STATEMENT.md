@@ -1,8 +1,9 @@
 # INM LTD — Costs of Operation Statement
 
-**For:** Madam Queen  
+**For:** Madam Queen Komanya Pinto  
 **Platform:** UK Shoppers Africa  
 **Prepared by:** INM LTD  
+**Prepared and issued by:** Eng. Isaac Mavura, Lead Engineer  
 **Date:** 23 August 2026
 
 > **Thank you for the opportunity to work with INM LTD.** This statement explains the operational cost allocation INM LTD has set for building, preparing, activating, and supporting the UK Shoppers Africa digital platform. It is provided transparently to show what has been received and what remains before activation.
@@ -28,6 +29,7 @@ INM LTD has sought to keep the operational requirement realistic for the present
 We value the opportunity to work together. If the operational arrangement is not suitable for your present plans, INM LTD respects your decision and appreciates the opportunity you have given us. This statement is a transparent cost-of-operation summary and does not replace a signed agreement or invoice.
 
 **Kind regards,**  
-**INM LTD**  
+**Eng. Isaac Mavura**  
+Lead Engineer, INM LTD  
 Digital Solutions Hub  
 WhatsApp: +255 763 173 629

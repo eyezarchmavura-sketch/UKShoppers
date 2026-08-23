@@ -220,3 +220,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Replace the “agreed service” wording with a transparent INM LTD costs-of-operation framing.
 - [x] Preserve the recorded TZS 500,000 payment and TZS 2,000,000 operational balance without presenting the amount as a settled commercial agreement. The balance was recalculated independently before delivery.
 - [x] Deliver the corrected WhatsApp-ready file directly to the user.
+
+# TASK — Final WhatsApp-ready operational-cost statement 2026-08-23
+- [x] Add Madam Queen Komanya Pinto’s full name and Isaac Mavura’s professional INM LTD contact details to the statement.
+- [x] Generate and visually verify a send-ready PDF for sharing on WhatsApp. The two-page PDF was visually checked for the recipient details, operational-cost figures, signature, and WhatsApp contact block.
+- [x] Deliver the revised final file directly to the user.
