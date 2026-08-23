@@ -1,31 +1,31 @@
-# INM LTD — Service Payment Statement
+# INM LTD — Costs of Operation Statement
 
 **For:** Madam Queen  
-**Service:** UK Shoppers Africa digital platform onboarding and activation  
+**Platform:** UK Shoppers Africa  
 **Prepared by:** INM LTD  
 **Date:** 23 August 2026
 
-> **Thank you for choosing to work with INM LTD.** Following our discussions and our understanding of the present stage of your business, we have offered a tailored onboarding arrangement to help make the UK Shoppers Africa platform achievable and sustainable for you.
+> **Thank you for the opportunity to work with INM LTD.** This statement explains the operational cost allocation INM LTD has set for building, preparing, activating, and supporting the UK Shoppers Africa digital platform. It is provided transparently to show what has been received and what remains before activation.
 
-## Your Payment Position
+## INM LTD Costs of Operation
 
 | Description | Amount (TZS) |
 |---|---:|
-| Agreed onboarding and platform-activation service | **2,500,000** |
-| Payment already received | **(500,000)** |
-| **Remaining amount to complete activation** | **2,000,000** |
+| INM LTD operational costs for platform build, preparation, activation, and handover | **2,500,000** |
+| Contribution already received | **(500,000)** |
+| **Outstanding operational balance before activation** | **2,000,000** |
 
-### What the Remaining TZS 2,000,000 Covers
+### What the Operational Cost Covers
 
-The remaining amount completes the agreed onboarding and activation work for the UK Shoppers Africa digital platform, including the customer-facing website and portal, purchase-request workflow, staff operations tools, shipment and order-status updates, multilingual customer support, and the operational handover already prepared for the service.
+The operational-cost allocation covers the work required to prepare and activate the UK Shoppers Africa digital platform, including the customer-facing website and portal, purchase-request workflow, staff operations tools, shipment and order-status updates, multilingual customer support, and the operational handover already prepared for the business.
 
-Once the outstanding **TZS 2,000,000** is settled, INM LTD will proceed with the agreed activation and ongoing handover steps. Any monthly support, hosting, maintenance, or feature-extension retainer will be agreed separately in writing so that it remains appropriate for the operating needs of the business.
+The remaining **TZS 2,000,000** is the outstanding INM LTD operational balance identified for the activation stage. Once this balance is settled and the parties confirm the next steps, INM LTD will proceed with the final activation and handover process. Any future monthly support, hosting, maintenance, or feature-extension retainer will be discussed and confirmed separately in writing.
 
-## Our Commitment
+## Our Position
 
-INM LTD has reduced the proposed arrangement to support the growth stage of your business. Isaac Mavura, as the responsible engineer, will remain available throughout the agreed activation and handover process to support the platform’s smooth use.
+INM LTD has sought to keep the operational requirement realistic for the present stage of the business. Isaac Mavura, as the responsible engineer, remains available through the activation and handover process to support the platform’s correct use.
 
-We value the opportunity to work together. If this arrangement is not suitable for your present plans, we respect your decision and appreciate the opportunity you have given INM LTD. There is no pressure to proceed beyond the terms you are comfortable accepting.
+We value the opportunity to work together. If the operational arrangement is not suitable for your present plans, INM LTD respects your decision and appreciates the opportunity you have given us. This statement is a transparent cost-of-operation summary and does not replace a signed agreement or invoice.
 
 **Kind regards,**  
 **INM LTD**  

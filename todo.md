@@ -215,3 +215,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Review the user-supplied pricing reference and the approved TZS 2,500,000 onboarding terms.
 - [x] Create a concise shareable statement showing TZS 500,000 paid, TZS 2,000,000 remaining, and the activation condition.
 - [x] Deliver the file directly with clear instructions for sharing it on WhatsApp.
+
+# TASK — Correct WhatsApp statement to INM LTD operational costs 2026-08-23
+- [x] Replace the “agreed service” wording with a transparent INM LTD costs-of-operation framing.
+- [x] Preserve the recorded TZS 500,000 payment and TZS 2,000,000 operational balance without presenting the amount as a settled commercial agreement. The balance was recalculated independently before delivery.
+- [x] Deliver the corrected WhatsApp-ready file directly to the user.
