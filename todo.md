@@ -182,7 +182,7 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Verify upload and admin alert states with TypeScript, tests, and screenshots. The customer form and role-restricted operations route were visually checked; `tsc --noEmit` and all 32 Vitest tests passed.
 
 # TASK — WhatsApp administrator order alerts 2026-08-19
-- [ ] Audit the current customer-order notification flow and confirm whether a WhatsApp provider is configured and capable of delivering administrator alerts.
+- [x] Audit the current customer-order notification flow and confirm whether a WhatsApp provider is configured and capable of delivering administrator alerts. No WhatsApp adapter, Meta configuration, webhook, or live dispatch is configured; the documented readiness audit identifies the safe post-persistence event path, non-blocking fallback, and activation inputs in `docs/WHATSAPP_BUSINESS_READINESS_AUDIT.md`.
 - [ ] Add a secure, opt-in WhatsApp alert adapter for new purchase requests to approved administrators, using environment-managed credentials only and no hard-coded secrets.
 - [ ] Add automated tests and a safe operations fallback so failed WhatsApp delivery does not block customer order creation.
 - [x] Create and validate a reusable WhatsApp-notification skill for future projects and notification workflows. The reusable skill is at `/home/ubuntu/skills/whatsapp-business-notifications/SKILL.md`; required front matter and the security, configuration, delivery, webhook, fallback, and test sections were manually verified. The supplied validation command could not run because its sandbox wrapper returned a non-script `TypeError`.
