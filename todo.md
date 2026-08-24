@@ -230,3 +230,7 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Prepare a client-ready revised quotation that allocates the TZS 2,500,000 costs of operation across platform development, hosting, activation, integrations, handover/training, and initial post-launch support.
 - [x] Clearly state that the existing UK Shoppers Africa domain is being reused with no new domain-registration charge, and distinguish the included scope from optional future or third-party costs.
 - [x] Recalculate and present the TZS 500,000 recorded contribution and TZS 2,000,000 operational balance, then deliver the quotation directly as a shareable artifact. The line items and balance were independently reconciled before delivery.
+
+# TASK — Reusable transparent-quotation skill 2026-08-24
+- [x] Create and validate a reusable skill that converts approved commercial inputs into transparent operational-cost quotations with reconciled totals, scope inclusions, exclusions, payment position, and review-ready language. The skill-validator confirmed that `transparent-operational-quotations` is valid.
+- [x] Package and deliver the reusable skill as a skill attachment without embedding client names, payment amounts, or project-specific commercial terms as defaults.
