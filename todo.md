@@ -225,3 +225,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Add Madam Queen Komanya Pinto’s full name and Isaac Mavura’s professional INM LTD contact details to the statement.
 - [x] Generate and visually verify a send-ready PDF for sharing on WhatsApp. The two-page PDF was visually checked for the recipient details, operational-cost figures, signature, and WhatsApp contact block.
 - [x] Deliver the revised final file directly to the user.
+
+# TASK — Transparent revised quotation 2026-08-24
+- [x] Prepare a client-ready revised quotation that allocates the TZS 2,500,000 costs of operation across platform development, hosting, activation, integrations, handover/training, and initial post-launch support.
+- [x] Clearly state that the existing UK Shoppers Africa domain is being reused with no new domain-registration charge, and distinguish the included scope from optional future or third-party costs.
+- [x] Recalculate and present the TZS 500,000 recorded contribution and TZS 2,000,000 operational balance, then deliver the quotation directly as a shareable artifact. The line items and balance were independently reconciled before delivery.
