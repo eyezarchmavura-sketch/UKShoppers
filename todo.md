@@ -250,3 +250,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Add required source, terms, verification timestamp, and customer disclosure fields to staff-managed offers without creating any offer data. The verified timestamp and operator identifier are set server-side only when an offer is published.
 - [x] Display source-aware verification and partner-link disclosure information only for published, valid offers. Public queries now require future expiry, source evidence, terms, a verified timestamp, and a customer destination before returning an offer.
 - [x] Add regression coverage for required evidence before publishing and confirm the empty state remains truthful. TypeScript is clean, the full suite passes with 37 tests, and desktop/mobile visual checks are recorded in `docs/SEASONAL_OFFERS_EVIDENCE_VERIFICATION.md`.
+
+# TASK — Initial balanced retailer watchlist 2026-08-25
+- [x] Define the initial evidence-backed, women-first retailer watchlist for fashion, beauty, skincare, hair care, shoes, bags, and occasionwear, including official offer-source entry points and customer-fit rationale. The prioritised sources are documented in `docs/INITIAL_WOMENS_OFFER_WATCHLIST.md`.
+- [x] Create a staff-ready women-first source-check and publication queue that prioritises official, current, time-bounded promotions without inventing any live offer data. The operations queue and approval rules are documented in `docs/WOMENS_FIRST_OFFER_PUBLISHING_QUEUE.md`.
+- [x] Present the recommended women-first launch selection and the operational cadence for rapid, responsible customer updates. The routine uses daily checks for the four highest-fit sources and a small number of published, time-bounded offers.
