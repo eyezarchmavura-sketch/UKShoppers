@@ -48,6 +48,24 @@ describe("seasonal offers access and validation", () => {
     })).rejects.toThrow();
   });
 
+  it("does not allow staff to publish without source evidence, terms, and a future expiry", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "staff" }));
+    await expect(caller.offers.create({
+      storeName: "ASOS",
+      title: "Verified seasonal promotion",
+      details: "Terms checked against the official retailer page.",
+      sourceType: null,
+      sourceUrl: null,
+      termsSummary: null,
+      linkType: "direct",
+      offerUrl: null,
+      couponCode: null,
+      validFrom: null,
+      validUntil: null,
+      status: "published",
+    })).rejects.toThrow(/required before publishing/);
+  });
+
   it("limits deletion of seasonal-offer records to administrators", async () => {
     const caller = appRouter.createCaller(createContext({ role: "staff" }));
     await expect(caller.offers.delete({ id: 1 })).rejects.toThrow(/permission/);

@@ -91,23 +91,42 @@ const seasonalOfferInput = z.object({
   storeName: z.string().trim().min(2).max(128),
   title: z.string().trim().min(4).max(160),
   details: z.string().trim().min(12).max(800),
+  sourceType: z.enum(["official_retailer", "approved_partner", "manual_verification"]).nullable().optional(),
+  sourceUrl: z.string().url().max(1024).nullable().optional(),
+  termsSummary: z.string().trim().min(12).max(800).nullable().optional(),
+  linkType: z.enum(["direct", "affiliate"]).default("direct"),
   offerUrl: z.string().url().max(1024).nullable().optional(),
   couponCode: z.string().trim().min(2).max(96).nullable().optional(),
   validFrom: z.number().int().positive().nullable().optional(),
   validUntil: z.number().int().positive().nullable().optional(),
   status: z.enum(["draft", "published", "expired"]),
+}).superRefine((offer, context) => {
+  if (offer.status !== "published") return;
+  if (!offer.sourceType) context.addIssue({ code: z.ZodIssueCode.custom, path: ["sourceType"], message: "A verification source is required before publishing." });
+  if (!offer.sourceUrl) context.addIssue({ code: z.ZodIssueCode.custom, path: ["sourceUrl"], message: "An evidence URL is required before publishing." });
+  if (!offer.termsSummary) context.addIssue({ code: z.ZodIssueCode.custom, path: ["termsSummary"], message: "A customer-facing terms summary is required before publishing." });
+  if (!offer.offerUrl) context.addIssue({ code: z.ZodIssueCode.custom, path: ["offerUrl"], message: "A customer destination URL is required before publishing." });
+  if (!offer.validUntil) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A confirmed end date is required before publishing." });
+  if (offer.validUntil && offer.validUntil <= Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A published offer must end in the future." });
 });
 
-function offerValues(input: z.infer<typeof seasonalOfferInput>) {
+function offerValues(input: z.infer<typeof seasonalOfferInput>, verifiedByUserId: number) {
+  const isPublished = input.status === "published";
   return {
     storeName: input.storeName,
     title: input.title,
     details: input.details,
+    sourceType: input.sourceType ?? null,
+    sourceUrl: input.sourceUrl ?? null,
+    termsSummary: input.termsSummary ?? null,
+    linkType: input.linkType,
     offerUrl: input.offerUrl ?? null,
     couponCode: input.couponCode ?? null,
     validFrom: input.validFrom ? new Date(input.validFrom) : null,
     validUntil: input.validUntil ? new Date(input.validUntil) : null,
     status: input.status,
+    verifiedAt: isPublished ? new Date() : null,
+    verifiedByUserId: isPublished ? verifiedByUserId : null,
   };
 }
 
@@ -299,11 +318,11 @@ export const appRouter = router({
     listPublic: publicProcedure.query(() => listPublicSeasonalOffers()),
     listForOperations: staffProcedure.query(() => listSeasonalOffersForOperations()),
     create: staffProcedure.input(seasonalOfferInput).mutation(({ ctx, input }) =>
-      createSeasonalOffer({ ...offerValues(input), createdByUserId: ctx.user.id }),
+      createSeasonalOffer({ ...offerValues(input, ctx.user.id), createdByUserId: ctx.user.id }),
     ),
     update: staffProcedure
       .input(z.object({ id: z.number().int().positive(), offer: seasonalOfferInput }))
-      .mutation(({ input }) => updateSeasonalOffer(input.id, offerValues(input.offer))),
+      .mutation(({ ctx, input }) => updateSeasonalOffer(input.id, offerValues(input.offer, ctx.user.id))),
     delete: adminProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {

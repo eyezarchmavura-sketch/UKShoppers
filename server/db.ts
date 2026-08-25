@@ -234,7 +234,15 @@ export async function listPublicSeasonalOffers() {
   return db
     .select()
     .from(seasonalOffers)
-    .where(and(eq(seasonalOffers.status, "published"), or(isNull(seasonalOffers.validUntil), gt(seasonalOffers.validUntil, now))))
+    .where(and(
+      eq(seasonalOffers.status, "published"),
+      gt(seasonalOffers.validUntil, now),
+      isNotNull(seasonalOffers.offerUrl),
+      isNotNull(seasonalOffers.sourceType),
+      isNotNull(seasonalOffers.sourceUrl),
+      isNotNull(seasonalOffers.termsSummary),
+      isNotNull(seasonalOffers.verifiedAt),
+    ))
     .orderBy(desc(seasonalOffers.createdAt))
     .limit(12);
 }
@@ -254,7 +262,7 @@ export async function createSeasonalOffer(data: InsertSeasonalOffer) {
   return rows[0];
 }
 
-export async function updateSeasonalOffer(id: number, data: Partial<Pick<InsertSeasonalOffer, "storeName" | "title" | "details" | "offerUrl" | "couponCode" | "validFrom" | "validUntil" | "status">>) {
+export async function updateSeasonalOffer(id: number, data: Partial<Pick<InsertSeasonalOffer, "storeName" | "title" | "details" | "sourceType" | "sourceUrl" | "termsSummary" | "linkType" | "offerUrl" | "couponCode" | "validFrom" | "validUntil" | "status" | "verifiedAt" | "verifiedByUserId">>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(seasonalOffers).set(data).where(eq(seasonalOffers.id, id));

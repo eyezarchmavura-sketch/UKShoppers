@@ -351,9 +351,14 @@ type PublicSeasonalOffer = {
   storeName: string;
   title: string;
   details: string;
+  sourceType: "official_retailer" | "approved_partner" | "manual_verification";
+  sourceUrl: string;
+  termsSummary: string;
+  linkType: "direct" | "affiliate";
   offerUrl: string | null;
   couponCode: string | null;
   validUntil: Date | string | null;
+  verifiedAt: Date | string | null;
 };
 
 function SeasonalOffersPanel() {
@@ -384,6 +389,7 @@ function SeasonalOffersPanel() {
         <div className="mt-6 space-y-3">
           {offers.map((offer) => {
             const expiry = offer.validUntil ? new Date(offer.validUntil) : null;
+            const verifiedAt = offer.verifiedAt ? new Date(offer.verifiedAt) : null;
             const logo = storeLogos[offer.storeName];
             return <article key={offer.id} className="rounded-2xl border border-border bg-background p-4 transition-colors hover:border-[#C9A227]/70 dark:bg-[#171a20]">
               <div className="flex gap-3">
@@ -392,9 +398,12 @@ function SeasonalOffersPanel() {
                 </div>
                 <div className="min-w-0 flex-1"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">{offer.storeName}</p><h3 className="mt-0.5 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{offer.title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{offer.details}</p></div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
+              <p className="mt-3 border-t border-border/70 pt-3 text-[10px] leading-4 text-muted-foreground">Terms: {offer.termsSummary}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 {offer.couponCode ? <span className="rounded-full bg-[#111418] px-2.5 py-1 font-mono text-[10px] font-bold tracking-wide text-[#D4AF37]">Code: {offer.couponCode}</span> : null}
                 {expiry && !Number.isNaN(expiry.getTime()) ? <span className="text-[10px] font-semibold text-muted-foreground">Ends {expiry.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span> : <span className="text-[10px] font-semibold text-muted-foreground">Check retailer terms</span>}
+                {verifiedAt && !Number.isNaN(verifiedAt.getTime()) ? <span className="text-[10px] font-semibold text-muted-foreground">Verified {verifiedAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span> : null}
+                {offer.linkType === "affiliate" ? <span className="text-[10px] font-semibold text-muted-foreground">Partner link — we may earn a commission</span> : <span className="text-[10px] font-semibold text-muted-foreground">Retailer source checked</span>}
                 {offer.offerUrl ? <a href={offer.offerUrl} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Open offer <ExternalLink className="h-3 w-3" /></a> : null}
               </div>
             </article>;

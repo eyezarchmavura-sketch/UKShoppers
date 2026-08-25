@@ -175,11 +175,21 @@ export const seasonalOffers = mysqlTable("seasonal_offers", {
   storeName: varchar("storeName", { length: 128 }).notNull(),
   title: varchar("title", { length: 160 }).notNull(),
   details: varchar("details", { length: 800 }).notNull(),
+  /** Where the operations team confirmed the promotion. Required before public publication. */
+  sourceType: mysqlEnum("sourceType", ["official_retailer", "approved_partner", "manual_verification"]),
+  sourceUrl: varchar("sourceUrl", { length: 1024 }),
+  /** Customer-facing summary of material retailer terms and eligibility restrictions. */
+  termsSummary: varchar("termsSummary", { length: 800 }),
+  /** Destination handling: affiliate links require an explicit public disclosure. */
+  linkType: mysqlEnum("linkType", ["direct", "affiliate"]).default("direct").notNull(),
   offerUrl: varchar("offerUrl", { length: 1024 }),
   couponCode: varchar("couponCode", { length: 96 }),
   validFrom: timestamp("validFrom"),
   validUntil: timestamp("validUntil"),
   status: mysqlEnum("status", ["draft", "published", "expired"]).default("draft").notNull(),
+  /** Set server-side at publication, never supplied by the browser. */
+  verifiedAt: timestamp("verifiedAt"),
+  verifiedByUserId: int("verifiedByUserId"),
   createdByUserId: int("createdByUserId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

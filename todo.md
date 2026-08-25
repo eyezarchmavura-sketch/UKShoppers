@@ -245,3 +245,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Research lawful, reliable sources and monitoring approaches for timely UK retailer promotions, coupon terms, and seasonal events. The evidence-led approach prioritises official retailer sources and approved partner feeds over scraping or unverified coupon listings.
 - [x] Define the verification, expiry, approval, and customer-display workflow that prevents incorrect or outdated offers from reaching customers. The full workflow and required deal-card disclosures are documented in `docs/RETAILER_OFFERS_DISCOVERY_STRATEGY.md`.
 - [x] Propose a phased launch plan covering initial staff curation, compliant source integrations, and optional future alert automation.
+
+# TASK — Evidence-first seasonal offers 2026-08-25
+- [x] Add required source, terms, verification timestamp, and customer disclosure fields to staff-managed offers without creating any offer data. The verified timestamp and operator identifier are set server-side only when an offer is published.
+- [x] Display source-aware verification and partner-link disclosure information only for published, valid offers. Public queries now require future expiry, source evidence, terms, a verified timestamp, and a customer destination before returning an offer.
+- [x] Add regression coverage for required evidence before publishing and confirm the empty state remains truthful. TypeScript is clean, the full suite passes with 37 tests, and desktop/mobile visual checks are recorded in `docs/SEASONAL_OFFERS_EVIDENCE_VERIFICATION.md`.
