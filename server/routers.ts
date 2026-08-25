@@ -16,16 +16,21 @@ import {
   createOperationAlert,
   createOrder,
   createPayment,
+  createSeasonalOffer,
+  deleteSeasonalOffer,
   listNotificationsByUser,
   listOperationsOrders,
   listUnreadOperationAlerts,
   listOrdersByUser,
   listPaymentsByUser,
+  listPublicSeasonalOffers,
+  listSeasonalOffersForOperations,
   markNotificationsRead,
   markOperationAlertsRead,
   createStaffInvite,
   listStaffInvites,
   revokeStaffInvite,
+  updateSeasonalOffer,
   upsertUser,
 } from "./db";
 import { createStaffInviteToken, getStaffInviteExpiry, hashStaffInviteToken } from "./externalStaffInvites";
@@ -81,6 +86,30 @@ const CART_EXTRACTION_OUTPUT_SCHEMA = {
   required: ["retailerName", "currency", "items", "subtotalGbp", "shippingGbp", "totalGbp", "confidence", "notes"],
   additionalProperties: false,
 } as const;
+
+const seasonalOfferInput = z.object({
+  storeName: z.string().trim().min(2).max(128),
+  title: z.string().trim().min(4).max(160),
+  details: z.string().trim().min(12).max(800),
+  offerUrl: z.string().url().max(1024).nullable().optional(),
+  couponCode: z.string().trim().min(2).max(96).nullable().optional(),
+  validFrom: z.number().int().positive().nullable().optional(),
+  validUntil: z.number().int().positive().nullable().optional(),
+  status: z.enum(["draft", "published", "expired"]),
+});
+
+function offerValues(input: z.infer<typeof seasonalOfferInput>) {
+  return {
+    storeName: input.storeName,
+    title: input.title,
+    details: input.details,
+    offerUrl: input.offerUrl ?? null,
+    couponCode: input.couponCode ?? null,
+    validFrom: input.validFrom ? new Date(input.validFrom) : null,
+    validUntil: input.validUntil ? new Date(input.validUntil) : null,
+    status: input.status,
+  };
+}
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -264,6 +293,23 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) => listNotificationsByUser(ctx.user.id)),
     unreadCount: protectedProcedure.query(({ ctx }) => countUnreadNotifications(ctx.user.id)),
     markRead: protectedProcedure.mutation(({ ctx }) => markNotificationsRead(ctx.user.id)),
+  }),
+
+  offers: router({
+    listPublic: publicProcedure.query(() => listPublicSeasonalOffers()),
+    listForOperations: staffProcedure.query(() => listSeasonalOffersForOperations()),
+    create: staffProcedure.input(seasonalOfferInput).mutation(({ ctx, input }) =>
+      createSeasonalOffer({ ...offerValues(input), createdByUserId: ctx.user.id }),
+    ),
+    update: staffProcedure
+      .input(z.object({ id: z.number().int().positive(), offer: seasonalOfferInput }))
+      .mutation(({ input }) => updateSeasonalOffer(input.id, offerValues(input.offer))),
+    delete: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteSeasonalOffer(input.id);
+        return { success: true } as const;
+      }),
   }),
 
   profile: router({

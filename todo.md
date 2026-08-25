@@ -234,3 +234,9 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 # TASK — Reusable transparent-quotation skill 2026-08-24
 - [x] Create and validate a reusable skill that converts approved commercial inputs into transparent operational-cost quotations with reconciled totals, scope inclusions, exclusions, payment position, and review-ready language. The skill-validator confirmed that `transparent-operational-quotations` is valid.
 - [x] Package and deliver the reusable skill as a skill attachment without embedding client names, payment amounts, or project-specific commercial terms as defaults.
+
+# TASK — Hero retailer belt and seasonal offers 2026-08-24
+- [x] Enlarge the hero-area top UK retailer belt and present it as icon-only, accessible store links without store-name labels.
+- [x] Replace the customer request-style promotional area with a responsive seasonal offers section for staff-verified retailer discounts and holiday promotions.
+- [x] Provide an owner/staff-safe method to publish, edit, expire, and remove verified offers; preserve an honest empty state until offers are approved. Staff manage offers at `/admin/offers`; only administrators can permanently delete them.
+- [x] Add automated coverage and visually verify desktop and mobile behavior before checkpointing the update. TypeScript is clean; the full Vitest suite passes with 36 tests; desktop and mobile screenshots were checked.

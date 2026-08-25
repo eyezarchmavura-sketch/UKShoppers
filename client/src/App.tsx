@@ -19,6 +19,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Referrals from "./pages/Referrals";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import SeasonalOffersAdmin from "./pages/SeasonalOffersAdmin";
 import ExternalStaffInvites from "./pages/ExternalStaffInvites";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -33,6 +34,7 @@ function Router() {
       <Switch>
         <Route path={"/"} component={Landing} />
         <Route path={"/admin"} component={AdminDashboard} />
+        <Route path={"/admin/offers"} component={SeasonalOffersAdmin} />
         <Route path={"/admin/invitations"} component={ExternalStaffInvites} />
         <Route path={"/stores"} component={StoreDirectory} />
         <Route path={"/portal"}>

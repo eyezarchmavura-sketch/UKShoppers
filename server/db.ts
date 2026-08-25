@@ -6,12 +6,14 @@ import {
   InsertPayment,
   InsertPaymentEvent,
   InsertOperationAlert,
+  InsertSeasonalOffer,
   InsertStaffInvite,
   notifications,
   operationAlerts,
   orders,
   paymentEvents,
   payments,
+  seasonalOffers,
   staffInvites,
 } from "../drizzle/schema";
 import { InsertUser, users } from "../drizzle/schema";
@@ -219,6 +221,51 @@ export async function markOperationAlertsRead() {
   const db = await getDb();
   if (!db) return;
   await db.update(operationAlerts).set({ read: "yes" } as never).where(eq(operationAlerts.read, "no"));
+}
+
+// ---------------------------------------------------------------------------
+// Seasonal offers
+// ---------------------------------------------------------------------------
+
+export async function listPublicSeasonalOffers() {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return db
+    .select()
+    .from(seasonalOffers)
+    .where(and(eq(seasonalOffers.status, "published"), or(isNull(seasonalOffers.validUntil), gt(seasonalOffers.validUntil, now))))
+    .orderBy(desc(seasonalOffers.createdAt))
+    .limit(12);
+}
+
+export async function listSeasonalOffersForOperations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(seasonalOffers).orderBy(desc(seasonalOffers.updatedAt)).limit(100);
+}
+
+export async function createSeasonalOffer(data: InsertSeasonalOffer) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(seasonalOffers).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(seasonalOffers).where(eq(seasonalOffers.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateSeasonalOffer(id: number, data: Partial<Pick<InsertSeasonalOffer, "storeName" | "title" | "details" | "offerUrl" | "couponCode" | "validFrom" | "validUntil" | "status">>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(seasonalOffers).set(data).where(eq(seasonalOffers.id, id));
+  const rows = await db.select().from(seasonalOffers).where(eq(seasonalOffers.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function deleteSeasonalOffer(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(seasonalOffers).where(eq(seasonalOffers.id, id));
 }
 
 // ---------------------------------------------------------------------------

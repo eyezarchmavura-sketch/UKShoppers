@@ -165,3 +165,25 @@ export const staffInvites = mysqlTable("staff_invites", {
 
 export type StaffInvite = typeof staffInvites.$inferSelect;
 export type InsertStaffInvite = typeof staffInvites.$inferInsert;
+
+/**
+ * Staff-curated retailer promotions. Public pages only expose records that are
+ * explicitly published and have not reached their validity end date.
+ */
+export const seasonalOffers = mysqlTable("seasonal_offers", {
+  id: int("id").autoincrement().primaryKey(),
+  storeName: varchar("storeName", { length: 128 }).notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  details: varchar("details", { length: 800 }).notNull(),
+  offerUrl: varchar("offerUrl", { length: 1024 }),
+  couponCode: varchar("couponCode", { length: 96 }),
+  validFrom: timestamp("validFrom"),
+  validUntil: timestamp("validUntil"),
+  status: mysqlEnum("status", ["draft", "published", "expired"]).default("draft").notNull(),
+  createdByUserId: int("createdByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SeasonalOffer = typeof seasonalOffers.$inferSelect;
+export type InsertSeasonalOffer = typeof seasonalOffers.$inferInsert;

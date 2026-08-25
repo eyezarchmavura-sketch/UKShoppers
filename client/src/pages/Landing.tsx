@@ -30,6 +30,8 @@ import {
   Recycle,
   Quote,
   ExternalLink,
+  Sparkles,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -43,6 +45,7 @@ import AssistantChat from "@/components/AssistantChat";
 import { getRetailerUrl } from "@/lib/retailerLinks";
 import { stores, storeCategories, type Store } from "@/lib/stores";
 import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
+import { trpc } from "@/lib/trpc";
 
 function scrollToCalculator() {
   document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
@@ -343,45 +346,71 @@ function StoreWall({ lang }: { lang: Lang }) {
   );
 }
 
+type PublicSeasonalOffer = {
+  id: number;
+  storeName: string;
+  title: string;
+  details: string;
+  offerUrl: string | null;
+  couponCode: string | null;
+  validUntil: Date | string | null;
+};
+
+function SeasonalOffersPanel() {
+  const offersQuery = trpc.offers.listPublic.useQuery(undefined, { retry: false });
+  const offers = (offersQuery.data ?? []) as PublicSeasonalOffer[];
+
+  return (
+    <section id="seasonal-offers" aria-labelledby="seasonal-offers-title" className="hero-float rounded-3xl border border-border bg-white p-6 shadow-2xl dark:bg-card dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#C9A227]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7D5A00] dark:text-[#E6C764]"><Sparkles className="h-3.5 w-3.5" /> Verified seasonal offers</span>
+          <h2 id="seasonal-offers-title" className="mt-3 text-2xl font-bold text-[#111418] dark:text-[#F7F4E8]">Shop verified UK savings</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Only retailer offers reviewed and published by our operations team appear here. Availability and retailer terms can change.</p>
+        </div>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#111418] text-[#D4AF37] dark:bg-[#D4AF37] dark:text-[#111418]"><Tag className="h-5 w-5" /></div>
+      </div>
+
+      {offersQuery.isLoading ? (
+        <div className="mt-6 space-y-3" aria-label="Loading verified offers"><div className="h-24 animate-pulse rounded-2xl bg-muted" /><div className="h-24 animate-pulse rounded-2xl bg-muted" /></div>
+      ) : offers.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-[#C9A227]/45 bg-[#C9A227]/[0.06] px-5 py-8 text-center dark:bg-[#D4AF37]/[0.07]">
+          <Sparkles className="mx-auto h-7 w-7 text-[#A67C00] dark:text-[#E6C764]" />
+          <h3 className="mt-3 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">Verified offers will appear here</h3>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">We do not invent discounts. Check back when the team has confirmed a current retailer promotion.</p>
+          <Link href="/stores" className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Browse UK stores <ArrowRight className="h-3.5 w-3.5" /></Link>
+        </div>
+      ) : (
+        <div className="mt-6 space-y-3">
+          {offers.map((offer) => {
+            const expiry = offer.validUntil ? new Date(offer.validUntil) : null;
+            const logo = storeLogos[offer.storeName];
+            return <article key={offer.id} className="rounded-2xl border border-border bg-background p-4 transition-colors hover:border-[#C9A227]/70 dark:bg-[#171a20]">
+              <div className="flex gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-2">
+                  {logo ? <img src={logo} alt={`${offer.storeName} logo`} className="h-7 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{offer.storeName.slice(0, 1)}</span>}
+                </div>
+                <div className="min-w-0 flex-1"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">{offer.storeName}</p><h3 className="mt-0.5 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{offer.title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{offer.details}</p></div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
+                {offer.couponCode ? <span className="rounded-full bg-[#111418] px-2.5 py-1 font-mono text-[10px] font-bold tracking-wide text-[#D4AF37]">Code: {offer.couponCode}</span> : null}
+                {expiry && !Number.isNaN(expiry.getTime()) ? <span className="text-[10px] font-semibold text-muted-foreground">Ends {expiry.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span> : <span className="text-[10px] font-semibold text-muted-foreground">Check retailer terms</span>}
+                {offer.offerUrl ? <a href={offer.offerUrl} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Open offer <ExternalLink className="h-3 w-3" /></a> : null}
+              </div>
+            </article>;
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
   const { lang } = useLanguage();
   const revealRef = useReveal<HTMLDivElement>();
-  const [selectedDest, setSelectedDest] = useState(destinations[0]);
-  const [productUrl, setProductUrl] = useState("");
   const [storeSearch, setStoreSearch] = useState("");
   const [storeCategory, setStoreCategory] = useState("All");
-  const [itemPriceGBP, setItemPriceGBP] = useState<number | "">("");
-  const [weightKg, setWeightKg] = useState<number | "">("");
-  const hasPlanningInputs = typeof itemPriceGBP === "number" && itemPriceGBP > 0 && typeof weightKg === "number" && weightKg > 0;
-  const planningPrice = typeof itemPriceGBP === "number" ? itemPriceGBP : 0;
-  const planningWeight = typeof weightKg === "number" ? weightKg : 0;
-
-  const shippingCostGBP = hasPlanningInputs ? planningWeight * 11 : 0;
-  const serviceFeeGBP = hasPlanningInputs ? Math.max(5, planningPrice * 0.08) : 0;
-  const totalGBP = hasPlanningInputs ? planningPrice + shippingCostGBP + serviceFeeGBP : 0;
-
-  let localTotal = "";
-  if (!hasPlanningInputs) {
-    localTotal = "—";
-  } else if (selectedDest.code === "TZ") {
-    localTotal = `TSh ${(totalGBP * 3400).toLocaleString()}`;
-  } else if (selectedDest.code === "KE") {
-    localTotal = `KSh ${(totalGBP * 168).toLocaleString()}`;
-  } else if (selectedDest.code === "UG") {
-    localTotal = `USh ${(totalGBP * 4900).toLocaleString()}`;
-  } else {
-    localTotal = `RF ${(totalGBP * 1700).toLocaleString()}`;
-  }
-
-  const handleQuoteSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!productUrl.trim()) {
-      toast.error("Paste the UK product link so our team can review the exact item.");
-      return;
-    }
-    window.location.assign(`/add?productUrl=${encodeURIComponent(productUrl.trim())}`);
-  };
 
   const handleStoreDiscovery = (event: React.FormEvent) => {
     event.preventDefault();
@@ -419,7 +448,7 @@ export default function Landing() {
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
             <a href="#how-it-works" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.howItWorks", lang)}</a>
-            <a href="#calculator" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.instantQuote", lang)}</a>
+            <a href="#seasonal-offers" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">Seasonal offers</a>
             <Link href="/stores" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.stores", lang)}</Link>
             <Link href="/admin" className="text-[#111418] dark:text-[#F3E7AF] font-semibold hover:underline dark:hover:text-[#D4AF37]">{tr("nav.staffAdmin", lang)}</Link>
           </nav>
@@ -466,11 +495,10 @@ export default function Landing() {
             <Link href="/stores" className="ml-auto text-xs font-bold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">All stores</Link>
           </div>
         </div>
-        <div className="retailer-belt border-t border-border/70 bg-[#111418] text-[#F7F4E8] dark:bg-black" aria-label="Supported UK retailers">
-          <div className="container flex h-12 items-center gap-4 overflow-hidden">
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-[#D4AF37]">Shop UK brands</span>
+        <div className="retailer-belt border-t border-border/70 bg-[#111418] text-[#F7F4E8] dark:bg-black" aria-label="Supported UK retailer icons">
+          <div className="container flex h-[72px] items-center gap-3 overflow-hidden">
             <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="retailer-belt-track gap-3 py-1">
+              <div className="retailer-belt-track gap-4 py-2">
                 {[...marqueeStores, ...marqueeStores].map((store, index) => {
                   const retailerUrl = getRetailerUrl(store.domain);
                   return (
@@ -479,16 +507,17 @@ export default function Landing() {
                       href={retailerUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-8 shrink-0 items-center gap-2 rounded-lg border border-white/15 bg-white px-2.5 text-xs font-semibold text-[#111418] hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
-                      {storeLogos[store.name] ? <img src={storeLogos[store.name]} alt="" className="h-4 w-6 object-contain" loading="lazy" /> : null}
-                      <span>{store.name}</span>
-                      <ExternalLink className="h-3 w-3 text-[#A67C00]" aria-hidden="true" />
+                      aria-label={`Open ${store.name} UK storefront`}
+                      aria-hidden={index >= marqueeStores.length}
+                      tabIndex={index >= marqueeStores.length ? -1 : undefined}
+                      className="flex h-12 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-2.5 hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
+                      {storeLogos[store.name] ? <img src={storeLogos[store.name]} alt="" className="h-8 w-12 object-contain" loading="lazy" /> : <span className="text-sm font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
                     </a>
                   );
                 })}
               </div>
             </div>
-            <Link href="/stores" className="shrink-0 text-xs font-bold text-[#D4AF37] hover:underline underline-offset-4">View all</Link>
+            <Link href="/stores" aria-label="View all UK stores" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#D4AF37]/45 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#111418]"><ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
       </header>
@@ -600,111 +629,9 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Quick Quote Widget in Hero */}
+            {/* Verified seasonal offers in Hero */}
             <div id="calculator" className="lg:col-span-5">
-              <div className="hero-float bg-white dark:bg-card rounded-3xl p-6 sm:p-8 shadow-2xl dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] border border-border relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-[#C9A227]/20 text-[#111418] text-[10px] font-bold px-4 py-1 rounded-bl-xl uppercase tracking-wider">
-                  Planning calculator
-                </div>
-                <h3 className="text-xl font-bold text-[#111418] mb-1 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-[#C9A227]" /> {tr("calc.title", lang)}
-                </h3>
-                  <p className="text-xs text-muted-foreground mb-6">
-                    {tr("calc.subtitle", lang)}
-                  </p>
-
-                <form onSubmit={handleQuoteSubmit} className="space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                      {tr("calc.destination", lang)}
-                    </label>
-                    <select
-                      value={selectedDest.code}
-                      onChange={(e) => {
-                        const found = destinations.find((d) => d.code === e.target.value);
-                        if (found) setSelectedDest(found);
-                      }}
-                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#111418]">
-                      {destinations.map((d) => (
-                        <option key={d.code} value={d.code}>
-                          {d.flag} {d.name} ({d.days})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                      {tr("calc.link", lang)}
-                    </label>
-                    <input
-                        type="url"
-                      placeholder="https://www.amazon.co.uk/dp/..."
-                      value={productUrl}
-                      onChange={(e) => setProductUrl(e.target.value)}
-                      className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                        {tr("calc.price", lang)}
-                      </label>
-                      <input
-                        type="number"
-                        min="0.01"
-                        value={itemPriceGBP}
-                        onChange={(e) => setItemPriceGBP(e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                        {tr("calc.weight", lang)}
-                      </label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0.2"
-                        value={weightKg}
-                        onChange={(e) => setWeightKg(e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111418]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-[#111418]/5 rounded-2xl p-4 border border-[#111418]/10 space-y-2 mt-4">
-                    {hasPlanningInputs ? (
-                      <>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{tr("calc.shipping", lang)} ({planningWeight}kg):</span>
-                          <span>£{shippingCostGBP.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>{tr("calc.fee", lang)}:</span>
-                          <span>£{serviceFeeGBP.toFixed(2)}</span>
-                        </div>
-                        <div className="border-t border-border pt-2 flex justify-between items-center">
-                          <span className="text-sm font-bold text-[#111418]">{tr("calc.total", lang)}:</span>
-                          <div className="text-right">
-                            <div className="text-base font-bold text-[#111418]">£{totalGBP.toFixed(2)}</div>
-                            <div className="text-xs font-semibold text-[#C9A227]">{localTotal}</div>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-xs leading-relaxed text-muted-foreground">Enter the item price and approximate weight for a planning estimate. Your confirmed quote is prepared by our team after they verify availability, delivery, and customs requirements.</p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl bg-[#111418] text-[#D4AF37] py-3.5 text-sm font-bold shadow-lg hover:bg-[#111418]/90 transition-all flex items-center justify-center gap-2">
-                    {tr("calc.proceed", lang)} <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              </div>
+              <SeasonalOffersPanel />
             </div>
           </div>
         </div>
