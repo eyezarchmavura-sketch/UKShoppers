@@ -240,3 +240,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Replace the customer request-style promotional area with a responsive seasonal offers section for staff-verified retailer discounts and holiday promotions.
 - [x] Provide an owner/staff-safe method to publish, edit, expire, and remove verified offers; preserve an honest empty state until offers are approved. Staff manage offers at `/admin/offers`; only administrators can permanently delete them.
 - [x] Add automated coverage and visually verify desktop and mobile behavior before checkpointing the update. TypeScript is clean; the full Vitest suite passes with 36 tests; desktop and mobile screenshots were checked.
+
+# TASK — Verified retailer offer-discovery strategy 2026-08-25
+- [x] Research lawful, reliable sources and monitoring approaches for timely UK retailer promotions, coupon terms, and seasonal events. The evidence-led approach prioritises official retailer sources and approved partner feeds over scraping or unverified coupon listings.
+- [x] Define the verification, expiry, approval, and customer-display workflow that prevents incorrect or outdated offers from reaching customers. The full workflow and required deal-card disclosures are documented in `docs/RETAILER_OFFERS_DISCOVERY_STRATEGY.md`.
+- [x] Propose a phased launch plan covering initial staff curation, compliant source integrations, and optional future alert automation.
