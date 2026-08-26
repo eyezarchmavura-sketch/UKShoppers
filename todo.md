@@ -308,3 +308,6 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 
 # TASK — Women-first gallery confirmation 2026-08-26
 - [x] Confirm the former Questions and Answers block remains replaced by the visual women-first shopping gallery and verify its Fashion and Beauty & Health store-category pathways. The Landing source contains no Questions/FAQ section, retains six women-first visual edits, and routes cards through tested Fashion or Beauty & Health store-directory filters.
+
+# TASK — Client-owned custom domain connection walkthrough 2026-08-26
+- [x] Check the current behavior of `ukshoppersafrica.com` and provide the client-safe custom-domain, DNS, verification and cutover steps needed to point it to the managed web application. Confirmed the domain still serves the previous public website; saved `docs/CUSTOM_DOMAIN_CUTOVER_GUIDE.md` with backup, DNS preservation, platform-issued root and `www` record, HTTPS verification and cutover-testing instructions. No live DNS or ownership change was made.
