@@ -286,5 +286,6 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Move active pnpm overrides and patch declarations from the ignored package manifest field into the supported workspace configuration so installs are reproducible.
 
 # TASK — Remaining transitive dependency security debt 2026-08-26
-- [ ] Plan and test a compatible Express 5 migration or supported route-matching remediation for the remaining `path-to-regexp` audit path.
-- [ ] Plan and visually validate a Recharts 3 migration or replacement for the remaining Lodash audit path in the shared chart component.
+- [x] Plan and test a compatible Express 5 migration or supported route-matching remediation for the remaining `path-to-regexp` audit path. Upgraded to Express 5.2.1 with named wildcard routes, verified live fallback behavior, 39 passing tests, a successful production build, and no remaining audit advisory.
+- [x] Plan and visually validate a Recharts 3 migration or replacement for the remaining Lodash audit path in the shared chart component. Source review confirmed no active chart consumer, so no major migration was required.
+- [x] Remove the currently unused Recharts shared chart component and direct dependency if source-reference checks confirm no active chart consumer, then rerun the production audit and full regression validation. Removed `client/src/components/ui/chart.tsx` and `recharts`; TypeScript, 39 tests, bounded build, and final audit all pass with 0 production vulnerabilities.
