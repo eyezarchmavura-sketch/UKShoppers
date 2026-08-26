@@ -43,6 +43,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AssistantChat from "@/components/AssistantChat";
 import { getRetailerUrl } from "@/lib/retailerLinks";
 import { stores, storeCategories, type Store } from "@/lib/stores";
+import { getStoreBrandLogo } from "@/lib/storeBrandAssets";
 import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
 import { officialDealDestinations } from "@/lib/officialDealDestinations";
 import { formatShoppingEventDate, getUpcomingShoppingEvents } from "@/lib/salesEventCalendar";
@@ -203,78 +204,29 @@ const destinations = [
 ];
 
 /* Official brand marks — factual supported-store reference per industry practice */
-const storeLogos: Record<string, string> = {
-  "Amazon UK": "/manus-storage/amazon_2a7347b3.png",
-  "eBay UK": "/manus-storage/ebay_86268e48.png",
-  ASOS: "/manus-storage/asos_054104bd.png",
-  "Nike UK": "/manus-storage/nike_a2ad4d50.png",
-  "Adidas UK": "/manus-storage/adidas_e76ffa5d.jpg",
-  "Zara UK": "/manus-storage/zara_9dbaa816.png",
-  "Next UK": "/manus-storage/next_e0017815.png",
-  "Marks & Spencer": "/manus-storage/ms_235f8386.png",
-  "Primark Online": "/manus-storage/primark_99111fca.png",
-  Boots: "/manus-storage/boots_a4a41643.png",
-  Superdrug: "/manus-storage/superdrug_3a35d1ad.png",
-  "Apple UK": "/manus-storage/apple_88777630.png",
-  Argos: "/manus-storage/argos_ce8e8ab5.png",
-  Currys: "/manus-storage/currys_8719af84.png",
-  "John Lewis": "/manus-storage/johnlewis_6fb5a2b7.png",
-  "Sports Direct": "/manus-storage/sportsdirect_3c993fe4.png",
-  "JD Sports": "/manus-storage/jdsports_b38fa866.png",
-  "Decathlon UK": "/manus-storage/decathlon_cd3874d7.png",
-  Lakeland: "/manus-storage/lakeland_ece68d7b.png",
-  "IKEA UK": "/manus-storage/ikea_5147cb5e.png",
-  "H&M UK": "/manus-storage/hm_eda09649.png",
-  "The Body Shop": "/manus-storage/thebodyshop_9b025f1f.png",
-  "Sephora UK": "/manus-storage/sephora_ec8b3e69.jpg",
-  HMV: "/manus-storage/hmv_de33faf9.png",
-};
-
 const marqueeStores = stores.slice(0, 14);
 
 function StoreCard({ store, delay }: { store: Store; delay?: number }) {
   const retailerUrl = getRetailerUrl(store.domain);
-  const requestUrl = `/add?productUrl=${encodeURIComponent(retailerUrl)}`;
+  const brandLogo = getStoreBrandLogo(store.name);
 
   return (
-    <article
-      className="group bg-background dark:bg-card rounded-2xl p-4 border border-border/80 hover:border-[#C9A227] hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-start text-left w-full reveal-up"
+    <a
+      href={retailerUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`Open ${store.name} official UK storefront in a new tab`}
+      title={`Open ${store.name} official UK storefront in a new tab`}
+      className="group relative flex min-h-[144px] w-full items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-background p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-[#C9A227] hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:bg-card reveal-up"
       data-reveal-delay={String(delay)}>
-      <a
-        href={retailerUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={`Open ${store.name} UK storefront in a new tab`}
-        className="w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] rounded-lg">
-        <div className="w-10 h-10 rounded-xl bg-white border border-border/70 flex items-center justify-center shadow-sm overflow-hidden">
-          {storeLogos[store.name] ? (
-            <img
-              src={storeLogos[store.name]}
-              alt={`${store.name} brand logo`}
-              className="w-8 h-8 object-contain"
-              loading="lazy"
-            />
-          ) : (
-            <span className="text-[#111418] font-black text-sm">{store.name.charAt(0)}</span>
-          )}
-        </div>
-        <h3 className="font-bold text-[#111418] dark:text-[#F7F4E8] text-sm mt-3 leading-tight flex items-center gap-1.5">
-          {store.name} <ExternalLink className="w-3 h-3 shrink-0 text-[#C9A227]" aria-hidden="true" />
-        </h3>
-        <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{store.domain}</p>
-        <p className="text-[11px] text-foreground/70 mt-2 leading-snug">{store.note}</p>
-      </a>
-      <div className="mt-3 pt-3 border-t border-border/60 flex flex-col gap-2 w-full">
-        <span className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-700 dark:text-[#E6C764]">
-          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Supported UK retailer
-        </span>
-        <Link
-          href={requestUrl}
-          className="text-[11px] font-semibold text-[#111418] dark:text-[#F3E7AF] hover:text-[#A67C00] dark:hover:text-[#D4AF37] underline underline-offset-4">
-          Request staff review
-        </Link>
-      </div>
-    </article>
+      <span className="sr-only">{store.name}, {store.category}</span>
+      {brandLogo ? (
+        <img src={brandLogo} alt="" className="h-16 w-full max-w-[148px] object-contain transition-transform duration-200 group-hover:scale-105" loading="lazy" />
+      ) : (
+        <span className="text-3xl font-black text-[#111418]">{store.name.charAt(0)}</span>
+      )}
+      <ExternalLink className="absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-[#E6C764]" aria-hidden="true" />
+    </a>
   );
 }
 
@@ -295,9 +247,7 @@ function StoreWall({ lang }: { lang: Lang }) {
         <h2 className="text-2xl sm:text-3xl font-bold text-[#111418] mt-3">
               {tr("sec.storesTitle", lang)}
         </h2>
-        <p className="text-sm text-muted-foreground mt-2">
-          If they sell it in the UK, we can buy it and deliver it to your doorstep in East Africa — pasting a single link is all it takes.
-        </p>
+        <p className="text-sm text-muted-foreground mt-2">Tap a brand icon to visit its official UK store.</p>
       </div>
 
       {/* Category filter chips */}
@@ -385,7 +335,7 @@ function SeasonalOffersPanel() {
           {upcomingOffers.map((offer) => {
             const start = offer.validFrom ? new Date(offer.validFrom) : null;
             const verifiedAt = offer.verifiedAt ? new Date(offer.verifiedAt) : null;
-            const logo = storeLogos[offer.storeName];
+            const logo = getStoreBrandLogo(offer.storeName);
             return <article key={offer.id} className="rounded-2xl border border-[#C9A227]/40 bg-[#FFFDF5] p-4 dark:bg-[#272314]">
               <div className="flex gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-2">{logo ? <img src={logo} alt={`${offer.storeName} logo`} className="h-7 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{offer.storeName.slice(0, 1)}</span>}</div><div className="min-w-0 flex-1"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">{offer.storeName} · Coming soon</p><h3 className="mt-0.5 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{offer.title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{offer.details}</p></div></div>
               <p className="mt-3 border-t border-[#C9A227]/20 pt-3 text-[10px] leading-4 text-muted-foreground">Terms: {offer.termsSummary}</p>
@@ -396,7 +346,7 @@ function SeasonalOffersPanel() {
           {liveOffers.map((offer) => {
             const expiry = offer.validUntil ? new Date(offer.validUntil) : null;
             const verifiedAt = offer.verifiedAt ? new Date(offer.verifiedAt) : null;
-            const logo = storeLogos[offer.storeName];
+            const logo = getStoreBrandLogo(offer.storeName);
             return <article key={offer.id} className="rounded-2xl border border-border bg-background p-4 transition-colors hover:border-[#C9A227]/70 dark:bg-[#171a20]">
               <div className="flex gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-2">
@@ -511,9 +461,9 @@ export default function Landing() {
           </div>
         </div>
         <div className="retailer-belt border-t border-border/70 bg-[#111418] text-[#F7F4E8] dark:bg-black" aria-label="Supported UK retailer icons">
-          <div className="container flex h-[72px] items-center gap-3 overflow-hidden">
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="retailer-belt-track gap-4 py-2">
+        <div className="container flex h-[96px] items-center gap-4 overflow-hidden">
+          <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="retailer-belt-track gap-5 py-3">
                 {[...marqueeStores, ...marqueeStores].map((store, index) => {
                   const retailerUrl = getRetailerUrl(store.domain);
                   return (
@@ -525,8 +475,8 @@ export default function Landing() {
                       aria-label={`Open ${store.name} UK storefront`}
                       aria-hidden={index >= marqueeStores.length}
                       tabIndex={index >= marqueeStores.length ? -1 : undefined}
-                      className="flex h-12 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-2.5 hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
-                      {storeLogos[store.name] ? <img src={storeLogos[store.name]} alt="" className="h-8 w-12 object-contain" loading="lazy" /> : <span className="text-sm font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
+                      className="flex h-[68px] w-[124px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-3 shadow-sm transition-transform hover:-translate-y-0.5 hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
+                      {getStoreBrandLogo(store.name) ? <img src={getStoreBrandLogo(store.name)} alt="" className="h-11 w-[94px] object-contain" loading="lazy" /> : <span className="text-lg font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
                     </a>
                   );
                 })}
@@ -908,7 +858,7 @@ export default function Landing() {
                     <p className="mt-1 text-sm text-muted-foreground">{deal.categories}</p>
                   </div>
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-2">
-                    {storeLogos[deal.retailer] ? <img src={storeLogos[deal.retailer]} alt={`${deal.retailer} logo`} className="h-8 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{deal.retailer.slice(0, 2).toUpperCase()}</span>}
+                    {getStoreBrandLogo(deal.retailer) ? <img src={getStoreBrandLogo(deal.retailer)} alt={`${deal.retailer} logo`} className="h-8 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{deal.retailer.slice(0, 2).toUpperCase()}</span>}
                   </div>
                 </div>
                 <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">

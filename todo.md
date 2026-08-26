@@ -311,3 +311,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 
 # TASK — Client-owned custom domain connection walkthrough 2026-08-26
 - [x] Check the current behavior of `ukshoppersafrica.com` and provide the client-safe custom-domain, DNS, verification and cutover steps needed to point it to the managed web application. Confirmed the domain still serves the previous public website; saved `docs/CUSTOM_DOMAIN_CUTOVER_GUIDE.md` with backup, DNS preservation, platform-issued root and `www` record, HTTPS verification and cutover-testing instructions. No live DNS or ownership change was made.
+
+# TASK — Icon-led UK retailer brand visibility 2026-08-26
+- [x] Increase the visibility and size of official UK retailer brand icons in the homepage belt and category browsing views while reducing non-essential visible brand text. Enlarged the homepage moving belt, converted the homepage store wall and Store Directory to logo-first retailer tiles, and removed visible store descriptions and secondary actions from those tiles.
+- [x] Ensure each icon-led retailer control has an accessible label and opens the correct official storefront in a safe new browser tab. Added a shared asset map for all 24 supported stores; each visual card uses its existing official HTTPS destination, a new-tab safety relationship, a title, and screen-reader-only retailer/category label.
+- [x] Validate retailer-logo visibility, responsive layout and direct-link behavior before checkpointing. Corrected the Argos managed asset path after visual review; desktop and full mobile store-directory checks show all 24 readable brand marks. TypeScript and 47 tests pass, including 2 new assertions that every supported store has a managed brand asset.

@@ -1,11 +1,12 @@
 import { Link } from "wouter";
-import { ExternalLink, Moon, Search, ShieldCheck, Sun, ArrowLeft, ArrowRight, Store as StoreIcon } from "lucide-react";
+import { ExternalLink, Moon, Search, Sun, ArrowLeft, ArrowRight, Store as StoreIcon } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { filterStores, storeCategories } from "@/lib/stores";
 import { getRetailerUrl } from "@/lib/retailerLinks";
 import { getStoreDirectoryFilters } from "@/lib/storeDirectoryQuery";
+import { getStoreBrandLogo } from "@/lib/storeBrandAssets";
 
 export default function StoreDirectory() {
   const { theme, toggleTheme } = useTheme();
@@ -75,23 +76,23 @@ export default function StoreDirectory() {
           </div>
 
           {visibleStores.length ? (
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {visibleStores.map((store) => {
                 const retailerUrl = getRetailerUrl(store.domain);
+                const brandLogo = getStoreBrandLogo(store.name);
                 return (
-                  <article key={store.name} className="flex flex-col rounded-2xl bg-background dark:bg-card border border-border p-5 transition-transform hover:-translate-y-0.5 hover:border-[#C9A227]">
-                    <div className="flex items-start justify-between gap-4">
-                      <span className="rounded-full bg-[#C9A227]/10 px-2.5 py-1 text-[11px] font-bold text-[#A67C00] dark:text-[#E6C764]">{store.category}</span>
-                      <ShieldCheck className="w-5 h-5 text-[#C9A227] shrink-0" aria-label="Supported retailer" />
-                    </div>
-                    <h2 className="mt-5 text-lg font-bold text-[#111418] dark:text-[#F7F4E8]">{store.name}</h2>
-                    <p className="mt-1 text-xs font-mono text-muted-foreground">{store.domain}</p>
-                    <p className="mt-4 text-sm text-foreground/70 leading-relaxed flex-1">{store.note}</p>
-                    <div className="mt-6 pt-4 border-t border-border flex flex-col gap-3">
-                      <a href={retailerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#111418] px-4 py-2.5 text-sm font-semibold text-[#D4AF37] hover:bg-black transition-colors">Open UK storefront <ExternalLink className="w-4 h-4" /></a>
-                      <Link href={`/add?productUrl=${encodeURIComponent(retailerUrl)}`} className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">Request staff review <ArrowRight className="w-4 h-4" /></Link>
-                    </div>
-                  </article>
+                  <a
+                    key={store.name}
+                    href={retailerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open ${store.name} official UK storefront in a new tab`}
+                    title={`Open ${store.name} official UK storefront in a new tab`}
+                    className="group relative flex aspect-[1.25] min-h-[132px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-background p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-[#C9A227] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:bg-card">
+                    <span className="sr-only">{store.name}, {store.category}</span>
+                    {brandLogo ? <img src={brandLogo} alt="" className="h-16 w-full max-w-[144px] object-contain transition-transform duration-200 group-hover:scale-105" loading="lazy" /> : <span className="text-3xl font-black text-[#111418]">{store.name.charAt(0)}</span>}
+                    <ExternalLink className="absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-[#E6C764]" aria-hidden="true" />
+                  </a>
                 );
               })}
             </div>
