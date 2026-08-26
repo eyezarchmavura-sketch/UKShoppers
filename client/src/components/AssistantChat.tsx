@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Bot, Loader2, MessageCircle, PackageSearch, Receipt, Send, ShoppingCart, Trash2, X } from "lucide-react";
-import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -169,6 +168,22 @@ function loadSaved(): { messages: ChatMessage[]; language: Lang } | null {
     // Corrupted entry — start fresh.
   }
   return null;
+}
+
+function AssistantText({ content }: { content: string }) {
+  const formatted = content
+    .replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/g, "$1 — $2")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*[-*]\s+/gm, "• ");
+
+  return (
+    <div className="space-y-2 whitespace-pre-wrap break-words">
+      {formatted.split(/\n{2,}/).filter(Boolean).map((paragraph, index) => (
+        <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>
+      ))}
+    </div>
+  );
 }
 
 export default function AssistantChat() {
@@ -364,7 +379,7 @@ export default function AssistantChat() {
                       : "rounded-bl-md border border-border bg-card"
                   }`}
                 >
-                  {m.role === "assistant" ? <Streamdown>{m.content}</Streamdown> : m.content}
+                  {m.role === "assistant" ? <AssistantText content={m.content} /> : m.content}
                 </div>
               </div>
             ))}

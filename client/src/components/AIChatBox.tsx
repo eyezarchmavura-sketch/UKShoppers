@@ -4,7 +4,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Loader2, Send, User, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { Streamdown } from "streamdown";
 
 /**
  * Message type matching server-side LLM Message interface
@@ -59,12 +58,28 @@ export type AIChatBoxProps = {
   suggestedPrompts?: string[];
 };
 
+function AssistantText({ content }: { content: string }) {
+  const formatted = content
+    .replace(/\[([^\]]+)]\((https?:\/\/[^\s)]+)\)/g, "$1 — $2")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*[-*]\s+/gm, "• ");
+
+  return (
+    <div className="space-y-2 whitespace-pre-wrap break-words text-sm">
+      {formatted.split(/\n{2,}/).filter(Boolean).map((paragraph, index) => (
+        <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>
+      ))}
+    </div>
+  );
+}
+
 /**
  * A ready-to-use AI chat box component that integrates with the LLM system.
  *
  * Features:
  * - Matches server-side Message interface for seamless integration
- * - Markdown rendering with Streamdown
+ * - Safe lightweight response formatting
  * - Auto-scrolls to latest message
  * - Loading states
  * - Uses global theme colors from index.css
@@ -261,9 +276,7 @@ export function AIChatBox({
                       )}
                     >
                       {message.role === "assistant" ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <Streamdown>{message.content}</Streamdown>
-                        </div>
+                        <AssistantText content={message.content} />
                       ) : (
                         <p className="whitespace-pre-wrap text-sm">
                           {message.content}

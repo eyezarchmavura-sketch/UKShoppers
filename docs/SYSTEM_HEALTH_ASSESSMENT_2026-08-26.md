@@ -7,7 +7,7 @@
 
 The platform is **functionally healthy in the development environment**. TypeScript is clean, all automated regression tests pass, the reviewed public and protected routes render as expected, and the seasonal-offers schema is present in the database with its evidence-first fields.
 
-The main release gate is a **local production-build resource termination**. `pnpm build` completes module transformation but is terminated by the sandbox while rendering chunks (exit code `143`). This is an environment/resource failure rather than a TypeScript or test failure, but it means the production build still requires confirmation in the managed deployment pipeline before a release is considered verified.
+The previously observed local production-build resource termination and blank development preview have both been resolved. The final bounded `pnpm build` completed successfully, and the development server now returns the Vite client entry module as JavaScript rather than falling through to the HTML response. The platform is ready for a managed deployment build, though publishing itself remains a separate approval action.
 
 ## Verified checks
 
@@ -20,6 +20,8 @@ The main release gate is a **local production-build resource termination**. `pnp
 | Seasonal-offers data model | Pass | The `seasonal_offers` table exists and includes source, terms, link-type, verification-time, and verifier fields. |
 | Runtime logs | No confirmed application defect | The reviewed development, browser-console, and network logs did not identify a new unhandled production-flow error. |
 | Dependency install reproducibility | Improved | pnpm overrides and patch declarations were moved from the ignored package-manifest field into `pnpm-workspace.yaml`. |
+| Production build | Pass | The final bounded `NODE_OPTIONS=--max-old-space-size=2048 pnpm build` completed successfully after route splitting and client-graph reduction. |
+| Development preview entry | Pass | `GET /src/main.tsx` returns `200` with `Content-Type: text/javascript`; the live root preview rendered normally after restart. |
 
 ## Confirmed fixes applied during this assessment
 
@@ -32,23 +34,27 @@ The main release gate is a **local production-build resource termination**. `pnp
 | Moved pnpm patch/override settings to `pnpm-workspace.yaml` | Removes the repeated warning that the package-manifest `pnpm` field was ignored and makes the Wouter patch plus Tailwind transitive override reproducible. |
 | Limited development-only Vite plugins to preview mode | Keeps source-location instrumentation and debug collection out of the production build path. |
 | Disabled Vite compressed-size reporting | Avoids a memory-heavy reporting step during production builds. |
+| Added route-level lazy loading | Splits portal, staff, legal, account, and management pages into smaller production chunks. |
+| Replaced Streamdown rendering with safe lightweight text formatting | Removes the Katex/Mermaid-related markdown-renderer path from the active client graph while retaining readable assistant messages. |
+| Evaluated the Vite configuration export before middleware-server creation | Ensures the middleware server uses the `client` root and correctly serves `/src/main.tsx`. |
+| Removed randomized entry-module queries | Prevents the Vite client entry request from falling through to the HTML catch-all. |
 
-## Confirmed release blocker
+## Resolved release gates
 
-### Production build is not yet verified
+The two issues that blocked release verification during this assessment are resolved:
 
-Even after removing compressed-size reporting and excluding development-only plugins, the local sandbox terminates `pnpm build` with exit code `143` during Vite chunk rendering after transforming 6,126 modules. This is the only confirmed functional release blocker from this review.
+1. **Production build:** the bounded build now completes successfully after route-level lazy loading, removal of the heavy unused markdown-rendering graph, and Vite build-configuration reductions.
+2. **Development preview:** the blank-preview incident was traced to spreading the Vite configuration export without evaluating its function form, which discarded the configured client root. The middleware now evaluates the configuration, and `/src/main.tsx` returns the expected JavaScript module.
 
-> **Required action before publishing:** run the managed deployment build after this checkpoint. If it also terminates, reduce client bundle pressure with targeted route-level code splitting and reassess the remaining heavyweight UI dependencies. Do not treat the local development preview as a substitute for a successful production build.
+> **Before publishing:** use the platform's Publish control only after reviewing this checkpoint. A successful local build is strong release evidence, but it does not itself publish the site.
 
 ## Dependency and compatibility risks still open
 
-The production audit was reduced from **41 findings (4 high)** to **40 findings (3 high)**. The remaining high-severity paths require deliberate upgrades or replacements rather than unsafe forced overrides.
+The production audit is now **8 findings (2 high)**. The remaining high-severity paths require deliberate upgrades or replacements rather than unsafe forced overrides.
 
 | Remaining path | Risk | Recommended handling |
 |---|---|---|
 | `express@4.21.2` → `path-to-regexp@0.1.12` | Audited vulnerable transitive route-matching package | Plan an Express 5 compatibility upgrade or validate a supported transitive-resolution strategy in a separate branch. |
-| `streamdown@1.4.0` → `mermaid@11.12.0` → `lodash-es` | The active assistant markdown renderer pulls a flagged transitive dependency | Test Streamdown v2 or replace it with a maintained markdown renderer in a scoped upgrade. |
 | `recharts@2.15.x` → `lodash@4.17.21` | The shared chart component remains on an unmaintained major line | Schedule a Recharts 3 migration and visually validate all chart consumers. |
 | `react-paystack@6.0.0` with React 19 | Peer-range warning; no test failure observed | Verify live hosted checkout in a sandbox before live payments are enabled. |
 | `@builder.io/vite-plugin-jsx-loc` with Vite 7 | Peer-range warning; no preview failure observed | It is now preview-only. Replace or update it if preview instability appears. |
@@ -65,11 +71,11 @@ The application does not send live WhatsApp messages, process live payment charg
 
 ## Priority actions
 
-1. **Release gate:** confirm a successful managed production deployment build; investigate code splitting if it reproduces the exit-143 termination.
-2. **Security debt:** plan separate, tested migrations for Express 5, Streamdown 2/replacement, and Recharts 3.
+1. **Deployment:** review this checkpoint, then run the managed deployment build through the Publish control when ready.
+2. **Security debt:** plan separate, tested migrations for Express 5 and Recharts 3.
 3. **Operations:** begin the four-week manual women-first Verified Store Desk trial before adding retailer data-feed automation.
 4. **Integrations:** choose one provider path at a time, enter credentials through secure settings, then implement and test its server-side callback/webhook flow.
 
 ## Conclusion
 
-Customer/staff workflows, offer-publishing safeguards, database migrations, access control, and automated regression coverage are in a good working state. The platform is suitable for continued controlled development and staff-led offer curation. A successful production build remains necessary before treating the current revision as release-ready.
+Customer/staff workflows, offer-publishing safeguards, database migrations, access control, automated regression coverage, the development preview, and the production build are in a good working state. The platform is suitable for continued controlled development and staff-led offer curation, and it is ready for the user to review and publish through the managed deployment flow when desired.
