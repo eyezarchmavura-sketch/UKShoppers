@@ -17,7 +17,6 @@ import {
   PhoneCall,
   Mail,
   ChevronRight,
-  ChevronDown,
   Warehouse,
   FileCheck2,
   Plane,
@@ -27,7 +26,6 @@ import {
   BadgeCheck,
   CreditCard,
   Lock,
-  Recycle,
   Quote,
   ExternalLink,
   Sparkles,
@@ -45,6 +43,7 @@ import AssistantChat from "@/components/AssistantChat";
 import { getRetailerUrl } from "@/lib/retailerLinks";
 import { stores, storeCategories, type Store } from "@/lib/stores";
 import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
+import { officialDealDestinations } from "@/lib/officialDealDestinations";
 import { trpc } from "@/lib/trpc";
 
 function scrollToCalculator() {
@@ -57,6 +56,67 @@ const WAREHOUSE_IMG = "/manus-storage/warehouse-london_64a80d77.png";
 const LIFESTYLE_FASHION_IMG = "/manus-storage/lifestyle-fashion_e2409cf2.png";
 const LIFESTYLE_ELECTRONICS_IMG = "/manus-storage/lifestyle-electronics_ba252c3d.png";
 const LIFESTYLE_BEAUTY_IMG = "/manus-storage/lifestyle-beauty_28758d01.png";
+const WOMEN_FASHION_SHOPPING_IMG = "/manus-storage/women-fashion-shopping_6771b1e0.jpg";
+const SHOES_AND_BAGS_IMG = "/manus-storage/shoes-and-bags_9d7ad3e4.jpg";
+const ACCESSORIES_IMG = "/manus-storage/accessories_84737cc5.jpg";
+const BEAUTY_SKINCARE_IMG = "/manus-storage/beauty-skincare_8675cf48.jpg";
+
+const womensDiscoveryEdits = [
+  {
+    title: "New-in fashion",
+    subtitle: "Clothing & occasionwear",
+    description: "Dresses, elevated basics and standout pieces from trusted UK fashion stores.",
+    image: WOMEN_FASHION_SHOPPING_IMG,
+    alt: "Woman carrying shopping bags for a fashion shopping edit",
+    category: "Fashion",
+    stores: "ASOS · Zara · Next · M&S",
+  },
+  {
+    title: "Shoes for every plan",
+    subtitle: "Trainers, heels & flats",
+    description: "Start with the right UK shoe department, then bring the item link back for review.",
+    image: SHOES_AND_BAGS_IMG,
+    alt: "Shoes and accessories displayed for a footwear shopping edit",
+    category: "Fashion",
+    stores: "ASOS · Nike · Adidas · JD Sports",
+  },
+  {
+    title: "Bags & finishing touches",
+    subtitle: "Accessories",
+    description: "Find bags, sunglasses and small details that complete the look.",
+    image: ACCESSORIES_IMG,
+    alt: "Fashion accessories arranged for a shopping edit",
+    category: "Fashion",
+    stores: "ASOS · Zara · H&M · M&S",
+  },
+  {
+    title: "Beauty shelf refresh",
+    subtitle: "Skincare & makeup",
+    description: "Explore beauty departments for routine essentials, cosmetics and fragrance.",
+    image: BEAUTY_SKINCARE_IMG,
+    alt: "Skincare and makeup products arranged for a beauty shopping edit",
+    category: "Beauty & Health",
+    stores: "Boots · Superdrug · LOOKFANTASTIC · Sephora",
+  },
+  {
+    title: "Haircare & self-care",
+    subtitle: "Hair, body & wellness",
+    description: "Browse UK beauty specialists for haircare, body care and self-care gifts.",
+    image: LIFESTYLE_BEAUTY_IMG,
+    alt: "Beauty and skincare products for a self-care shopping edit",
+    category: "Beauty & Health",
+    stores: "Boots · Superdrug · The Body Shop",
+  },
+  {
+    title: "Gifts worth sending",
+    subtitle: "Celebrations & personal treats",
+    description: "Choose a store first, then submit the exact product link when you are ready.",
+    image: LIFESTYLE_FASHION_IMG,
+    alt: "Fashion and accessories for a gifting shopping edit",
+    category: "Fashion",
+    stores: "M&S · Next · ASOS · John Lewis",
+  },
+];
 
 const journeyStops = [
   {
@@ -97,65 +157,6 @@ const journeyStops = [
   },
 ];
 
-const faqs = [
-  {
-    q: "How do customs duties work? Will I pay extra fees at the border?",
-    a: "No — duties are 100% prepaid. When we give you a quote, it already includes estimated import duties and taxes for Tanzania, Kenya, Uganda, and Rwanda. You never pay anything extra at the border, and any duty difference is covered by us up to our declared estimate.",
-  },
-  {
-    q: "How long does delivery take?",
-    a: "Express air delivery takes 4–8 business days from the date your items arrive at our London warehouse: Tanzania 5–8 days, Kenya 4–7 days, Uganda 5–8 days, and Rwanda 6–9 days. You can follow every checkpoint in your portal, and we send WhatsApp updates at each stage.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "We accept M-Pesa, Tigo Pesa, Airtel Money, mobile money, direct bank transfer, and debit/credit cards. All payments can be made in local currency — you never need a UK bank account or a card that works internationally.",
-  },
-  {
-    q: "What is parcel consolidation and how does it save me money?",
-    a: "If you order from multiple UK stores, we hold your items at our warehouse and repack them together into one box before shipping. Since shipping is charged by weight, combining 3–5 parcels into one shipment typically saves 20–30% compared to shipping each box separately.",
-  },
-  {
-    q: "What happens if my item is damaged or wrong?",
-    a: "Every parcel is inspected and photographed at our London warehouse before shipping, so issues are caught before your items leave the UK. If an item arrives damaged, our shipping insurance covers replacement or refund — contact support within 48 hours of delivery with a photo.",
-  },
-  {
-    q: "Can I use my own UK delivery address instead of the link service?",
-    a: "Yes. Sign up for your free personal UK warehouse address with a unique UNIT ID. Shop on any UK store as normal and use our address at checkout — we receive, consolidate, and forward your parcels to East Africa. This is perfect for stores we don't automatically parse.",
-  },
-  {
-    q: "Are there size or weight limits for shipments?",
-    a: "We handle parcels up to 30kg per shipment. For larger items (furniture, gym equipment), contact our team for a custom freight quote — we arrange sea freight for bulky orders at lower per-kg rates.",
-  },
-  {
-    q: "Is my payment secure? How do I know my money is safe?",
-    a: "Completely. We process card payments through encrypted, PCI-compliant gateways, and mobile money deposits are verified instantly. You can also load funds into your UK Shoppers Africa wallet and pay orders from your balance — with a full transaction history visible in your portal. We never ask for your card PIN or mobile money codes.",
-  },
-  {
-    q: "What happens if the item is out of stock or discontinued?",
-    a: "Our team checks availability before purchasing. If your item goes out of stock, we contact you immediately with options: a substitute in the same store, a refund of that item to your wallet, or waiting for restock. You are never charged for an item we couldn't source without your approval.",
-  },
-  {
-    q: "Can I return an item I'm not happy with?",
-    a: "Yes. UK stores' return policies apply during the 14–30 day UK return window. Because we inspect and photograph every item at our London warehouse before it ships, most issues are caught early. If you still want a return, our team re-ships the item back to the UK store and refunds you to your wallet or original payment method, minus a small return shipping fee.",
-  },
-  {
-    q: "Do you deliver outside major cities — rural areas or pickup points?",
-    a: "Yes. We deliver door-to-door across Tanzania, Kenya, Uganda, and Rwanda. For towns and rural areas, we work with trusted local courier partners, and you can also choose a pickup point in your city to avoid courier fees. Every location is covered — just enter your address and we'll confirm the delivery method.",
-  },
-  {
-    q: "Is there a minimum order amount?",
-    a: "No minimum. Order a single lipstick or a full furniture haul — the same process applies. That said, consolidation is where you save: combining multiple items into one shipment cuts your per-item shipping cost significantly, so ordering a few things together typically gets you the best rate.",
-  },
-  {
-    q: "Do you handle business or bulk orders?",
-    a: "Absolutely — many boutique owners, resellers, and offices use UK Shoppers Africa as their UK supply channel. For recurring bulk orders we offer business accounts with negotiated shipping rates, a dedicated account manager, monthly invoicing, and priority warehouse handling. WhatsApp our team to set up a business account.",
-  },
-  {
-    q: "How do I track my parcel, and will I be updated?",
-    a: "Every shipment gets a UKSA tracking number visible in your portal with six checkpoints from warehouse to doorstep. We also send automatic WhatsApp updates at each stage — you never have to ask. If a flight is delayed or customs takes longer, we notify you proactively with the new date.",
-  },
-];
-
 const trustIndicators = [
   { icon: BadgeCheck, title: "trust.verified", body: "Every item inspected, photographed & confirmed before it ships from the UK" },
   { icon: Shield, title: "trust.insured", body: "All shipments covered end-to-end — London warehouse to your doorstep" },
@@ -168,27 +169,6 @@ const reviewStructure = [
   { name: "", city: "", cityCode: "", rating: 5, quote: "" },
   { name: "", city: "", cityCode: "", rating: 5, quote: "" },
 ];
-
-function FaqItem({ faq }: { faq: { q: string; a: string } }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="bg-white rounded-2xl border border-border/80 overflow-hidden transition-shadow hover:shadow-md">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
-        <span className="font-bold text-[#111418] text-sm sm:text-base">{faq.q}</span>
-        <ChevronDown
-          className={`w-5 h-5 shrink-0 text-[#C9A227] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      <div
-        className={`grid transition-all duration-300 ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-        <div className="overflow-hidden">
-          <p className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const steps = [
   {
@@ -791,37 +771,94 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ============ FAQ SECTION ============ */}
-      <section id="faq" className="py-24 bg-[#F2F4F7]">
+      {/* ============ WOMEN-FIRST VISUAL DISCOVERY ============ */}
+      <section id="shop-visuals" className="py-20 sm:py-24 bg-[#F2F4F7]">
         <div className="container">
-          <div className="grid lg:grid-cols-12 gap-12">
-            <div className="lg:col-span-4">
-              <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
-                Questions & Answers
+          <div className="flex flex-col justify-between gap-7 border-b border-[#111418]/10 pb-10 sm:flex-row sm:items-end">
+            <div className="max-w-2xl text-left">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#C9A227]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#A67C00]">
+                <Sparkles className="h-3.5 w-3.5" /> Shop by your mood
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#111418] mt-3 leading-tight">
-                {tr("sec.faqTitle", lang)}
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#111418] sm:text-4xl">
+                See the kind of UK shopping you can start today.
               </h2>
-              <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-                {tr("sec.faqSub", lang)}
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Pick a visual edit, browse the trusted UK stores behind it, and send us the exact item link when you are ready. We do not copy retailer catalogues or invent product prices.
               </p>
-              <div className="mt-6 bg-white rounded-2xl border border-border/80 p-5 flex items-center gap-3 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                  <Recycle className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-sm text-[#111418]">{tr("faq.stillQuestion", lang)}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{tr("faq.stillAnswer", lang)}</p>
-                </div>
-              </div>
             </div>
-            <div className="lg:col-span-8 space-y-3">
-              {faqs.map((faq, idx) => (
-                <div key={idx} data-reveal-delay={String((idx % 4) + 1)} className="reveal-up">
-                  <FaqItem faq={faq} />
+            <Link href="/stores" className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-[#A67C00] hover:underline hover:underline-offset-4">
+              Browse every UK store <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {womensDiscoveryEdits.map((edit, index) => (
+              <Link
+                key={edit.title}
+                href={buildStoreDirectoryHref("", edit.category)}
+                data-reveal-delay={String((index % 3) + 1)}
+                className="group reveal-up relative min-h-[330px] overflow-hidden rounded-[1.75rem] bg-[#111418] shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] focus-visible:ring-offset-4">
+                <img src={edit.image} alt={edit.alt} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#080a0d] via-[#111418]/55 to-[#111418]/5" />
+                <div className="relative flex min-h-[330px] flex-col justify-end p-6 text-left sm:p-7">
+                  <span className="w-fit rounded-full border border-white/25 bg-black/35 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-[#F3E7AF] backdrop-blur-sm">
+                    {edit.subtitle}
+                  </span>
+                  <h3 className="mt-3 text-2xl font-bold text-white">{edit.title}</h3>
+                  <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/82">{edit.description}</p>
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/20 pt-4">
+                    <span className="text-[11px] font-semibold text-white/72">{edit.stores}</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#F3E7AF]">Browse <ArrowRight className="h-3.5 w-3.5" /></span>
+                  </div>
                 </div>
-              ))}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ OFFICIAL RETAILER DEAL DESTINATIONS ============ */}
+      <section id="retailer-deals" className="border-y border-[#111418]/10 bg-white py-20 sm:py-24">
+        <div className="container">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div className="text-left">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#111418] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#D4AF37]">
+                <Tag className="h-3.5 w-3.5" /> Official deal doors
+              </span>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#111418] sm:text-4xl">
+                Go straight to big-store offers.
+              </h2>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
+                These are direct, official retailer pages selected for women’s fashion, shoes, beauty and self-care. Prices, stock, terms and eligibility are always confirmed by the retailer when the page opens.
+              </p>
             </div>
+            <div className="rounded-2xl border border-[#C9A227]/35 bg-[#FFFBEF] p-5 text-left">
+              <p className="text-sm font-bold text-[#111418]">A better deal journey</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Open the official UK deal page, choose an item, then return with its link for staff review and delivery planning. UK Shoppers Africa does not alter the retailer’s price or present unverified coupon codes.</p>
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {officialDealDestinations.map((deal, index) => (
+              <article key={deal.retailer} data-reveal-delay={String((index % 2) + 1)} className="reveal-up flex min-h-[190px] flex-col justify-between rounded-3xl border border-border bg-[#F7F8FA] p-6 text-left transition-transform hover:-translate-y-1 hover:shadow-lg">
+                <div className="flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#A67C00]">{deal.retailer}</p>
+                    <h3 className="mt-2 text-xl font-bold text-[#111418]">{deal.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{deal.categories}</p>
+                  </div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-white p-2">
+                    {storeLogos[deal.retailer] ? <img src={storeLogos[deal.retailer]} alt={`${deal.retailer} logo`} className="h-8 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{deal.retailer.slice(0, 2).toUpperCase()}</span>}
+                  </div>
+                </div>
+                <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+                  <span className="text-[10px] font-medium text-muted-foreground">{deal.source}</span>
+                  <a href={deal.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#A67C00] hover:underline hover:underline-offset-4">
+                    View official offers <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
