@@ -265,3 +265,17 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Add concise in-product source, terms, expiry, and withdrawal checks to the staff offers workspace.
 - [x] Highlight the women-first priority sources and daily review rhythm without hard-coding any live offer data.
 - [x] Verify the staff workflow remains clear and non-blocking alongside the existing server-side evidence requirements. TypeScript is clean, all 37 regression tests pass, and the authenticated staff workspace was visually checked with an empty offer register.
+
+# TASK — System health assessment 2026-08-26
+- [x] Run a code-quality, dependency, type-check, migration, automated-regression, and runtime-log review of the current system.
+- [x] Verify representative public, customer, and restricted staff routes for rendering, access control, and primary workflow regressions.
+- [x] Document confirmed defects, configuration blockers, and improvement priorities; fix only verified defects that do not require external provider credentials. The complete evidence record is in `docs/SYSTEM_HEALTH_ASSESSMENT_2026-08-26.md`.
+- [ ] Deliver an evidence-led health assessment with clear status and next actions.
+
+# TASK — Production build termination 2026-08-26
+- [ ] Resolve the production-build termination that persists during Vite chunk rendering, then rerun the managed deployment build. Compressed-size reporting and development-only production plugins were removed, but the local sandbox still returns exit code 143.
+
+# TASK — Production dependency security remediation 2026-08-26
+- [x] Remove or update confirmed vulnerable production dependencies reported by the audit, including unused payment-client packages where safe. Removed `flutterwave-react-v3`; updated direct Axios, Nano ID, and Drizzle ORM paths. Remaining transitive risks are documented for planned migration.
+- [x] Re-run type checks, regression tests, and a production dependency audit to document the remaining dependency risk accurately.
+- [x] Move active pnpm overrides and patch declarations from the ignored package manifest field into the supported workspace configuration so installs are reproducible.
