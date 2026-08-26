@@ -99,19 +99,28 @@ const seasonalOfferInput = z.object({
   couponCode: z.string().trim().min(2).max(96).nullable().optional(),
   validFrom: z.number().int().positive().nullable().optional(),
   validUntil: z.number().int().positive().nullable().optional(),
-  status: z.enum(["draft", "published", "expired"]),
+  status: z.enum(["draft", "upcoming", "published", "expired"]),
 }).superRefine((offer, context) => {
-  if (offer.status !== "published") return;
+  const isPublic = offer.status === "published" || offer.status === "upcoming";
+  if (!isPublic) return;
   if (!offer.sourceType) context.addIssue({ code: z.ZodIssueCode.custom, path: ["sourceType"], message: "A verification source is required before publishing." });
   if (!offer.sourceUrl) context.addIssue({ code: z.ZodIssueCode.custom, path: ["sourceUrl"], message: "An evidence URL is required before publishing." });
   if (!offer.termsSummary) context.addIssue({ code: z.ZodIssueCode.custom, path: ["termsSummary"], message: "A customer-facing terms summary is required before publishing." });
   if (!offer.offerUrl) context.addIssue({ code: z.ZodIssueCode.custom, path: ["offerUrl"], message: "A customer destination URL is required before publishing." });
-  if (!offer.validUntil) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A confirmed end date is required before publishing." });
-  if (offer.validUntil && offer.validUntil <= Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A published offer must end in the future." });
+  if (offer.status === "published") {
+    if (!offer.validUntil) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A confirmed end date is required before publishing." });
+    if (offer.validUntil && offer.validUntil <= Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "A published offer must end in the future." });
+    if (offer.validFrom && offer.validFrom > Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validFrom"], message: "A campaign cannot go live before its confirmed start date." });
+  }
+  if (offer.status === "upcoming") {
+    if (!offer.validFrom) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validFrom"], message: "A confirmed future start date is required before announcing an upcoming offer." });
+    if (offer.validFrom && offer.validFrom <= Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validFrom"], message: "An upcoming offer must have a future start date." });
+  }
+  if (offer.validFrom && offer.validUntil && offer.validUntil < offer.validFrom) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "The end date cannot be earlier than the start date." });
 });
 
 function offerValues(input: z.infer<typeof seasonalOfferInput>, verifiedByUserId: number) {
-  const isPublished = input.status === "published";
+  const isPublic = input.status === "published" || input.status === "upcoming";
   return {
     storeName: input.storeName,
     title: input.title,
@@ -125,8 +134,8 @@ function offerValues(input: z.infer<typeof seasonalOfferInput>, verifiedByUserId
     validFrom: input.validFrom ? new Date(input.validFrom) : null,
     validUntil: input.validUntil ? new Date(input.validUntil) : null,
     status: input.status,
-    verifiedAt: isPublished ? new Date() : null,
-    verifiedByUserId: isPublished ? verifiedByUserId : null,
+    verifiedAt: isPublic ? new Date() : null,
+    verifiedByUserId: isPublic ? verifiedByUserId : null,
   };
 }
 

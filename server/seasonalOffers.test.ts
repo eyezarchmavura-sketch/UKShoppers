@@ -66,6 +66,42 @@ describe("seasonal offers access and validation", () => {
     })).rejects.toThrow(/required before publishing/);
   });
 
+  it("does not allow staff to announce an upcoming campaign without a confirmed future start date", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "staff" }));
+    await expect(caller.offers.create({
+      storeName: "ASOS",
+      title: "Confirmed future campaign",
+      details: "Terms checked against the official retailer campaign page.",
+      sourceType: "official_retailer",
+      sourceUrl: "https://www.asos.com/",
+      termsSummary: "The retailer has not yet published a customer-facing end date.",
+      linkType: "direct",
+      offerUrl: "https://www.asos.com/",
+      couponCode: null,
+      validFrom: null,
+      validUntil: null,
+      status: "upcoming",
+    })).rejects.toThrow(/future start date/);
+  });
+
+  it("does not allow staff to make a campaign live before its confirmed start date", async () => {
+    const caller = appRouter.createCaller(createContext({ role: "staff" }));
+    await expect(caller.offers.create({
+      storeName: "ASOS",
+      title: "Confirmed future campaign",
+      details: "Terms checked against the official retailer campaign page.",
+      sourceType: "official_retailer",
+      sourceUrl: "https://www.asos.com/",
+      termsSummary: "The customer-facing campaign terms are published on the retailer page.",
+      linkType: "direct",
+      offerUrl: "https://www.asos.com/",
+      couponCode: null,
+      validFrom: Date.now() + 86_400_000,
+      validUntil: Date.now() + 172_800_000,
+      status: "published",
+    })).rejects.toThrow(/cannot go live before its confirmed start date/);
+  });
+
   it("limits deletion of seasonal-offer records to administrators", async () => {
     const caller = appRouter.createCaller(createContext({ role: "staff" }));
     await expect(caller.offers.delete({ id: 1 })).rejects.toThrow(/permission/);

@@ -168,7 +168,9 @@ export type InsertStaffInvite = typeof staffInvites.$inferInsert;
 
 /**
  * Staff-curated retailer promotions. Public pages only expose records that are
- * explicitly published and have not reached their validity end date.
+ * explicitly published and have not reached their validity end date. Confirmed
+ * future campaigns may be shown as `upcoming` only with retailer evidence and
+ * a future start date; drafts remain private.
  */
 export const seasonalOffers = mysqlTable("seasonal_offers", {
   id: int("id").autoincrement().primaryKey(),
@@ -186,7 +188,7 @@ export const seasonalOffers = mysqlTable("seasonal_offers", {
   couponCode: varchar("couponCode", { length: 96 }),
   validFrom: timestamp("validFrom"),
   validUntil: timestamp("validUntil"),
-  status: mysqlEnum("status", ["draft", "published", "expired"]).default("draft").notNull(),
+  status: mysqlEnum("status", ["draft", "upcoming", "published", "expired"]).default("draft").notNull(),
   /** Set server-side at publication, never supplied by the browser. */
   verifiedAt: timestamp("verifiedAt"),
   verifiedByUserId: int("verifiedByUserId"),

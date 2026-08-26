@@ -357,21 +357,25 @@ type PublicSeasonalOffer = {
   linkType: "direct" | "affiliate";
   offerUrl: string | null;
   couponCode: string | null;
+  validFrom: Date | string | null;
   validUntil: Date | string | null;
   verifiedAt: Date | string | null;
+  status: "upcoming" | "published";
 };
 
 function SeasonalOffersPanel() {
   const offersQuery = trpc.offers.listPublic.useQuery(undefined, { retry: false });
   const offers = (offersQuery.data ?? []) as PublicSeasonalOffer[];
+  const liveOffers = offers.filter((offer) => offer.status === "published");
+  const upcomingOffers = offers.filter((offer) => offer.status === "upcoming");
 
   return (
     <section id="seasonal-offers" aria-labelledby="seasonal-offers-title" className="hero-float rounded-3xl border border-border bg-white p-6 shadow-2xl dark:bg-card dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#C9A227]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7D5A00] dark:text-[#E6C764]"><Sparkles className="h-3.5 w-3.5" /> Verified seasonal offers</span>
-          <h2 id="seasonal-offers-title" className="mt-3 text-2xl font-bold text-[#111418] dark:text-[#F7F4E8]">Shop verified UK savings</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Only retailer offers reviewed and published by our operations team appear here. Availability and retailer terms can change.</p>
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#C9A227]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7D5A00] dark:text-[#E6C764]"><Sparkles className="h-3.5 w-3.5" /> Savings watch</span>
+          <h2 id="seasonal-offers-title" className="mt-3 text-2xl font-bold text-[#111418] dark:text-[#F7F4E8]">Prepare for verified UK offers</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">See confirmed upcoming retailer campaigns here before they start, then shop live offers directly. Every card is source-checked and dated by our operations team.</p>
         </div>
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#111418] text-[#D4AF37] dark:bg-[#D4AF37] dark:text-[#111418]"><Tag className="h-5 w-5" /></div>
       </div>
@@ -379,15 +383,33 @@ function SeasonalOffersPanel() {
       {offersQuery.isLoading ? (
         <div className="mt-6 space-y-3" aria-label="Loading verified offers"><div className="h-24 animate-pulse rounded-2xl bg-muted" /><div className="h-24 animate-pulse rounded-2xl bg-muted" /></div>
       ) : offers.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-[#C9A227]/45 bg-[#C9A227]/[0.06] px-5 py-8 text-center dark:bg-[#D4AF37]/[0.07]">
-          <Sparkles className="mx-auto h-7 w-7 text-[#A67C00] dark:text-[#E6C764]" />
-          <h3 className="mt-3 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">Verified offers will appear here</h3>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">We do not invent discounts. Check back when the team has confirmed a current retailer promotion.</p>
-          <Link href="/stores" className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Browse UK stores <ArrowRight className="h-3.5 w-3.5" /></Link>
+        <div className="mt-6 space-y-3">
+          <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-[#C9A227]/[0.06] px-5 py-5 text-center dark:bg-[#D4AF37]/[0.07]">
+            <Sparkles className="mx-auto h-7 w-7 text-[#A67C00] dark:text-[#E6C764]" />
+            <h3 className="mt-3 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">Your early-shopping watch starts here</h3>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">There is no retailer-specific campaign confirmed in the register today. Build your basket now; we will show each confirmed start date and official terms here before it goes live.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-border bg-background p-3 dark:bg-[#171a20]"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">Plan ahead</p><p className="mt-1 text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Create your UK wish-list</p><p className="mt-1 text-[11px] leading-4 text-muted-foreground">Save product links now, ready for a confirmed drop.</p></div>
+            <div className="rounded-2xl border border-border bg-background p-3 dark:bg-[#171a20]"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">Next update</p><p className="mt-1 text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Official retailer release</p><p className="mt-1 text-[11px] leading-4 text-muted-foreground">We publish the source, terms and start date together.</p></div>
+          </div>
+          <Link href="/stores" className="inline-flex items-center gap-2 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Prepare your basket at UK stores <ArrowRight className="h-3.5 w-3.5" /></Link>
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          {offers.map((offer) => {
+          {upcomingOffers.length > 0 ? <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Confirmed upcoming</p> : null}
+          {upcomingOffers.map((offer) => {
+            const start = offer.validFrom ? new Date(offer.validFrom) : null;
+            const verifiedAt = offer.verifiedAt ? new Date(offer.verifiedAt) : null;
+            const logo = storeLogos[offer.storeName];
+            return <article key={offer.id} className="rounded-2xl border border-[#C9A227]/40 bg-[#FFFDF5] p-4 dark:bg-[#272314]">
+              <div className="flex gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-2">{logo ? <img src={logo} alt={`${offer.storeName} logo`} className="h-7 w-8 object-contain" loading="lazy" /> : <span className="text-xs font-black text-[#111418]">{offer.storeName.slice(0, 1)}</span>}</div><div className="min-w-0 flex-1"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">{offer.storeName} · Coming soon</p><h3 className="mt-0.5 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{offer.title}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{offer.details}</p></div></div>
+              <p className="mt-3 border-t border-[#C9A227]/20 pt-3 text-[10px] leading-4 text-muted-foreground">Terms: {offer.termsSummary}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#111418] px-2.5 py-1 text-[10px] font-bold text-[#D4AF37]">Starts {start && !Number.isNaN(start.getTime()) ? start.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "on confirmed retailer date"}</span>{verifiedAt && !Number.isNaN(verifiedAt.getTime()) ? <span className="text-[10px] font-semibold text-muted-foreground">Checked {verifiedAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span> : null}{offer.linkType === "affiliate" ? <span className="text-[10px] font-semibold text-muted-foreground">Partner link — we may earn a commission</span> : <span className="text-[10px] font-semibold text-muted-foreground">Retailer source checked</span>}{offer.offerUrl ? <a href={offer.offerUrl} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Prepare your basket <ExternalLink className="h-3 w-3" /></a> : null}</div>
+            </article>;
+          })}
+          {liveOffers.length > 0 ? <p className="pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Live verified offers</p> : null}
+          {liveOffers.map((offer) => {
             const expiry = offer.validUntil ? new Date(offer.validUntil) : null;
             const verifiedAt = offer.verifiedAt ? new Date(offer.verifiedAt) : null;
             const logo = storeLogos[offer.storeName];

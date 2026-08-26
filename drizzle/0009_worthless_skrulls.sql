@@ -1,0 +1,1 @@
+ALTER TABLE `seasonal_offers` MODIFY COLUMN `status` enum('draft','upcoming','published','expired') NOT NULL DEFAULT 'draft';

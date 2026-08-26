@@ -235,8 +235,10 @@ export async function listPublicSeasonalOffers() {
     .select()
     .from(seasonalOffers)
     .where(and(
-      eq(seasonalOffers.status, "published"),
-      gt(seasonalOffers.validUntil, now),
+      or(
+        and(eq(seasonalOffers.status, "published"), gt(seasonalOffers.validUntil, now)),
+        and(eq(seasonalOffers.status, "upcoming"), gt(seasonalOffers.validFrom, now)),
+      ),
       isNotNull(seasonalOffers.offerUrl),
       isNotNull(seasonalOffers.sourceType),
       isNotNull(seasonalOffers.sourceUrl),
