@@ -30,6 +30,7 @@ import {
   ExternalLink,
   Sparkles,
   Tag,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ import { getRetailerUrl } from "@/lib/retailerLinks";
 import { stores, storeCategories, type Store } from "@/lib/stores";
 import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
 import { officialDealDestinations } from "@/lib/officialDealDestinations";
+import { formatShoppingEventDate, getUpcomingShoppingEvents } from "@/lib/salesEventCalendar";
 import { trpc } from "@/lib/trpc";
 
 function scrollToCalculator() {
@@ -117,6 +119,8 @@ const womensDiscoveryEdits = [
     stores: "M&S · Next · ASOS · John Lewis",
   },
 ];
+
+const comingSoonEvents = getUpcomingShoppingEvents();
 
 const journeyStops = [
   {
@@ -648,8 +652,64 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ============ COMING SOON SALES EVENTS ============ */}
+      <section id="coming-soon" className="border-y border-[#D4AF37]/25 bg-[#101318] py-16 text-[#F7F4E8] sm:py-20">
+        <div className="container grid items-stretch gap-8 lg:grid-cols-[0.9fr_1.5fr]">
+          <div className="relative min-h-[340px] overflow-hidden rounded-[2rem] border border-white/15 bg-[#161b23] p-8 sm:p-10">
+            <img
+              src={WOMEN_FASHION_SHOPPING_IMG}
+              alt="Woman preparing a fashion shopping list"
+              className="absolute inset-0 h-full w-full object-cover opacity-35"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#111418]/55 via-[#111418]/80 to-[#111418]" aria-hidden />
+            <div className="relative flex h-full flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#F2D675]">
+                  <CalendarDays className="h-3.5 w-3.5" /> Coming soon
+                </div>
+                <h2 className="mt-5 max-w-md text-3xl font-bold leading-tight sm:text-4xl">Get ready before the shopping rush.</h2>
+                <p className="mt-4 max-w-md text-sm leading-relaxed text-white/75">Build your shortlist now. We will add retailer-specific deal cards only after our team has checked the official source, dates and customer terms.</p>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a href="#shop-by-category" className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] px-5 py-3 text-sm font-bold text-[#111418] transition-colors hover:bg-[#F2D675]">
+                  Build your shortlist <ArrowRight className="h-4 w-4" />
+                </a>
+                <Link href="/add" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/5 px-5 py-3 text-sm font-bold text-white transition-colors hover:border-[#D4AF37] hover:text-[#F2D675]">
+                  Keep a product link ready <Link2 className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-white/12 bg-white/[0.04] p-6 sm:p-8">
+            <div className="flex flex-col gap-3 border-b border-white/12 pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#F2D675]">Shopping calendar watch</p>
+                <h3 className="mt-1 text-2xl font-bold">Plan the dates that matter</h3>
+              </div>
+              <p className="max-w-xs text-xs leading-relaxed text-white/60">These are retail-calendar moments, not confirmed retailer promotions. Participation, stock and terms vary.</p>
+            </div>
+            <div className="mt-2 divide-y divide-white/10">
+              {comingSoonEvents.map((event, index) => (
+                <article key={`${event.id}-${event.date.getUTCFullYear()}`} className="grid gap-3 py-5 sm:grid-cols-[3rem_1fr_auto] sm:items-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#D4AF37]/35 bg-[#D4AF37]/10 text-sm font-black text-[#F2D675]">0{index + 1}</div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#F2D675]">{formatShoppingEventDate(event.date)}</p>
+                    <h4 className="mt-1 text-lg font-bold text-white">{event.title}</h4>
+                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/65">{event.preparation}</p>
+                  </div>
+                  <Link href={buildStoreDirectoryHref("", event.category)} className="inline-flex items-center justify-center gap-1 text-sm font-bold text-[#F2D675] hover:text-white sm:justify-end">
+                    Explore stores <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ============ SHOP BY CATEGORY VISUALS ============ */}
-      <section className="py-16 sm:py-20 bg-[#F2F4F7]">
+      <section id="shop-by-category" className="py-16 sm:py-20 bg-[#F2F4F7]">
         <div className="container grid gap-10 lg:grid-cols-[15rem_1fr] lg:items-start">
           <div className="text-left lg:sticky lg:top-36">
             <span className="inline-block text-xs font-bold text-[#C9A227] uppercase tracking-wider bg-[#C9A227]/10 px-3 py-1 rounded-full">
