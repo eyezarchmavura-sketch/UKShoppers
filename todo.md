@@ -255,3 +255,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Define the initial evidence-backed, women-first retailer watchlist for fashion, beauty, skincare, hair care, shoes, bags, and occasionwear, including official offer-source entry points and customer-fit rationale. The prioritised sources are documented in `docs/INITIAL_WOMENS_OFFER_WATCHLIST.md`.
 - [x] Create a staff-ready women-first source-check and publication queue that prioritises official, current, time-bounded promotions without inventing any live offer data. The operations queue and approval rules are documented in `docs/WOMENS_FIRST_OFFER_PUBLISHING_QUEUE.md`.
 - [x] Present the recommended women-first launch selection and the operational cadence for rapid, responsible customer updates. The routine uses daily checks for the four highest-fit sources and a small number of published, time-bounded offers.
+
+# TASK — Women-first daily offer-review checklist 2026-08-25
+- [x] Create a staff-ready daily checklist for official-source review, offer evidence capture, terms validation, expiry control, and safe publication. The guide is saved at `docs/VERIFIED_STORE_DESK_DAILY_CHECKLIST.md`.
+- [x] Define escalation, withdrawal, and end-of-day review steps so stale or disputed offers are removed promptly.
+- [x] Deliver the checklist with a clear daily operating rhythm for the Verified Store Desk.
