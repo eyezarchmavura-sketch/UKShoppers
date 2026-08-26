@@ -217,15 +217,15 @@ function StoreCard({ store, delay }: { store: Store; delay?: number }) {
       rel="noopener noreferrer"
       aria-label={`Open ${store.name} official UK storefront in a new tab`}
       title={`Open ${store.name} official UK storefront in a new tab`}
-      className="group relative flex min-h-[144px] w-full items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-background p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-[#C9A227] hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:bg-card reveal-up"
+      className="brand-icon-link group relative flex min-h-[144px] w-full items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-background p-5 shadow-sm dark:bg-card reveal-up"
       data-reveal-delay={String(delay)}>
       <span className="sr-only">{store.name}, {store.category}</span>
       {brandLogo ? (
-        <img src={brandLogo} alt="" className="h-16 w-full max-w-[148px] object-contain transition-transform duration-200 group-hover:scale-105" loading="lazy" />
+        <img src={brandLogo} alt="" className="brand-icon-mark h-16 w-full max-w-[148px] object-contain transition-transform duration-200" loading="lazy" />
       ) : (
         <span className="text-3xl font-black text-[#111418]">{store.name.charAt(0)}</span>
       )}
-      <ExternalLink className="absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-[#E6C764]" aria-hidden="true" />
+      <ExternalLink className="brand-icon-external absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-[opacity,transform] dark:text-[#E6C764]" aria-hidden="true" />
     </a>
   );
 }
@@ -475,8 +475,8 @@ export default function Landing() {
                       aria-label={`Open ${store.name} UK storefront`}
                       aria-hidden={index >= marqueeStores.length}
                       tabIndex={index >= marqueeStores.length ? -1 : undefined}
-                      className="flex h-[68px] w-[124px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-3 shadow-sm transition-transform hover:-translate-y-0.5 hover:border-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]">
-                      {getStoreBrandLogo(store.name) ? <img src={getStoreBrandLogo(store.name)} alt="" className="h-11 w-[94px] object-contain" loading="lazy" /> : <span className="text-lg font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
+                      className="brand-icon-link flex h-[68px] w-[124px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-3 shadow-sm">
+                      {getStoreBrandLogo(store.name) ? <img src={getStoreBrandLogo(store.name)} alt="" className="brand-icon-mark h-11 w-[94px] object-contain transition-transform duration-200" loading="lazy" /> : <span className="brand-icon-mark text-lg font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
                     </a>
                   );
                 })}

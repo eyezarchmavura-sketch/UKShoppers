@@ -88,10 +88,10 @@ export default function StoreDirectory() {
                     rel="noopener noreferrer"
                     aria-label={`Open ${store.name} official UK storefront in a new tab`}
                     title={`Open ${store.name} official UK storefront in a new tab`}
-                    className="group relative flex aspect-[1.25] min-h-[132px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-background p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-[#C9A227] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:bg-card">
+                    className="brand-icon-link group relative flex aspect-[1.25] min-h-[132px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-background p-5 shadow-sm dark:bg-card">
                     <span className="sr-only">{store.name}, {store.category}</span>
-                    {brandLogo ? <img src={brandLogo} alt="" className="h-16 w-full max-w-[144px] object-contain transition-transform duration-200 group-hover:scale-105" loading="lazy" /> : <span className="text-3xl font-black text-[#111418]">{store.name.charAt(0)}</span>}
-                    <ExternalLink className="absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-[#E6C764]" aria-hidden="true" />
+                    {brandLogo ? <img src={brandLogo} alt="" className="brand-icon-mark h-16 w-full max-w-[144px] object-contain transition-transform duration-200" loading="lazy" /> : <span className="brand-icon-mark text-3xl font-black text-[#111418]">{store.name.charAt(0)}</span>}
+                    <ExternalLink className="brand-icon-external absolute bottom-3 right-3 h-4 w-4 text-[#A67C00] opacity-0 transition-[opacity,transform] dark:text-[#E6C764]" aria-hidden="true" />
                   </a>
                 );
               })}
