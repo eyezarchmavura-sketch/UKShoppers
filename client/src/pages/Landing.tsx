@@ -31,6 +31,8 @@ import {
   Sparkles,
   Tag,
   CalendarDays,
+  ChevronDown,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -376,6 +378,7 @@ export default function Landing() {
   const revealRef = useReveal<HTMLDivElement>();
   const [storeSearch, setStoreSearch] = useState("");
   const [storeCategory, setStoreCategory] = useState("All");
+  const [isDepartmentDrawerOpen, setIsDepartmentDrawerOpen] = useState(false);
 
   const handleStoreDiscovery = (event: React.FormEvent) => {
     event.preventDefault();
@@ -445,25 +448,10 @@ export default function Landing() {
             </Link>
           </div>
         </div>
-        <div className="border-t border-border/70 bg-white/80 dark:bg-[#15181d]/80">
-          <div className="container flex h-11 items-center gap-3 overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
-            <span className="hidden md:inline text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Browse UK stores</span>
-            <span className="hidden md:block h-4 w-px bg-border" aria-hidden="true" />
-            {storeCategories.filter((category) => category !== "All").map((category) => (
-              <Link
-                key={category}
-                href={buildStoreDirectoryHref("", category)}
-                className="text-xs font-semibold text-foreground/75 hover:text-[#A67C00] dark:hover:text-[#E6C764] transition-colors">
-                {category}
-              </Link>
-            ))}
-            <Link href="/stores" className="ml-auto text-xs font-bold text-[#A67C00] dark:text-[#E6C764] hover:underline underline-offset-4">All stores</Link>
-          </div>
-        </div>
         <div className="retailer-belt border-t border-border/70 bg-[#111418] text-[#F7F4E8] dark:bg-black" aria-label="Supported UK retailer icons">
-        <div className="container flex h-[96px] items-center gap-4 overflow-hidden">
+        <div className="container flex h-[126px] items-center gap-5 overflow-hidden sm:h-[138px]">
           <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="retailer-belt-track gap-5 py-3">
+              <div className="retailer-belt-track gap-6 py-4">
                 {[...marqueeStores, ...marqueeStores].map((store, index) => {
                   const retailerUrl = getRetailerUrl(store.domain);
                   return (
@@ -475,14 +463,14 @@ export default function Landing() {
                       aria-label={`Open ${store.name} UK storefront`}
                       aria-hidden={index >= marqueeStores.length}
                       tabIndex={index >= marqueeStores.length ? -1 : undefined}
-                      className="brand-icon-link flex h-[68px] w-[124px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-3 shadow-sm">
-                      {getStoreBrandLogo(store.name) ? <img src={getStoreBrandLogo(store.name)} alt="" className="brand-icon-mark h-11 w-[94px] object-contain transition-transform duration-200" loading="lazy" /> : <span className="brand-icon-mark text-lg font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
+                      className="brand-icon-link flex h-[88px] w-[150px] shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white p-4 shadow-sm sm:h-[96px] sm:w-[166px]">
+                      {getStoreBrandLogo(store.name) ? <img src={getStoreBrandLogo(store.name)} alt="" className="brand-icon-mark h-14 w-[118px] object-contain transition-transform duration-200 sm:h-16 sm:w-[132px]" loading="lazy" /> : <span className="brand-icon-mark text-2xl font-black text-[#111418]">{store.name.slice(0, 1)}</span>}
                     </a>
                   );
                 })}
               </div>
             </div>
-            <Link href="/stores" aria-label="View all UK stores" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#D4AF37]/45 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#111418]"><ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/stores" aria-label="View all UK stores" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#D4AF37]/45 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#111418]"><ArrowRight className="h-5 w-5" /></Link>
           </div>
         </div>
       </header>
@@ -513,6 +501,46 @@ export default function Landing() {
                 <Globe className="w-4 h-4 text-[#C9A227]" />
                 London Warehouse to Dar es Salaam, Nairobi, Kampala & Kigali
               </div>
+              <div className="hero-rise hero-rise-d1 relative z-30 w-full max-w-sm border-l-2 border-[#C9A227] pl-4">
+                <button
+                  type="button"
+                  aria-expanded={isDepartmentDrawerOpen}
+                  aria-controls="hero-department-drawer"
+                  onClick={() => setIsDepartmentDrawerOpen((open) => !open)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-[#111418]/15 bg-white/80 px-3.5 py-3 text-left shadow-sm backdrop-blur-sm transition-colors hover:border-[#C9A227] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:border-[#D4AF37]/35 dark:bg-card/85 dark:hover:border-[#D4AF37]">
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#111418] text-[#D4AF37] dark:bg-[#D4AF37] dark:text-[#111418]">
+                      <Menu className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span>
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Shop departments</span>
+                      <span className="block text-sm font-semibold text-[#111418] dark:text-[#F7F4E8]">Open categories</span>
+                    </span>
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-[#A67C00] transition-transform ${isDepartmentDrawerOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+                </button>
+                <div
+                  id="hero-department-drawer"
+                  className={`absolute left-4 right-0 top-[calc(100%+0.6rem)] origin-top rounded-2xl border border-[#C9A227]/40 bg-white/95 p-2.5 shadow-xl backdrop-blur-xl transition-[opacity,transform] duration-200 dark:bg-[#171a20]/95 ${isDepartmentDrawerOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}>
+                  <nav aria-label="Shop departments" className="grid grid-cols-2 gap-1.5">
+                    {storeCategories.filter((category) => category !== "All").map((category) => (
+                      <Link
+                        key={category}
+                        href={buildStoreDirectoryHref("", category)}
+                        onClick={() => setIsDepartmentDrawerOpen(false)}
+                        className="rounded-xl px-3 py-2.5 text-xs font-semibold text-[#111418] transition-colors hover:bg-[#111418] hover:text-[#D4AF37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] dark:text-[#F7F4E8] dark:hover:bg-[#D4AF37] dark:hover:text-[#111418]">
+                        {category}
+                      </Link>
+                    ))}
+                    <Link
+                      href="/stores"
+                      onClick={() => setIsDepartmentDrawerOpen(false)}
+                      className="col-span-2 mt-1 flex items-center justify-between rounded-xl bg-[#111418] px-3 py-2.5 text-xs font-bold text-[#D4AF37] dark:bg-[#D4AF37] dark:text-[#111418]">
+                      View every UK store <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  </nav>
+                </div>
+              </div>
               <h1 className="hero-rise hero-rise-d1 text-4xl sm:text-6xl font-bold tracking-tight text-[#111418] dark:text-foreground leading-[1.1]">
                 {tr("hero.title1", lang)} <br />
                 <span className="hero-shimmer font-display italic">{tr("hero.title2", lang)}</span>
@@ -520,20 +548,6 @@ export default function Landing() {
               <p className="hero-rise hero-rise-d2 text-lg text-muted-foreground leading-relaxed max-w-xl bg-white/60 dark:bg-card/70 backdrop-blur-sm rounded-xl px-4 py-3">
                 {tr("hero.body", lang)}
               </p>
-
-              <div className="hero-rise hero-rise-d3 border-l-2 border-[#C9A227] pl-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Shop departments</p>
-                <div className="mt-2 flex flex-wrap justify-start gap-2">
-                  {storeCategories.filter((category) => category !== "All").map((category) => (
-                    <Link
-                      key={category}
-                      href={buildStoreDirectoryHref("", category)}
-                      className="rounded-full border border-[#111418]/15 bg-white/75 px-3 py-1.5 text-xs font-semibold text-[#111418] backdrop-blur-sm transition-colors hover:border-[#C9A227] hover:text-[#A67C00] dark:border-[#D4AF37]/35 dark:bg-card/80 dark:text-[#F7F4E8] dark:hover:border-[#D4AF37] dark:hover:text-[#D4AF37]">
-                      {category}
-                    </Link>
-                  ))}
-                </div>
-              </div>
 
               <div className="hero-rise hero-rise-d4 flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
