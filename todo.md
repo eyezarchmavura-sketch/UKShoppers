@@ -260,3 +260,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Create a staff-ready daily checklist for official-source review, offer evidence capture, terms validation, expiry control, and safe publication. The guide is saved at `docs/VERIFIED_STORE_DESK_DAILY_CHECKLIST.md`.
 - [x] Define escalation, withdrawal, and end-of-day review steps so stale or disputed offers are removed promptly.
 - [x] Deliver the checklist with a clear daily operating rhythm for the Verified Store Desk.
+
+# TASK — Embedded Verified Store Desk guidance 2026-08-25
+- [x] Add concise in-product source, terms, expiry, and withdrawal checks to the staff offers workspace.
+- [x] Highlight the women-first priority sources and daily review rhythm without hard-coding any live offer data.
+- [x] Verify the staff workflow remains clear and non-blocking alongside the existing server-side evidence requirements. TypeScript is clean, all 37 regression tests pass, and the authenticated staff workspace was visually checked with an empty offer register.
