@@ -334,3 +334,8 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 # TASK — Deal Watch attention pulse 2026-08-27
 - [x] Add a subtle visual pulse to the UK Deal Watch card that draws attention without distracting from its content or customer actions. The card now has a brief 1.2% scale lift and gold inner-halo pulse on a relaxed 5.8-second cadence, while preserving content contrast and active links.
 - [x] Respect `prefers-reduced-motion` and validate the treatment on desktop and mobile before checkpointing. The animation runs only under `prefers-reduced-motion: no-preference`; both desktop and 375px mobile renders remain clear. TypeScript, 48 tests and the bounded production build pass.
+
+# TASK — Offer visibility counters and bags/shoes showcase 2026-08-27
+- [ ] Add dynamic, truthful offer-area counters for verified live campaigns, upcoming campaigns and supported retailer destinations; never substitute invented discount numbers.
+- [ ] Strengthen the offer panel with clearly visible bags and shoes imagery and direct category/store actions so customers understand what they can shop.
+- [ ] Add regression coverage and validate the updated offer area on desktop and mobile before checkpointing.

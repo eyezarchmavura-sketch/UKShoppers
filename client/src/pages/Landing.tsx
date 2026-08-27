@@ -50,6 +50,7 @@ import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
 import { officialDealDestinations } from "@/lib/officialDealDestinations";
 import { formatShoppingEventDate, getUpcomingShoppingEvents } from "@/lib/salesEventCalendar";
 import { homepageDealsWatch } from "@/lib/dealsWatch";
+import { getOfferStatusSummary } from "@/lib/dealsWatchStats";
 import { trpc } from "@/lib/trpc";
 
 function scrollToCalculator() {
@@ -306,13 +307,14 @@ function SeasonalOffersPanel() {
   const offers = (offersQuery.data ?? []) as PublicSeasonalOffer[];
   const liveOffers = offers.filter((offer) => offer.status === "published");
   const upcomingOffers = offers.filter((offer) => offer.status === "upcoming");
+  const offerSummary = getOfferStatusSummary(offers, officialDealDestinations.length, offersQuery.isError);
 
   return (
     <section id="seasonal-offers" aria-labelledby="seasonal-offers-title" className="hero-float rounded-3xl border border-border bg-white p-6 shadow-2xl dark:bg-card dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:p-8">
       <div className="deal-watch-pulse relative overflow-hidden rounded-2xl bg-[#080d18] text-white">
         <img src={DEALS_WATCH_IMG} alt="Decorative shopping bags and travel route illustration" className="absolute inset-y-0 right-0 h-full w-[47%] object-cover object-right opacity-90" loading="lazy" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,13,24,1)_0%,rgba(8,13,24,0.96)_46%,rgba(8,13,24,0.28)_100%)]" />
-        <div className="relative z-10 flex min-h-[252px] max-w-[69%] flex-col justify-center px-5 py-6 sm:min-h-[276px] sm:px-7 sm:py-8">
+        <div className="relative z-10 flex min-h-[390px] max-w-[70%] flex-col justify-center px-5 py-7 sm:min-h-[350px] sm:px-7 sm:py-8">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F3E7AF]"><Tag className="h-3.5 w-3.5" /> {homepageDealsWatch.eyebrow}</span>
           <h2 id="seasonal-offers-title" className="mt-4 text-2xl font-bold leading-tight sm:text-3xl">{homepageDealsWatch.title}</h2>
           <p className="mt-3 text-xs leading-5 text-white/78 sm:text-sm sm:leading-6">{homepageDealsWatch.description}</p>
@@ -320,8 +322,24 @@ function SeasonalOffersPanel() {
             <a href={homepageDealsWatch.primaryHref} className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-[#111418] shadow-lg transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#F3E7AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#080d18]">{homepageDealsWatch.primaryLabel} <ArrowRight className="h-3.5 w-3.5" /></a>
             <Link href={homepageDealsWatch.secondaryHref} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F3E7AF] hover:underline hover:underline-offset-4">{homepageDealsWatch.secondaryLabel} <ChevronRight className="h-3.5 w-3.5" /></Link>
           </div>
+          <div className="mt-5 grid max-w-[32rem] grid-cols-3 gap-2" aria-live="polite" aria-label="Offer discovery counters">
+            <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2"><span className="block text-xl font-black text-[#F3E7AF]">{offersQuery.isLoading ? "…" : offerSummary.live}</span><span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/65">Verified now</span></div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2"><span className="block text-xl font-black text-[#F3E7AF]">{offersQuery.isLoading ? "…" : offerSummary.upcoming}</span><span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/65">Coming soon</span></div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2"><span className="block text-xl font-black text-[#F3E7AF]">{offerSummary.retailerDestinations}</span><span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/65">UK stores</span></div>
+          </div>
           <p className="mt-4 text-[10px] leading-4 text-white/60">{homepageDealsWatch.assurance}</p>
         </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-3" aria-label="Popular visual shopping categories">
+        <Link href={buildStoreDirectoryHref("", "Fashion")} className="group relative overflow-hidden rounded-2xl border border-border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]">
+          <img src={SHOES_AND_BAGS_IMG} alt="Shoes and bags available from UK fashion retailers" className="h-32 w-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.04] sm:h-40" loading="lazy" />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#111418] via-[#111418]/75 to-transparent px-3 pb-3 pt-10"><span className="text-sm font-black text-white">Shoes & bags</span><span className="block text-[10px] font-semibold text-white/70">Open Fashion stores</span></div>
+        </Link>
+        <Link href={buildStoreDirectoryHref("", "Fashion")} className="group relative overflow-hidden rounded-2xl border border-border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]">
+          <img src={ACCESSORIES_IMG} alt="Bags and accessories available from UK fashion retailers" className="h-32 w-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.04] sm:h-40" loading="lazy" />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#111418] via-[#111418]/75 to-transparent px-3 pb-3 pt-10"><span className="text-sm font-black text-white">Bags & accessories</span><span className="block text-[10px] font-semibold text-white/70">See the visual edit</span></div>
+        </Link>
       </div>
 
       {offersQuery.isLoading ? (
