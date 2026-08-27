@@ -336,6 +336,6 @@ Store wall in dark mode: cards are dark (bg-background), but each logo now sits 
 - [x] Respect `prefers-reduced-motion` and validate the treatment on desktop and mobile before checkpointing. The animation runs only under `prefers-reduced-motion: no-preference`; both desktop and 375px mobile renders remain clear. TypeScript, 48 tests and the bounded production build pass.
 
 # TASK — Offer visibility counters and bags/shoes showcase 2026-08-27
-- [ ] Add dynamic, truthful offer-area counters for verified live campaigns, upcoming campaigns and supported retailer destinations; never substitute invented discount numbers.
-- [ ] Strengthen the offer panel with clearly visible bags and shoes imagery and direct category/store actions so customers understand what they can shop.
-- [ ] Add regression coverage and validate the updated offer area on desktop and mobile before checkpointing.
+- [x] Add dynamic, truthful offer-area counters for verified live campaigns, upcoming campaigns and supported retailer destinations; never substitute invented discount numbers. The homepage now displays live verified, coming-soon and official-UK-store counts from the existing data/configuration helpers; current visible values are 0, 0 and 4 rather than invented offer totals.
+- [x] Strengthen the offer panel with clearly visible bags and shoes imagery and direct category/store actions so customers understand what they can shop. Increased the Deals Watch visual height and added two prominent touch-friendly image tiles for Shoes & bags and Bags & accessories, both opening the Fashion store directory.
+- [x] Add regression coverage and validate the updated offer area on desktop and mobile before checkpointing. Added `dealsWatchStats` tests; TypeScript, 48 tests and the bounded production build pass. Fresh desktop and 375px mobile renders show the counters and bag imagery clearly after restart.
