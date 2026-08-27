@@ -49,6 +49,7 @@ import { getStoreBrandLogo } from "@/lib/storeBrandAssets";
 import { buildStoreDirectoryHref } from "@/lib/storeDirectoryQuery";
 import { officialDealDestinations } from "@/lib/officialDealDestinations";
 import { formatShoppingEventDate, getUpcomingShoppingEvents } from "@/lib/salesEventCalendar";
+import { homepageDealsWatch } from "@/lib/dealsWatch";
 import { trpc } from "@/lib/trpc";
 
 function scrollToCalculator() {
@@ -65,6 +66,7 @@ const WOMEN_FASHION_SHOPPING_IMG = "/manus-storage/women-fashion-shopping_6771b1
 const SHOES_AND_BAGS_IMG = "/manus-storage/shoes-and-bags_9d7ad3e4.jpg";
 const ACCESSORIES_IMG = "/manus-storage/accessories_84737cc5.jpg";
 const BEAUTY_SKINCARE_IMG = "/manus-storage/beauty-skincare_8675cf48.jpg";
+const DEALS_WATCH_IMG = "/manus-storage/deals-watch-card_8cae2e99.png";
 
 const womensDiscoveryEdits = [
   {
@@ -307,29 +309,27 @@ function SeasonalOffersPanel() {
 
   return (
     <section id="seasonal-offers" aria-labelledby="seasonal-offers-title" className="hero-float rounded-3xl border border-border bg-white p-6 shadow-2xl dark:bg-card dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:p-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#C9A227]/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7D5A00] dark:text-[#E6C764]"><Sparkles className="h-3.5 w-3.5" /> Savings watch</span>
-          <h2 id="seasonal-offers-title" className="mt-3 text-2xl font-bold text-[#111418] dark:text-[#F7F4E8]">Prepare for verified UK offers</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">See confirmed upcoming retailer campaigns here before they start, then shop live offers directly. Every card is source-checked and dated by our operations team.</p>
+      <div className="relative overflow-hidden rounded-2xl bg-[#080d18] text-white">
+        <img src={DEALS_WATCH_IMG} alt="Decorative shopping bags and travel route illustration" className="absolute inset-y-0 right-0 h-full w-[47%] object-cover object-right opacity-90" loading="lazy" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,13,24,1)_0%,rgba(8,13,24,0.96)_46%,rgba(8,13,24,0.28)_100%)]" />
+        <div className="relative z-10 flex min-h-[252px] max-w-[69%] flex-col justify-center px-5 py-6 sm:min-h-[276px] sm:px-7 sm:py-8">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F3E7AF]"><Tag className="h-3.5 w-3.5" /> {homepageDealsWatch.eyebrow}</span>
+          <h2 id="seasonal-offers-title" className="mt-4 text-2xl font-bold leading-tight sm:text-3xl">{homepageDealsWatch.title}</h2>
+          <p className="mt-3 text-xs leading-5 text-white/78 sm:text-sm sm:leading-6">{homepageDealsWatch.description}</p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <a href={homepageDealsWatch.primaryHref} className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-xs font-bold text-[#111418] shadow-lg transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#F3E7AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#080d18]">{homepageDealsWatch.primaryLabel} <ArrowRight className="h-3.5 w-3.5" /></a>
+            <Link href={homepageDealsWatch.secondaryHref} className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F3E7AF] hover:underline hover:underline-offset-4">{homepageDealsWatch.secondaryLabel} <ChevronRight className="h-3.5 w-3.5" /></Link>
+          </div>
+          <p className="mt-4 text-[10px] leading-4 text-white/60">{homepageDealsWatch.assurance}</p>
         </div>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#111418] text-[#D4AF37] dark:bg-[#D4AF37] dark:text-[#111418]"><Tag className="h-5 w-5" /></div>
       </div>
 
       {offersQuery.isLoading ? (
         <div className="mt-6 space-y-3" aria-label="Loading verified offers"><div className="h-24 animate-pulse rounded-2xl bg-muted" /><div className="h-24 animate-pulse rounded-2xl bg-muted" /></div>
       ) : offers.length === 0 ? (
-        <div className="mt-6 space-y-3">
-          <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-[#C9A227]/[0.06] px-5 py-5 text-center dark:bg-[#D4AF37]/[0.07]">
-            <Sparkles className="mx-auto h-7 w-7 text-[#A67C00] dark:text-[#E6C764]" />
-            <h3 className="mt-3 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">Your early-shopping watch starts here</h3>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">There is no retailer-specific campaign confirmed in the register today. Build your basket now; we will show each confirmed start date and official terms here before it goes live.</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-border bg-background p-3 dark:bg-[#171a20]"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">Plan ahead</p><p className="mt-1 text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Create your UK wish-list</p><p className="mt-1 text-[11px] leading-4 text-muted-foreground">Save product links now, ready for a confirmed drop.</p></div>
-            <div className="rounded-2xl border border-border bg-background p-3 dark:bg-[#171a20]"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">Next update</p><p className="mt-1 text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Official retailer release</p><p className="mt-1 text-[11px] leading-4 text-muted-foreground">We publish the source, terms and start date together.</p></div>
-          </div>
-          <Link href="/stores" className="inline-flex items-center gap-2 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Prepare your basket at UK stores <ArrowRight className="h-3.5 w-3.5" /></Link>
+        <div className="mt-4 rounded-2xl border border-dashed border-[#C9A227]/45 bg-[#C9A227]/[0.06] px-4 py-3 dark:bg-[#D4AF37]/[0.07]">
+          <p className="text-xs font-bold text-[#111418] dark:text-[#F7F4E8]">Campaign tracker</p>
+          <p className="mt-1 text-[11px] leading-5 text-muted-foreground">No retailer-specific campaign is confirmed in the register today. Confirmed start dates and official terms appear here as soon as our team verifies them.</p>
         </div>
       ) : (
         <div className="mt-6 space-y-3">
