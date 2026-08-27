@@ -23,6 +23,7 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const SeasonalOffersAdmin = lazy(() => import("./pages/SeasonalOffersAdmin"));
+const DealAdvertisingAdmin = lazy(() => import("./pages/DealAdvertisingAdmin"));
 const ExternalStaffInvites = lazy(() => import("./pages/ExternalStaffInvites"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
@@ -49,6 +50,7 @@ function Router() {
           <Route path={"/"} component={Landing} />
           <Route path={"/admin"}><AdminDashboard /></Route>
           <Route path={"/admin/offers"}><SeasonalOffersAdmin /></Route>
+          <Route path={"/admin/deals-advertising"}><DealAdvertisingAdmin /></Route>
           <Route path={"/admin/invitations"}><ExternalStaffInvites /></Route>
           <Route path={"/stores"}><StoreDirectory /></Route>
           <Route path={"/portal"}><PortalShell><Dashboard /></PortalShell></Route>

@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, isNotNull, isNull, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertNotification,
@@ -8,6 +8,16 @@ import {
   InsertOperationAlert,
   InsertSeasonalOffer,
   InsertStaffInvite,
+  InsertDealSource,
+  InsertDealCandidate,
+  InsertDealRefreshRun,
+  InsertAdvertiser,
+  InsertAdCampaign,
+  adCampaigns,
+  advertisers,
+  dealCandidates,
+  dealRefreshRuns,
+  dealSources,
   notifications,
   operationAlerts,
   orders,
@@ -276,6 +286,264 @@ export async function deleteSeasonalOffer(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(seasonalOffers).where(eq(seasonalOffers.id, id));
+}
+
+// ---------------------------------------------------------------------------
+// Reviewed rotating-deal candidates
+// ---------------------------------------------------------------------------
+
+export async function listDealSourcesForOperations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dealSources).orderBy(desc(dealSources.updatedAt)).limit(100);
+}
+
+export async function getDealSourceById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(dealSources).where(eq(dealSources.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getDealSourceByScheduleTaskUid(taskUid: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(dealSources).where(eq(dealSources.scheduleCronTaskUid, taskUid)).limit(1);
+  return rows[0];
+}
+
+export async function createDealSource(data: InsertDealSource) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dealSources).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(dealSources).where(eq(dealSources.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateDealSource(id: number, data: Partial<InsertDealSource>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dealSources).set(data).where(eq(dealSources.id, id));
+  return getDealSourceById(id);
+}
+
+/**
+ * Atomically acquires a time-bounded lease for one source refresh. If a prior
+ * process stopped unexpectedly, its elapsed lease permits a later retry.
+ */
+export async function acquireDealSourceRefreshLease(id: number, leaseExpiresAt: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const now = new Date();
+  const result = await db
+    .update(dealSources)
+    .set({ refreshLockExpiresAt: leaseExpiresAt })
+    .where(and(
+      eq(dealSources.id, id),
+      or(isNull(dealSources.refreshLockExpiresAt), lte(dealSources.refreshLockExpiresAt, now)),
+    ));
+  return Number((result[0] as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
+}
+
+/** Release only the lease held by this invocation; never clear a newer lease. */
+export async function releaseDealSourceRefreshLease(id: number, leaseExpiresAt: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(dealSources)
+    .set({ refreshLockExpiresAt: null })
+    .where(and(eq(dealSources.id, id), eq(dealSources.refreshLockExpiresAt, leaseExpiresAt)));
+}
+
+export async function listDealCandidatesForOperations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dealCandidates).orderBy(desc(dealCandidates.updatedAt)).limit(200);
+}
+
+export async function listPublicRotatingDeals(limit = 2) {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  return db
+    .select({
+      id: dealCandidates.id,
+      retailerName: dealCandidates.retailerName,
+      category: dealCandidates.category,
+      productName: dealCandidates.productName,
+      productImageUrl: dealCandidates.productImageUrl,
+      productUrl: dealCandidates.productUrl,
+      currencyCode: dealCandidates.currencyCode,
+      currentPrice: dealCandidates.currentPrice,
+      previousPrice: dealCandidates.previousPrice,
+      calculatedDiscountPercent: dealCandidates.calculatedDiscountPercent,
+      termsSummary: dealCandidates.termsSummary,
+      allowedGeographies: dealCandidates.allowedGeographies,
+      expiresAt: dealCandidates.expiresAt,
+      verifiedAt: dealCandidates.verifiedAt,
+    })
+    .from(dealCandidates)
+    .where(and(
+      eq(dealCandidates.status, "published"),
+      gt(dealCandidates.expiresAt, now),
+      isNotNull(dealCandidates.verifiedAt),
+      isNotNull(dealCandidates.sourceUrl),
+      isNotNull(dealCandidates.productUrl),
+    ))
+    .orderBy(desc(dealCandidates.rotationWeight), dealCandidates.lastPresentedAt, desc(dealCandidates.verifiedAt))
+    .limit(Math.min(Math.max(limit, 1), 2));
+}
+
+export async function createDealCandidate(data: InsertDealCandidate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dealCandidates).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(dealCandidates).where(eq(dealCandidates.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateDealCandidate(id: number, data: Partial<InsertDealCandidate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dealCandidates).set(data).where(eq(dealCandidates.id, id));
+  const rows = await db.select().from(dealCandidates).where(eq(dealCandidates.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getDealCandidateById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(dealCandidates).where(eq(dealCandidates.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function createDealRefreshRun(data: InsertDealRefreshRun) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dealRefreshRuns).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(dealRefreshRuns).where(eq(dealRefreshRuns.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function finishDealRefreshRun(id: number, data: Partial<InsertDealRefreshRun>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dealRefreshRuns).set(data).where(eq(dealRefreshRuns.id, id));
+}
+
+// ---------------------------------------------------------------------------
+// Partner advertising
+// ---------------------------------------------------------------------------
+
+export async function listAdvertisersForOperations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(advertisers).orderBy(desc(advertisers.updatedAt)).limit(100);
+}
+
+export async function listAdvertiserOptionsForStaff() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({ id: advertisers.id, brandName: advertisers.brandName, status: advertisers.status })
+    .from(advertisers)
+    .where(or(eq(advertisers.status, "prospect"), eq(advertisers.status, "active")))
+    .orderBy(desc(advertisers.updatedAt))
+    .limit(100);
+}
+
+export async function createAdvertiser(data: InsertAdvertiser) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(advertisers).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(advertisers).where(eq(advertisers.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateAdvertiser(id: number, data: Partial<InsertAdvertiser>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(advertisers).set(data).where(eq(advertisers.id, id));
+  const rows = await db.select().from(advertisers).where(eq(advertisers.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getAdvertiserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(advertisers).where(eq(advertisers.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function listAdCampaignsForOperations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({ campaign: adCampaigns, advertiser: advertisers })
+    .from(adCampaigns)
+    .leftJoin(advertisers, eq(adCampaigns.advertiserId, advertisers.id))
+    .orderBy(desc(adCampaigns.updatedAt))
+    .limit(200);
+}
+
+export async function createAdCampaign(data: InsertAdCampaign) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(adCampaigns).values(data);
+  const id = Number((result as unknown as { insertId?: number }).insertId ?? 0);
+  const rows = await db.select().from(adCampaigns).where(eq(adCampaigns.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateAdCampaign(id: number, data: Partial<InsertAdCampaign>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(adCampaigns).set(data).where(eq(adCampaigns.id, id));
+  const rows = await db.select().from(adCampaigns).where(eq(adCampaigns.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getAdCampaignById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(adCampaigns).where(eq(adCampaigns.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function listPublicSponsoredCampaigns(placement?: "homepage_sponsor" | "deal_hub" | "category_gallery") {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  const filters = [
+    eq(adCampaigns.status, "live"),
+    eq(advertisers.status, "active"),
+    lte(adCampaigns.startsAt, now),
+    gt(adCampaigns.endsAt, now),
+  ];
+  if (placement) filters.push(eq(adCampaigns.placement, placement));
+  return db
+    .select({
+      id: adCampaigns.id,
+      advertiserName: advertisers.brandName,
+      title: adCampaigns.title,
+      body: adCampaigns.body,
+      placement: adCampaigns.placement,
+      ctaLabel: adCampaigns.ctaLabel,
+      destinationUrl: adCampaigns.destinationUrl,
+      creativeUrl: adCampaigns.creativeUrl,
+      creativeAltText: adCampaigns.creativeAltText,
+      allowedGeographies: adCampaigns.allowedGeographies,
+      endsAt: adCampaigns.endsAt,
+    })
+    .from(adCampaigns)
+    .innerJoin(advertisers, eq(adCampaigns.advertiserId, advertisers.id))
+    .where(and(...filters))
+    .orderBy(desc(adCampaigns.approvedAt))
+    .limit(3);
 }
 
 // ---------------------------------------------------------------------------

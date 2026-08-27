@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerPaymentWebhookRoutes } from "../paymentWebhooks";
 import { registerExternalStaffInviteRoutes } from "../externalStaffInvites";
+import { registerDealRefreshScheduleRoutes } from "../dealRefreshSchedule";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +39,9 @@ async function startServer() {
   // Invitation acceptance uses a signed, httpOnly session cookie and must be
   // registered before the static client fallback.
   registerExternalStaffInviteRoutes(app);
+  // Heartbeat callbacks must be registered before the Vite/static fallthrough.
+  // No job is created until a reviewed provider is configured and deployed.
+  registerDealRefreshScheduleRoutes(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

@@ -71,6 +71,20 @@
       "when": 1787737218179,
       "tag": "0009_worthless_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787839299250,
+      "tag": "0010_glamorous_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1787840433988,
+      "tag": "0011_woozy_bulldozer",
+      "breakpoints": true
     }
   ]
 }

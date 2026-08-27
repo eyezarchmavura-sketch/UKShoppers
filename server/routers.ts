@@ -7,6 +7,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router, staffProcedure } from "./_core/trpc";
 import { ASSISTANT_KNOWLEDGE } from "./assistantKnowledge";
 import { storagePut } from "./storage";
+import { calculateVerifiedDiscountPercent, canPublishDeal, canShowSponsoredCampaign, isSafeExternalHttpsUrl } from "./dealAdsGovernance";
 import {
   ORDER_STATUS_LABELS,
   advanceOrderStatus,
@@ -32,6 +33,25 @@ import {
   revokeStaffInvite,
   updateSeasonalOffer,
   upsertUser,
+  createAdCampaign,
+  createAdvertiser,
+  createDealCandidate,
+  createDealSource,
+  getAdCampaignById,
+  getAdvertiserById,
+  getDealCandidateById,
+  getDealSourceById,
+  listAdCampaignsForOperations,
+  listAdvertisersForOperations,
+  listAdvertiserOptionsForStaff,
+  listDealCandidatesForOperations,
+  listDealSourcesForOperations,
+  listPublicRotatingDeals,
+  listPublicSponsoredCampaigns,
+  updateAdCampaign,
+  updateAdvertiser,
+  updateDealCandidate,
+  updateDealSource,
 } from "./db";
 import { createStaffInviteToken, getStaffInviteExpiry, hashStaffInviteToken } from "./externalStaffInvites";
 
@@ -117,6 +137,91 @@ const seasonalOfferInput = z.object({
     if (offer.validFrom && offer.validFrom <= Date.now()) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validFrom"], message: "An upcoming offer must have a future start date." });
   }
   if (offer.validFrom && offer.validUntil && offer.validUntil < offer.validFrom) context.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message: "The end date cannot be earlier than the start date." });
+});
+
+const safeExternalUrl = z.string().url().max(1024).refine(isSafeExternalHttpsUrl, {
+  message: "Only public HTTPS destinations are allowed.",
+});
+
+const dealSourceInput = z.object({
+  name: z.string().trim().min(3).max(160),
+  providerName: z.string().trim().min(2).max(160),
+  providerKind: z.enum(["manual", "affiliate_feed", "approved_api"]),
+  sourceTermsUrl: safeExternalUrl.nullable().optional(),
+  permittedFields: z.array(z.enum(["product_name", "product_url", "current_price", "previous_price", "product_image", "terms", "availability"]))
+    .min(1)
+    .max(7),
+  allowedGeographies: z.string().trim().max(256).nullable().optional(),
+  status: z.enum(["draft", "approved", "paused", "disabled"]),
+  enabled: z.enum(["no", "yes"]),
+}).superRefine((source, context) => {
+  if (source.enabled === "yes" && source.status !== "approved") {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["enabled"], message: "Only an approved commercial source may be enabled." });
+  }
+  if (source.providerKind !== "manual" && !source.sourceTermsUrl) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["sourceTermsUrl"], message: "Approved feed/API terms are required before the source can be recorded." });
+  }
+});
+
+const dealCandidateInput = z.object({
+  sourceId: z.number().int().positive(),
+  providerProductId: z.string().trim().min(1).max(256).nullable().optional(),
+  retailerName: z.string().trim().min(2).max(128),
+  category: z.string().trim().max(96).nullable().optional(),
+  productName: z.string().trim().min(3).max(256),
+  productImageUrl: safeExternalUrl.nullable().optional(),
+  productUrl: safeExternalUrl,
+  currencyCode: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/),
+  currentPrice: z.string().trim().regex(/^\d+(?:\.\d{1,2})?$/).nullable().optional(),
+  previousPrice: z.string().trim().regex(/^\d+(?:\.\d{1,2})?$/).nullable().optional(),
+  sourceUrl: safeExternalUrl,
+  termsSummary: z.string().trim().min(12).max(800),
+  allowedGeographies: z.string().trim().max(256).nullable().optional(),
+  expiresAt: z.number().int().positive(),
+  rotationWeight: z.number().int().min(1).max(100).default(1),
+}).superRefine((candidate, context) => {
+  if (candidate.expiresAt <= Date.now()) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "A deal candidate must have a future verified expiry." });
+  }
+  if (candidate.currentPrice && candidate.previousPrice && Number(candidate.currentPrice) >= Number(candidate.previousPrice)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["previousPrice"], message: "A prior price must be greater than the current price before a discount may be claimed." });
+  }
+});
+
+const advertiserInput = z.object({
+  brandName: z.string().trim().min(2).max(160),
+  legalName: z.string().trim().max(256).nullable().optional(),
+  contactName: z.string().trim().max(160).nullable().optional(),
+  contactEmail: z.string().trim().toLowerCase().email().max(320).nullable().optional(),
+  contactPhone: z.string().trim().max(64).nullable().optional(),
+  websiteUrl: safeExternalUrl.nullable().optional(),
+  status: z.enum(["prospect", "active", "blocked"]),
+  riskNotes: z.string().trim().max(1000).nullable().optional(),
+});
+
+const campaignInput = z.object({
+  advertiserId: z.number().int().positive(),
+  title: z.string().trim().min(3).max(160),
+  body: z.string().trim().min(12).max(480),
+  placement: z.enum(["homepage_sponsor", "deal_hub", "category_gallery"]),
+  ctaLabel: z.string().trim().min(2).max(48),
+  destinationUrl: safeExternalUrl,
+  creativeStorageKey: z.string().trim().min(3).max(256),
+  creativeUrl: z.string().trim().regex(/^\/manus-storage\/[A-Za-z0-9._/-]+$/).max(1024),
+  creativeAltText: z.string().trim().min(4).max(240),
+  allowedGeographies: z.string().trim().max(256).nullable().optional(),
+  startsAt: z.number().int().positive(),
+  endsAt: z.number().int().positive(),
+}).superRefine((campaign, context) => {
+  if (campaign.endsAt <= campaign.startsAt) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["endsAt"], message: "A sponsored campaign must end after it starts." });
+  }
+});
+
+const creativeUploadInput = z.object({
+  fileName: z.string().trim().min(1).max(256),
+  contentType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  dataBase64: z.string().min(32).max(7 * 1024 * 1024),
 });
 
 function offerValues(input: z.infer<typeof seasonalOfferInput>, verifiedByUserId: number) {
@@ -337,6 +442,200 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteSeasonalOffer(input.id);
         return { success: true } as const;
+      }),
+  }),
+
+  dealSources: router({
+    listForOperations: staffProcedure.query(() => listDealSourcesForOperations()),
+    create: adminProcedure.input(dealSourceInput).mutation(({ ctx, input }) =>
+      createDealSource({
+        ...input,
+        permittedFields: JSON.stringify(input.permittedFields),
+        sourceTermsUrl: input.sourceTermsUrl ?? null,
+        allowedGeographies: input.allowedGeographies ?? null,
+        createdByUserId: ctx.user.id,
+      }),
+    ),
+    update: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), source: dealSourceInput }))
+      .mutation(async ({ input }) => {
+        const existing = await getDealSourceById(input.id);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Deal source not found." });
+        return updateDealSource(input.id, {
+          ...input.source,
+          permittedFields: JSON.stringify(input.source.permittedFields),
+          sourceTermsUrl: input.source.sourceTermsUrl ?? null,
+          allowedGeographies: input.source.allowedGeographies ?? null,
+        });
+      }),
+  }),
+
+  deals: router({
+    listPublic: publicProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(2).default(2) }).optional())
+      .query(({ input }) => listPublicRotatingDeals(input?.limit ?? 2)),
+    listForOperations: staffProcedure.query(() => listDealCandidatesForOperations()),
+    stage: staffProcedure.input(dealCandidateInput).mutation(async ({ input }) => {
+      const source = await getDealSourceById(input.sourceId);
+      if (!source || source.status !== "approved" || source.enabled === "no" && source.providerKind !== "manual") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "A documented, approved source is required before a deal can be staged." });
+      }
+      const calculatedDiscountPercent = calculateVerifiedDiscountPercent(input.currentPrice, input.previousPrice);
+      return createDealCandidate({
+        ...input,
+        providerProductId: input.providerProductId ?? null,
+        category: input.category ?? null,
+        productImageUrl: input.productImageUrl ?? null,
+        currentPrice: input.currentPrice ?? null,
+        previousPrice: input.previousPrice ?? null,
+        calculatedDiscountPercent,
+        allowedGeographies: input.allowedGeographies ?? null,
+        fetchedAt: new Date(),
+        expiresAt: new Date(input.expiresAt),
+        status: "staged",
+        verifiedAt: null,
+        reviewedByUserId: null,
+        reviewedAt: null,
+        withdrawalReason: null,
+        lastPresentedAt: null,
+      });
+    }),
+    review: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        decision: z.enum(["approved", "published", "rejected", "withdrawn", "expired"]),
+        withdrawalReason: z.string().trim().min(4).max(800).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const candidate = await getDealCandidateById(input.id);
+        if (!candidate) throw new TRPCError({ code: "NOT_FOUND", message: "Deal candidate not found." });
+        const source = await getDealSourceById(candidate.sourceId);
+        if (!source || source.status !== "approved") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This candidate's source is not approved for publication." });
+        }
+        if ((input.decision === "rejected" || input.decision === "withdrawn") && !input.withdrawalReason) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "A rejection or withdrawal reason is required for the operations record." });
+        }
+        if (input.decision === "published" && !canPublishDeal({ ...candidate, status: "published" })) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This candidate lacks the current evidence, terms, safe destination, verification, or future expiry required for publication." });
+        }
+        return updateDealCandidate(input.id, {
+          status: input.decision,
+          reviewedByUserId: ctx.user.id,
+          reviewedAt: new Date(),
+          verifiedAt: input.decision === "published" ? new Date() : candidate.verifiedAt,
+          withdrawalReason: input.decision === "rejected" || input.decision === "withdrawn" ? input.withdrawalReason : null,
+        });
+      }),
+  }),
+
+  advertising: router({
+    listPublic: publicProcedure
+      .input(z.object({ placement: z.enum(["homepage_sponsor", "deal_hub", "category_gallery"]).optional() }).optional())
+      .query(({ input }) => listPublicSponsoredCampaigns(input?.placement)),
+    listForOperations: staffProcedure.query(() => listAdCampaignsForOperations()),
+    listAdvertiserOptions: staffProcedure.query(() => listAdvertiserOptionsForStaff()),
+    listAdvertisers: adminProcedure.query(() => listAdvertisersForOperations()),
+    createAdvertiser: adminProcedure.input(advertiserInput).mutation(({ ctx, input }) =>
+      createAdvertiser({
+        ...input,
+        legalName: input.legalName ?? null,
+        contactName: input.contactName ?? null,
+        contactEmail: input.contactEmail ?? null,
+        contactPhone: input.contactPhone ?? null,
+        websiteUrl: input.websiteUrl ?? null,
+        riskNotes: input.riskNotes ?? null,
+        createdByUserId: ctx.user.id,
+      }),
+    ),
+    updateAdvertiser: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), advertiser: advertiserInput }))
+      .mutation(async ({ input }) => {
+        const advertiser = await getAdvertiserById(input.id);
+        if (!advertiser) throw new TRPCError({ code: "NOT_FOUND", message: "Advertiser not found." });
+        return updateAdvertiser(input.id, {
+          ...input.advertiser,
+          legalName: input.advertiser.legalName ?? null,
+          contactName: input.advertiser.contactName ?? null,
+          contactEmail: input.advertiser.contactEmail ?? null,
+          contactPhone: input.advertiser.contactPhone ?? null,
+          websiteUrl: input.advertiser.websiteUrl ?? null,
+          riskNotes: input.advertiser.riskNotes ?? null,
+        });
+      }),
+    uploadCreative: staffProcedure.input(creativeUploadInput).mutation(async ({ ctx, input }) => {
+      const matches = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(input.dataBase64);
+      if (!matches || matches[1] !== input.contentType) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Use a valid PNG, JPEG, or WEBP creative image." });
+      }
+      const bytes = Buffer.from(matches[2].replace(/\s/g, ""), "base64");
+      if (bytes.length === 0 || bytes.length > 5 * 1024 * 1024) {
+        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Advertising creative must be between 1 byte and 5 MB." });
+      }
+      const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-160) || "advertising-creative";
+      const stored = await storagePut(`ad-creatives/${ctx.user.id}/${safeName}`, bytes, input.contentType);
+      return { key: stored.key, url: stored.url, contentType: input.contentType };
+    }),
+    createCampaign: staffProcedure.input(campaignInput).mutation(async ({ ctx, input }) => {
+      const advertiser = await getAdvertiserById(input.advertiserId);
+      if (!advertiser || advertiser.status === "blocked") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "A valid, non-blocked advertiser is required before a campaign can be submitted." });
+      }
+      return createAdCampaign({
+        ...input,
+        allowedGeographies: input.allowedGeographies ?? null,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+        status: "draft",
+        approvedByUserId: null,
+        approvedAt: null,
+        withdrawalReason: null,
+        createdByUserId: ctx.user.id,
+      });
+    }),
+    submitCampaign: staffProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const campaign = await getAdCampaignById(input.id);
+        if (!campaign || campaign.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "Only an existing draft campaign can be submitted." });
+        return updateAdCampaign(input.id, { status: "submitted" });
+      }),
+    reviewCampaign: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        decision: z.enum(["approved", "scheduled", "live", "paused", "ended", "rejected", "withdrawn"]),
+        withdrawalReason: z.string().trim().min(4).max(800).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const campaign = await getAdCampaignById(input.id);
+        if (!campaign) throw new TRPCError({ code: "NOT_FOUND", message: "Advertising campaign not found." });
+        const advertiser = await getAdvertiserById(campaign.advertiserId);
+        if (!advertiser || advertiser.status === "blocked") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This advertiser is not approved for an active placement." });
+        }
+        if ((input.decision === "rejected" || input.decision === "withdrawn") && !input.withdrawalReason) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "A rejection or withdrawal reason is required for the record." });
+        }
+        if (input.decision === "live" && !canShowSponsoredCampaign({
+          campaignStatus: "live",
+          advertiserStatus: advertiser.status,
+          startsAt: campaign.startsAt,
+          endsAt: campaign.endsAt,
+          title: campaign.title,
+          body: campaign.body,
+          ctaLabel: campaign.ctaLabel,
+          destinationUrl: campaign.destinationUrl,
+          creativeUrl: campaign.creativeUrl,
+          creativeAltText: campaign.creativeAltText,
+        })) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "A live campaign requires an active advertiser, valid dates, disclosure-ready copy, creative alt text, and safe HTTPS links." });
+        }
+        return updateAdCampaign(input.id, {
+          status: input.decision,
+          approvedByUserId: ["approved", "scheduled", "live"].includes(input.decision) ? ctx.user.id : campaign.approvedByUserId,
+          approvedAt: ["approved", "scheduled", "live"].includes(input.decision) ? new Date() : campaign.approvedAt,
+          withdrawalReason: input.decision === "rejected" || input.decision === "withdrawn" ? input.withdrawalReason : null,
+        });
       }),
   }),
 

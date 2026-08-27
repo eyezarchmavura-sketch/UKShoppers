@@ -1,0 +1,1 @@
+ALTER TABLE `deal_sources` ADD `refreshLockExpiresAt` timestamp;

@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -199,3 +199,144 @@ export const seasonalOffers = mysqlTable("seasonal_offers", {
 
 export type SeasonalOffer = typeof seasonalOffers.$inferSelect;
 export type InsertSeasonalOffer = typeof seasonalOffers.$inferInsert;
+
+/**
+ * Configuration metadata for sources that have been approved by the business.
+ * Credentials are intentionally never stored here; they remain in protected
+ * environment settings. A source must still be enabled and reviewed before a
+ * scheduled refresh can use it.
+ */
+export const dealSources = mysqlTable("deal_sources", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 160 }).notNull().unique(),
+  providerName: varchar("providerName", { length: 160 }).notNull(),
+  providerKind: mysqlEnum("providerKind", ["manual", "affiliate_feed", "approved_api"]).default("manual").notNull(),
+  status: mysqlEnum("status", ["draft", "approved", "paused", "disabled"]).default("draft").notNull(),
+  sourceTermsUrl: varchar("sourceTermsUrl", { length: 1024 }),
+  /** JSON field list that the commercial agreement permits the platform to use. */
+  permittedFields: text("permittedFields"),
+  allowedGeographies: varchar("allowedGeographies", { length: 256 }),
+  enabled: mysqlEnum("enabled", ["no", "yes"]).default("no").notNull(),
+  /** Heartbeat task UID, owned and authenticated by the platform scheduler. */
+  scheduleCronTaskUid: varchar("scheduleCronTaskUid", { length: 65 }),
+  lastRefreshStartedAt: timestamp("lastRefreshStartedAt"),
+  lastRefreshSucceededAt: timestamp("lastRefreshSucceededAt"),
+  lastRefreshError: varchar("lastRefreshError", { length: 1024 }),
+  /** Expiring lease prevents concurrent cron retries from creating duplicate runs. */
+  refreshLockExpiresAt: timestamp("refreshLockExpiresAt"),
+  createdByUserId: int("createdByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [index("deal_sources_schedule_task_idx").on(table.scheduleCronTaskUid)]);
+
+export type DealSource = typeof dealSources.$inferSelect;
+export type InsertDealSource = typeof dealSources.$inferInsert;
+
+/**
+ * Auditable executions of an approved deal source refresh. Runs are private
+ * operational evidence; customer pages never infer offer claims from them.
+ */
+export const dealRefreshRuns = mysqlTable("deal_refresh_runs", {
+  id: int("id").autoincrement().primaryKey(),
+  sourceId: int("sourceId").notNull(),
+  status: mysqlEnum("status", ["started", "succeeded", "failed", "skipped"]).notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  candidatesReceived: int("candidatesReceived").default(0).notNull(),
+  candidatesStaged: int("candidatesStaged").default(0).notNull(),
+  errorSummary: varchar("errorSummary", { length: 1024 }),
+}, table => [index("deal_refresh_runs_source_idx").on(table.sourceId, table.startedAt)]);
+
+export type DealRefreshRun = typeof dealRefreshRuns.$inferSelect;
+export type InsertDealRefreshRun = typeof dealRefreshRuns.$inferInsert;
+
+/**
+ * Product-level candidates imported manually or from an approved commercial
+ * source. Nothing in this table is public until a staff reviewer publishes a
+ * still-valid, evidence-bearing record.
+ */
+export const dealCandidates = mysqlTable("deal_candidates", {
+  id: int("id").autoincrement().primaryKey(),
+  sourceId: int("sourceId").notNull(),
+  providerProductId: varchar("providerProductId", { length: 256 }),
+  retailerName: varchar("retailerName", { length: 128 }).notNull(),
+  category: varchar("category", { length: 96 }),
+  productName: varchar("productName", { length: 256 }).notNull(),
+  /** May only be set when the source agreement permits publication of imagery. */
+  productImageUrl: varchar("productImageUrl", { length: 1024 }),
+  productUrl: varchar("productUrl", { length: 1024 }).notNull(),
+  currencyCode: varchar("currencyCode", { length: 8 }).notNull(),
+  currentPrice: varchar("currentPrice", { length: 32 }),
+  previousPrice: varchar("previousPrice", { length: 32 }),
+  /** Server-calculated only when two verified positive prices are present. */
+  calculatedDiscountPercent: int("calculatedDiscountPercent"),
+  sourceUrl: varchar("sourceUrl", { length: 1024 }).notNull(),
+  termsSummary: varchar("termsSummary", { length: 800 }).notNull(),
+  allowedGeographies: varchar("allowedGeographies", { length: 256 }),
+  fetchedAt: timestamp("fetchedAt").notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  status: mysqlEnum("status", ["staged", "approved", "published", "withdrawn", "expired", "rejected"]).default("staged").notNull(),
+  reviewedByUserId: int("reviewedByUserId"),
+  reviewedAt: timestamp("reviewedAt"),
+  withdrawalReason: varchar("withdrawalReason", { length: 800 }),
+  rotationWeight: int("rotationWeight").default(1).notNull(),
+  lastPresentedAt: timestamp("lastPresentedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  index("deal_candidates_public_rotation_idx").on(table.status, table.expiresAt, table.rotationWeight),
+  index("deal_candidates_source_idx").on(table.sourceId, table.providerProductId),
+]);
+
+export type DealCandidate = typeof dealCandidates.$inferSelect;
+export type InsertDealCandidate = typeof dealCandidates.$inferInsert;
+
+/** Partner organisations whose advertising requests have been recorded. */
+export const advertisers = mysqlTable("advertisers", {
+  id: int("id").autoincrement().primaryKey(),
+  brandName: varchar("brandName", { length: 160 }).notNull(),
+  legalName: varchar("legalName", { length: 256 }),
+  contactName: varchar("contactName", { length: 160 }),
+  contactEmail: varchar("contactEmail", { length: 320 }),
+  contactPhone: varchar("contactPhone", { length: 64 }),
+  websiteUrl: varchar("websiteUrl", { length: 1024 }),
+  status: mysqlEnum("status", ["prospect", "active", "blocked"]).default("prospect").notNull(),
+  riskNotes: varchar("riskNotes", { length: 1000 }),
+  createdByUserId: int("createdByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Advertiser = typeof advertisers.$inferSelect;
+export type InsertAdvertiser = typeof advertisers.$inferInsert;
+
+/**
+ * Staff-reviewed sponsored placements. Creative bytes reside in managed S3;
+ * this table holds only the storage reference and public-safe presentation data.
+ */
+export const adCampaigns = mysqlTable("ad_campaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  advertiserId: int("advertiserId").notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  body: varchar("body", { length: 480 }).notNull(),
+  placement: mysqlEnum("placement", ["homepage_sponsor", "deal_hub", "category_gallery"]).notNull(),
+  ctaLabel: varchar("ctaLabel", { length: 48 }).notNull(),
+  destinationUrl: varchar("destinationUrl", { length: 1024 }).notNull(),
+  creativeStorageKey: varchar("creativeStorageKey", { length: 256 }).notNull(),
+  creativeUrl: varchar("creativeUrl", { length: 1024 }).notNull(),
+  creativeAltText: varchar("creativeAltText", { length: 240 }).notNull(),
+  allowedGeographies: varchar("allowedGeographies", { length: 256 }),
+  startsAt: timestamp("startsAt").notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  status: mysqlEnum("status", ["draft", "submitted", "approved", "scheduled", "live", "paused", "ended", "rejected", "withdrawn"]).default("draft").notNull(),
+  approvedByUserId: int("approvedByUserId"),
+  approvedAt: timestamp("approvedAt"),
+  withdrawalReason: varchar("withdrawalReason", { length: 800 }),
+  createdByUserId: int("createdByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [index("ad_campaigns_public_placement_idx").on(table.status, table.placement, table.startsAt, table.endsAt)]);
+
+export type AdCampaign = typeof adCampaigns.$inferSelect;
+export type InsertAdCampaign = typeof adCampaigns.$inferInsert;

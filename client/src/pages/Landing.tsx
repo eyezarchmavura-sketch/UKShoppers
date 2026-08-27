@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import {
   Link2,
@@ -33,6 +33,7 @@ import {
   CalendarDays,
   ChevronDown,
   Menu,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -302,6 +303,57 @@ type PublicSeasonalOffer = {
   status: "upcoming" | "published";
 };
 
+type PublicRotatingDeal = {
+  id: number;
+  retailerName: string;
+  category: string | null;
+  productName: string;
+  productImageUrl: string | null;
+  productUrl: string;
+  currentPrice: string | null;
+  previousPrice: string | null;
+  calculatedDiscountPercent: number | null;
+  termsSummary: string;
+  allowedGeographies: string | null;
+  expiresAt: Date | string;
+  verifiedAt: Date | string;
+};
+
+type PublicSponsoredPlacement = {
+  id: number;
+  advertiserName: string;
+  title: string;
+  body: string;
+  placement: "homepage_sponsor" | "deal_hub" | "category_gallery";
+  ctaLabel: string;
+  destinationUrl: string;
+  creativeUrl: string;
+  creativeAltText: string;
+  allowedGeographies: string | null;
+  endsAt: Date | string;
+};
+
+function ReviewedProductDeals() {
+  const queryInput = useMemo(() => ({ limit: 2 }), []);
+  const dealsQuery = trpc.deals.listPublic.useQuery(queryInput, { retry: false });
+  const deals = (dealsQuery.data ?? []) as PublicRotatingDeal[];
+  if (dealsQuery.isLoading || deals.length === 0) return null;
+
+  return <section className="mt-6 border-t border-[#C9A227]/25 pt-6" aria-labelledby="reviewed-product-deals-title">
+    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Reviewed product picks</p><h3 id="reviewed-product-deals-title" className="mt-1 text-lg font-bold text-[#111418] dark:text-[#F7F4E8]">Current verified items</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">Shown only after source, customer terms and expiry have been checked by our team. Retailer stock and pricing can change.</p></div><Link href="/stores" className="inline-flex items-center gap-1 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">Browse UK stores <ChevronRight className="h-3.5 w-3.5" /></Link></div>
+    <div className="mt-4 grid gap-3 md:grid-cols-2">{deals.map((deal) => { const expiry = new Date(deal.expiresAt); const verified = new Date(deal.verifiedAt); return <article key={deal.id} className="overflow-hidden rounded-2xl border border-[#C9A227]/35 bg-[#FFFDF5] dark:bg-[#272314]"><div className="flex min-h-[152px]"><div className="flex w-28 shrink-0 items-center justify-center bg-[#F0E8D0] p-2 dark:bg-[#171a20]">{deal.productImageUrl ? <img src={deal.productImageUrl} alt="" className="h-28 w-24 rounded-lg object-contain" loading="lazy" /> : <Package className="h-7 w-7 text-[#A67C00]" />}</div><div className="min-w-0 flex-1 p-4"><div className="flex flex-wrap items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A67C00] dark:text-[#E6C764]">{deal.retailerName}</span>{deal.calculatedDiscountPercent ? <span className="rounded-full bg-[#111418] px-2 py-1 text-[10px] font-black text-[#F3E7AF]">{deal.calculatedDiscountPercent}% verified</span> : null}</div><h4 className="mt-1 line-clamp-2 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{deal.productName}</h4>{deal.category ? <p className="mt-1 text-[10px] font-semibold text-muted-foreground">{deal.category}</p> : null}<p className="mt-2 line-clamp-2 text-[10px] leading-4 text-muted-foreground">Terms: {deal.termsSummary}</p><div className="mt-3 flex items-center justify-between gap-2"><span className="text-[10px] font-semibold text-muted-foreground">Checked {Number.isNaN(verified.getTime()) ? "recently" : verified.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · Ends {Number.isNaN(expiry.getTime()) ? "per retailer" : expiry.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span><a href={deal.productUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[11px] font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">View <ExternalLink className="inline h-3 w-3" /></a></div></div></div></article>; })}</div>
+  </section>;
+}
+
+function SponsoredHomepagePlacement() {
+  const queryInput = useMemo(() => ({ placement: "homepage_sponsor" as const }), []);
+  const campaignsQuery = trpc.advertising.listPublic.useQuery(queryInput, { retry: false });
+  const campaigns = (campaignsQuery.data ?? []) as PublicSponsoredPlacement[];
+  if (campaignsQuery.isLoading || campaigns.length === 0) return null;
+
+  return <section className="mt-6 border-t border-border pt-6" aria-labelledby="sponsored-placement-title"><div className="flex items-center gap-2"><Megaphone className="h-4 w-4 text-[#A67C00]" /><p id="sponsored-placement-title" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#A67C00] dark:text-[#E6C764]">Sponsored</p><span className="text-[10px] text-muted-foreground">Partner message — separate from verified retailer deals</span></div><div className="mt-3 grid gap-3 md:grid-cols-3">{campaigns.map((campaign) => <article key={campaign.id} className="overflow-hidden rounded-2xl border border-border bg-background dark:bg-[#171a20]"><img src={campaign.creativeUrl} alt={campaign.creativeAltText} className="h-28 w-full object-cover" loading="lazy" /><div className="p-4"><div className="flex items-center justify-between gap-2"><span className="rounded-full bg-[#111418] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">Sponsored</span><span className="truncate text-[10px] font-semibold text-muted-foreground">{campaign.advertiserName}</span></div><h3 className="mt-2 text-sm font-bold text-[#111418] dark:text-[#F7F4E8]">{campaign.title}</h3><p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{campaign.body}</p><a href={campaign.destinationUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#A67C00] hover:underline dark:text-[#E6C764]">{campaign.ctaLabel} <ExternalLink className="h-3 w-3" /></a></div></article>)}</div></section>;
+}
+
 function SeasonalOffersPanel() {
   const offersQuery = trpc.offers.listPublic.useQuery(undefined, { retry: false });
   const offers = (offersQuery.data ?? []) as PublicSeasonalOffer[];
@@ -386,6 +438,8 @@ function SeasonalOffersPanel() {
           })}
         </div>
       )}
+      <ReviewedProductDeals />
+      <SponsoredHomepagePlacement />
     </section>
   );
 }

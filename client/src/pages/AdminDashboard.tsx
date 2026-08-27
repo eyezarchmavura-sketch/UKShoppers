@@ -1,7 +1,7 @@
 /* UK Shoppers Africa — restricted operations queue for approved staff. */
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { BellRing, Camera, CheckCircle2, Clock, ImagePlus, Package, Search, ShieldAlert, Sparkles, Truck, UserPlus, X } from "lucide-react";
+import { BellRing, Camera, CheckCircle2, Clock, ImagePlus, Megaphone, Package, Search, ShieldAlert, Sparkles, Truck, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -81,6 +81,7 @@ export default function AdminDashboard() {
         {user?.role === "admin" && <Link href="/admin/invitations" className="hidden rounded-full bg-[#D4AF37] px-3 py-2 text-xs font-bold text-[#111418] hover:bg-[#f0cc54] sm:inline-flex"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Invite staff</Link>}
         <Link href="/portal" className="rounded-full bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20">Client portal</Link>
         <Link href="/admin/offers" className="hidden rounded-full bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20 md:inline-flex"><Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#D4AF37]" />Offers</Link>
+        <Link href="/admin/deals-advertising" className="hidden rounded-full bg-white/10 px-3 py-2 text-xs font-semibold hover:bg-white/20 lg:inline-flex"><Megaphone className="mr-1.5 h-3.5 w-3.5 text-[#D4AF37]" />Deals &amp; ads</Link>
         <div className="relative">
           <button type="button" aria-label={screenshotAlerts.length ? `${screenshotAlerts.length} new cart screenshot uploads` : "Cart screenshot notifications"} onClick={() => setAlertsOpen((open) => !open)} className={`relative flex h-10 w-10 items-center justify-center rounded-full transition ${screenshotAlerts.length ? "bg-[#D4AF37] text-[#111418]" : "bg-white/10 text-white hover:bg-white/20"}`}>
             <BellRing className="h-5 w-5" />
