@@ -309,7 +309,7 @@ function SeasonalOffersPanel() {
 
   return (
     <section id="seasonal-offers" aria-labelledby="seasonal-offers-title" className="hero-float rounded-3xl border border-border bg-white p-6 shadow-2xl dark:bg-card dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:p-8">
-      <div className="relative overflow-hidden rounded-2xl bg-[#080d18] text-white">
+      <div className="deal-watch-pulse relative overflow-hidden rounded-2xl bg-[#080d18] text-white">
         <img src={DEALS_WATCH_IMG} alt="Decorative shopping bags and travel route illustration" className="absolute inset-y-0 right-0 h-full w-[47%] object-cover object-right opacity-90" loading="lazy" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,13,24,1)_0%,rgba(8,13,24,0.96)_46%,rgba(8,13,24,0.28)_100%)]" />
         <div className="relative z-10 flex min-h-[252px] max-w-[69%] flex-col justify-center px-5 py-6 sm:min-h-[276px] sm:px-7 sm:py-8">

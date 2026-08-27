@@ -192,6 +192,40 @@
    Cinematic hero animations — Gold / Black / Faint Blue brand
    ============================================================ */
 @media (prefers-reduced-motion: no-preference) {
+  /* A restrained attention cue for the source-safe deals destination. */
+  .deal-watch-pulse {
+    isolation: isolate;
+    transform-origin: center;
+    will-change: transform;
+    animation: dealWatchPulse 5.8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  }
+
+  .deal-watch-pulse::after {
+    content: "";
+    position: absolute;
+    z-index: 20;
+    inset: 0;
+    pointer-events: none;
+    border: 1px solid rgb(212 175 55 / 0.65);
+    border-radius: inherit;
+    box-shadow: inset 0 0 26px rgb(212 175 55 / 0.18);
+    opacity: 0;
+    transform: scale(0.992);
+    animation: dealWatchHalo 5.8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  }
+
+  @keyframes dealWatchPulse {
+    0%, 68%, 100% { transform: scale(1); }
+    78% { transform: scale(1.012); }
+    88% { transform: scale(1); }
+  }
+
+  @keyframes dealWatchHalo {
+    0%, 68%, 100% { opacity: 0; transform: scale(0.992); }
+    78% { opacity: 1; transform: scale(1); }
+    88% { opacity: 0; transform: scale(1.008); }
+  }
+
   /* Slow Ken Burns zoom on the hero backdrop */
   .hero-kenburns {
     animation: heroKenBurns 26s ease-in-out infinite alternate;
