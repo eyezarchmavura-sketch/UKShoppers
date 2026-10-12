@@ -202,6 +202,15 @@ const steps = [
   },
 ];
 
+const operatingSystemModules = [
+  { icon: ClipboardCheck, label: "Request → quote", title: "Every request becomes a clear work item.", body: "Send a product link or cart screenshot, capture the destination, and review a transparent estimate before you commit.", tone: "bg-[#F2F4F7]" },
+  { icon: CreditCard, label: "Approval → payment", title: "Know what is fixed, estimated, or conditional.", body: "Your order record keeps the quote, assumptions, payment state, and updates together instead of scattering them across chats.", tone: "bg-[#FFF8E6]" },
+  { icon: Warehouse, label: "Receive → inspect", title: "The warehouse is part of your customer experience.", body: "Items can be received, checked, photographed, weighed, and prepared for consolidation before international dispatch.", tone: "bg-[#EEF5F2]" },
+  { icon: Truck, label: "Ship → deliver", title: "Follow the hand-offs, not just a final status.", body: "Track the journey from the UK or Europe through destination customs and local delivery with structured milestones.", tone: "bg-[#EEF3FA]" },
+  { icon: ShieldCheck, label: "Support → resolve", title: "Exceptions have a place to go.", body: "Use the portal and Queen assistant for questions, issue reporting, and updates while staff work from a controlled queue.", tone: "bg-[#F6F0FA]" },
+  { icon: Sparkles, label: "Repeat → grow", title: "A better first order creates the next one.", body: "Keep addresses, order history, receipts, referrals, and preferences ready for the next East African shopping trip.", tone: "bg-[#FFF2EE]" },
+];
+
 const destinations = [
   { code: "TZ", name: "Tanzania (Dar es Salaam / Arusha)", flag: "🇹🇿", currency: "TZS", perKg: 28000, handling: 12000, days: "5–8 Days" },
   { code: "KE", name: "Kenya (Nairobi / Mombasa)", flag: "🇰🇪", currency: "KES", perKg: 1450, handling: 600, days: "4–7 Days" },
@@ -488,6 +497,7 @@ export default function Landing() {
 
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
             <a href="#how-it-works" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.howItWorks", lang)}</a>
+            <a href="#system" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">The system</a>
             <a href="#seasonal-offers" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">Seasonal offers</a>
             <Link href="/stores" className="hover:text-[#111418] dark:hover:text-[#D4AF37] transition-colors">{tr("nav.stores", lang)}</Link>
             <Link href="/admin" className="text-[#111418] dark:text-[#F3E7AF] font-semibold hover:underline dark:hover:text-[#D4AF37]">{tr("nav.staffAdmin", lang)}</Link>
@@ -828,6 +838,29 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ============ OPERATING SYSTEM LAYER ============ */}
+      <section id="system" className="relative overflow-hidden bg-[#111418] py-24 text-white sm:py-28">
+        <div className="pointer-events-none absolute -right-32 top-0 h-96 w-96 rounded-full bg-[#D4AF37]/10 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-48 -left-24 h-[28rem] w-[28rem] rounded-full bg-[#5E8DBB]/10 blur-3xl" aria-hidden="true" />
+        <div className="container relative">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div className="max-w-xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/35 bg-[#D4AF37]/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#F3E7AF]"><Sparkles className="h-3.5 w-3.5" /> More than a website</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-5xl">One system for the journey from <span className="font-display italic text-[#D4AF37]">want</span> to doorstep.</h2>
+              <p className="mt-5 text-sm leading-7 text-white/70 sm:text-base">UK Shoppers Africa is being built as an operating layer for East Africans buying from the UK and Europe—not a catalogue that ends at checkout. Customers see their own record; staff see the next action; every hand-off leaves evidence.</p>
+              <div className="mt-8 flex flex-wrap gap-3 text-xs font-semibold text-white/80">
+                <span className="rounded-full border border-white/15 px-3 py-2">Assisted shopping</span><span className="rounded-full border border-white/15 px-3 py-2">Parcel forwarding</span><span className="rounded-full border border-white/15 px-3 py-2">Consolidation-ready</span><span className="rounded-full border border-white/15 px-3 py-2">East Africa destinations</span>
+              </div>
+              <div className="mt-9 flex flex-wrap gap-3"><Link href="/add" className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37] px-5 py-3 text-sm font-bold text-[#111418] hover:bg-[#F3E7AF]">Start a request <ArrowRight className="h-4 w-4" /></Link><Link href="/admin" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-bold text-white hover:border-[#D4AF37] hover:text-[#F3E7AF]">See staff workspace <ArrowRight className="h-4 w-4" /></Link></div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {operatingSystemModules.map((module, index) => <article key={module.label} data-reveal-delay={String((index % 2) + 1)} className={`reveal-up rounded-3xl border border-white/10 p-5 ${module.tone} text-[#111418] shadow-lg`}><div className="flex items-start justify-between gap-4"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#111418] text-[#D4AF37]"><module.icon className="h-5 w-5" aria-hidden="true" /></div><span className="rounded-full bg-white/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#6F5A23]">{module.label}</span></div><h3 className="mt-5 text-lg font-bold leading-tight">{module.title}</h3><p className="mt-2 text-xs leading-5 text-[#4B5158]">{module.body}</p></article>)}
+            </div>
+          </div>
+          <div className="mt-14 grid gap-3 border-t border-white/10 pt-7 text-xs text-white/65 sm:grid-cols-4"><div><span className="block text-2xl font-bold text-[#D4AF37]">01</span>Customer request record</div><div><span className="block text-2xl font-bold text-[#D4AF37]">02</span>Transparent quote and approval</div><div><span className="block text-2xl font-bold text-[#D4AF37]">03</span>Warehouse and shipment evidence</div><div><span className="block text-2xl font-bold text-[#D4AF37]">04</span>Support, delivery, and repeat order</div></div>
         </div>
       </section>
 

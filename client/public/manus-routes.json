@@ -1,0 +1,24 @@
+{
+  "routes": [
+    { "path": "/", "title": "UK Shoppers Africa" },
+    { "path": "/stores", "title": "UK Stores" },
+    { "path": "/portal", "title": "Customer Portal" },
+    { "path": "/add", "title": "Start a Request" },
+    { "path": "/checkout", "title": "Checkout" },
+    { "path": "/orders", "title": "Orders" },
+    { "path": "/tracking", "title": "Tracking" },
+    { "path": "/address", "title": "Warehouse Address" },
+    { "path": "/wallet", "title": "Wallet" },
+    { "path": "/payments", "title": "Payments" },
+    { "path": "/success", "title": "Payment Success" },
+    { "path": "/referrals", "title": "Referrals" },
+    { "path": "/settings", "title": "Settings" },
+    { "path": "/admin", "title": "Operations" },
+    { "path": "/admin/offers", "title": "Offers" },
+    { "path": "/admin/deals-advertising", "title": "Deals and Advertising" },
+    { "path": "/admin/invitations", "title": "Staff Invitations" },
+    { "path": "/privacy", "title": "Privacy" },
+    { "path": "/terms", "title": "Terms" },
+    { "path": "/returns", "title": "Returns" }
+  ]
+}
